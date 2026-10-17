@@ -269,9 +269,11 @@
       document.getElementById(pageId).classList.add("active");
 
       // Highlight selected navigation button
-      document.getElementById(pageId + "Button").classList.add("active");
+      const navButton = document.getElementById(pageId + "Button");
 
-    }
+      if (navButton) {
+      navButton.classList.add("active");
+      }
 
   </script>
 
