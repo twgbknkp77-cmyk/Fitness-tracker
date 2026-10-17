@@ -51,53 +51,82 @@
       </div>
 
       <!-- BODYWEIGHT -->
-      <div class="card">
+<div class="card bodyweight-card">
 
-        <!-- BODYWEIGHT -->
-<div class="card">
+  <!-- HEADING -->
+  <h2>
+    Bodyweight —
+    <span id="currentWeight">-- kg</span>
+  </h2>
 
-  <h2>Bodyweight</h2>
-
-  <h1 id="currentWeight">-- kg</h1>
-
+  <!-- GRAPH TIME FILTERS -->
   <div class="weight-filters">
-    <button data-days="7">7D</button>
-    <button data-days="30" class="active">30D</button>
-    <button data-days="90">3M</button>
-    <button data-days="180">6M</button>
-    <button data-days="365">1Y</button>
+    <button type="button" data-days="7">7D</button>
+    <button type="button" data-days="30" class="active">30D</button>
+    <button type="button" data-days="90">3M</button>
+    <button type="button" data-days="180">6M</button>
+    <button type="button" data-days="365">1Y</button>
   </div>
 
-  <div id="weightChart">
-    <p>No weight measurements recorded yet.</p>
-  </div>
+  <!-- BODYWEIGHT GRAPH -->
+  <div id="weightChart"></div>
 
-  <form id="weightForm">
-    <label for="weightDate">Date</label>
-    <input type="date" id="weightDate" required>
-
-    <label for="weightInput">Weight (kg)</label>
-    <input
-      type="number"
-      id="weightInput"
-      min="20"
-      max="500"
-      step="0.1"
-      required
-    >
-
-    <button type="submit" class="primary-button">
-      Save Weight
-    </button>
-  </form>
+  <!-- ADD WEIGHT BUTTON -->
+  <button
+    type="button"
+    id="openWeightModal"
+    class="primary-button"
+  >
+    + Add Weight
+  </button>
 
   <p id="weightMessage" aria-live="polite"></p>
 
 </div>
 
-      </div>
+<!-- ADD WEIGHT POP-UP -->
+<dialog id="weightModal" aria-labelledby="weightModalTitle">
 
-    </section>
+  <h2 id="weightModalTitle">Add Weight</h2>
+
+  <form id="weightForm">
+
+    <!-- DATE -->
+    <label for="weightDate">Date</label>
+    <input
+      type="date"
+      id="weightDate"
+      required
+    >
+
+    <!-- WEIGHT SELECTOR -->
+    <label for="weightWheel">Weight (kg)</label>
+    <select id="weightWheel" required>
+      <!-- Weight options added by JavaScript -->
+    </select>
+
+    <!-- ACTION BUTTONS -->
+    <div class="modal-actions">
+
+      <button
+        type="button"
+        id="cancelWeightModal"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="submit"
+        class="primary-button"
+      >
+        Save Weight
+      </button>
+
+    </div>
+
+  </form>
+
+</dialog>
 
 
     <!-- WORKOUTS PAGE -->
