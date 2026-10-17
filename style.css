@@ -98,3 +98,106 @@ nav button.active {
   color: var(--orange);
   font-weight: bold;
 }
+/* BODYWEIGHT TRACKER */
+
+/* Latest weight */
+#currentWeight {
+  font-size: 36px;
+  font-weight: bold;
+  margin: 12px 0 20px;
+}
+
+/* Graph time filters */
+.weight-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.weight-filters button {
+  flex: 1;
+  background: #333;
+  color: #b0b0b0;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.weight-filters button.active {
+  background: #ff8c00;
+  color: #121212;
+  font-weight: bold;
+}
+
+/* Graph container */
+#weightChart {
+  width: 100%;
+  min-height: 180px;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 24px;
+}
+
+#weightChart p {
+  text-align: center;
+  padding: 40px 10px;
+  font-size: 14px;
+}
+
+/* Weight entry form */
+#weightForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#weightForm label {
+  color: #b0b0b0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#weightForm input {
+  width: 100%;
+  min-width: 0;
+  background: #292929;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+#weightForm input:focus {
+  outline: 2px solid #ff8c00;
+  border-color: #ff8c00;
+}
+
+#weightForm .primary-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Save confirmation */
+#weightMessage {
+  font-size: 14px;
+  color: #ff8c00;
+  margin-top: 12px;
+}
+
+/* Small phone screens */
+@media (max-width: 360px) {
+  .weight-filters {
+    gap: 4px;
+  }
+
+  .weight-filters button {
+    font-size: 12px;
+    padding: 10px 2px;
+  }
+}
