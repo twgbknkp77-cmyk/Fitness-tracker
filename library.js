@@ -122,6 +122,7 @@ function renderLibrary() {
 }
 
 // DISPLAY ACTIVE PROGRAMME ON WORKOUTS PAGE
+// DISPLAY ACTIVE PROGRAMME ON WORKOUTS PAGE
 function renderActiveWorkout() {
   const container = document.getElementById("activeWorkout");
 
@@ -130,16 +131,85 @@ function renderActiveWorkout() {
   const programmes = getProgrammes();
   const activeId = getActiveProgrammeId();
 
-  const activeProgramme = programmes.find(
-    programme => programme.id === activeId
+  const programme = programmes.find(
+    item => item.id === activeId
   );
 
-  if (!activeProgramme) {
-    container.textContent = "No active programme. Activate one in your Library.";
+  container.innerHTML = "";
+
+  if (!programme) {
+    container.textContent =
+      "No active programme. Activate one in your Library.";
     return;
   }
 
-  container.textContent = `Active Programme: ${activeProgramme.name}`;
+  // PROGRAMME HEADING
+  const heading = document.createElement("h3");
+  heading.textContent = programme.name;
+
+  container.appendChild(heading);
+
+  // NO WORKOUTS YET
+  if (!programme.days || programme.days.length === 0) {
+    const message = document.createElement("p");
+    message.textContent =
+      "This programme has no workouts yet. Add them in your Library.";
+
+    container.appendChild(message);
+    return;
+  }
+
+  // DISPLAY EACH WORKOUT
+  programme.days.forEach((workout, index) => {
+    const workoutCard = document.createElement("div");
+    workoutCard.className = "card";
+
+    const workoutTitle = document.createElement("h3");
+    workoutTitle.textContent =
+      `${index + 1}. ${workout.name}`;
+
+    workoutCard.appendChild(workoutTitle);
+
+    // DISPLAY EXERCISES
+    if (!workout.exercises || workout.exercises.length === 0) {
+      const emptyMessage = document.createElement("p");
+      emptyMessage.textContent = "No exercises added yet.";
+
+      workoutCard.appendChild(emptyMessage);
+    } else {
+      workout.exercises.forEach(exercise => {
+        const exerciseRow = document.createElement("div");
+        exerciseRow.className = "exercise-row";
+
+        const exerciseName = document.createElement("strong");
+        exerciseName.textContent = exercise.name;
+
+        const exerciseDetails = document.createElement("p");
+        exerciseDetails.textContent =
+          `${exercise.sets} sets × ${exercise.reps} reps` +
+          (exercise.weight
+            ? ` • ${exercise.weight} kg`
+            : "");
+
+        exerciseRow.append(exerciseName, exerciseDetails);
+        workoutCard.appendChild(exerciseRow);
+      });
+    }
+
+    // START WORKOUT BUTTON (COMING NEXT)
+    const startButton = document.createElement("button");
+    startButton.className = "primary-button";
+    startButton.textContent = "Start Workout";
+
+    startButton.addEventListener("click", () => {
+      alert(
+        `Workout tracking for "${workout.name}" is coming next!`
+      );
+    });
+
+    workoutCard.appendChild(startButton);
+    container.appendChild(workoutCard);
+  });
 }
 
 // CONNECT CREATE BUTTON
