@@ -196,16 +196,14 @@ function renderActiveWorkout() {
       });
     }
 
-    // START WORKOUT BUTTON (COMING NEXT)
+    // START WORKOUT BUTTON
     const startButton = document.createElement("button");
     startButton.className = "primary-button";
     startButton.textContent = "Start Workout";
 
     startButton.addEventListener("click", () => {
-      alert(
-        `Workout tracking for "${workout.name}" is coming next!`
-      );
-    });
+    startWorkout(workout.id);
+});
 
     workoutCard.appendChild(startButton);
     container.appendChild(workoutCard);
