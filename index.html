@@ -1,2 +1,92 @@
-<h1>My Fitness Tracker</h1>
-<p>Welcome to my fitness app!</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitness Tracker</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      padding: 24px;
+      padding-bottom: 100px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      background: #1e1e1e;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    nav button {
+      flex: 1;
+      padding: 20px;
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 16px;
+    }
+
+    nav button.active {
+      color: #4CAF50;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <section id="dashboard" class="page active">
+      <h1>Dashboard</h1>
+      <p>Welcome to your fitness tracker.</p>
+    </section>
+
+    <section id="workouts" class="page">
+      <h1>Workouts</h1>
+      <p>Your workout programmes will appear here.</p>
+    </section>
+  </main>
+
+  <nav>
+    <button class="active" onclick="showPage('dashboard', this)">
+      🏠 Dashboard
+    </button>
+
+    <button onclick="showPage('workouts', this)">
+      💪 Workouts
+    </button>
+  </nav>
+
+  <script>
+    function showPage(pageId, button) {
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+
+      document.querySelectorAll('nav button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      document.getElementById(pageId).classList.add('active');
+      button.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
