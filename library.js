@@ -95,7 +95,13 @@ function renderLibrary() {
     const status = document.createElement("p");
     status.textContent =
       programme.id === activeId ? "🟠 Active Programme" : "Saved Programme";
+// EDIT PROGRAMME BUTTON
+    const editButton = document.createElement("button");
+    editButton.textContent = "Edit";
 
+    editButton.addEventListener("click", () => {
+    openProgrammeEditor(programme.id);
+    });
     const activateButton = document.createElement("button");
     activateButton.textContent =
       programme.id === activeId ? "Active" : "Activate";
@@ -110,7 +116,7 @@ function renderLibrary() {
       deleteProgramme(programme.id);
     });
 
-    card.append(title, status, activateButton, deleteButton);
+    card.append(title, status, editButton, activateButton, deleteButton);
     container.appendChild(card);
   });
 }
@@ -143,3 +149,26 @@ document.getElementById("createProgramme")
 // INITIALISE
 renderLibrary();
 renderActiveWorkout();
+
+// OPEN PROGRAMME EDITOR
+function openProgrammeEditor(id) {
+  const programme = getProgrammes().find(
+    programme => programme.id === id
+  );
+
+  if (!programme) return;
+
+  // Remember which programme is being edited
+  window.editingProgrammeId = id;
+
+  // Display its name
+  document.getElementById("editorProgrammeName").value = programme.name;
+
+  // Open the editor page
+  showPage("programmeEditor");
+
+  // Display its workouts once the editor is connected
+  if (typeof renderProgrammeEditor === "function") {
+    renderProgrammeEditor();
+  }
+}
