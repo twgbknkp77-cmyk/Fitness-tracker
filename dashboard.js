@@ -4,11 +4,17 @@ let selectedDays = 30;
 
 const weightForm = document.getElementById("weightForm");
 const weightDate = document.getElementById("weightDate");
-const weightInput = document.getElementById("weightInput");
+const weightWheel = document.getElementById("weightWheel");
+const weightModal = document.getElementById("weightModal");
 const weightMessage = document.getElementById("weightMessage");
 
+const openWeightModal = document.getElementById("openWeightModal");
+const cancelWeightModal = document.getElementById("cancelWeightModal");
+
+// TODAY'S DATE
 function todayString() {
   const date = new Date();
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -20,23 +26,64 @@ function dateToNumber(date) {
   return new Date(`${date}T12:00:00`).getTime();
 }
 
-// Set today's date automatically.
-weightDate.value = todayString();
-weightDate.max = todayString();
+// CREATE WEIGHT OPTIONS
+function populateWeightWheel() {
+  const weights = FitnessStorage.getWeights()
+    .filter(entry => entry && Number.isFinite(entry.weight))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-// Save a weight measurement.
+  const latestWeight = weights.length
+    ? weights[weights.length - 1].weight
+    : 87;
+
+  weightWheel.innerHTML = "";
+
+  for (let value = 200; value <= 3000; value++) {
+    const weight = (value / 10).toFixed(1);
+
+    const option = document.createElement("option");
+    option.value = weight;
+    option.textContent = `${weight} kg`;
+
+    weightWheel.appendChild(option);
+  }
+
+  weightWheel.value = Math.min(
+    300,
+    Math.max(20, latestWeight)
+  ).toFixed(1);
+}
+
+// OPEN POP-UP
+openWeightModal.addEventListener("click", function() {
+  weightDate.value = todayString();
+  weightDate.max = todayString();
+
+  populateWeightWheel();
+
+  weightMessage.textContent = "";
+  weightModal.showModal();
+});
+
+// CLOSE POP-UP
+cancelWeightModal.addEventListener("click", function() {
+  weightModal.close();
+});
+
+// SAVE WEIGHT
 weightForm.addEventListener("submit", function(event) {
   event.preventDefault();
 
   const date = weightDate.value;
-  const weight = Number(weightInput.value);
+  const weight = Number(weightWheel.value);
 
   if (
     !date ||
+    !Number.isFinite(dateToNumber(date)) ||
+    dateToNumber(date) > dateToNumber(todayString()) ||
     !Number.isFinite(weight) ||
     weight < 20 ||
-    weight > 500 ||
-    dateToNumber(date) > dateToNumber(todayString())
+    weight > 300
   ) {
     weightMessage.textContent = "Please enter a valid date and weight.";
     return;
@@ -44,7 +91,6 @@ weightForm.addEventListener("submit", function(event) {
 
   const weights = FitnessStorage.getWeights();
 
-  // Replace an existing measurement for the same date.
   const updated = weights.filter(entry => entry.date !== date);
 
   updated.push({ date, weight });
@@ -52,15 +98,17 @@ weightForm.addEventListener("submit", function(event) {
 
   try {
     FitnessStorage.saveWeights(updated);
+
+    weightModal.close();
     weightMessage.textContent = "Weight saved successfully!";
-    weightInput.value = "";
+
     updateDashboard();
   } catch (error) {
     weightMessage.textContent = "Unable to save your measurement.";
   }
 });
 
-// Graph time filters.
+// TIME FILTER BUTTONS
 document.querySelectorAll(".weight-filters button").forEach(button => {
   button.addEventListener("click", function() {
     selectedDays = Number(button.dataset.days);
@@ -74,6 +122,7 @@ document.querySelectorAll(".weight-filters button").forEach(button => {
   });
 });
 
+// UPDATE LATEST WEIGHT
 function updateDashboard() {
   const weights = FitnessStorage.getWeights()
     .filter(entry =>
@@ -86,8 +135,8 @@ function updateDashboard() {
   const display = document.getElementById("currentWeight");
 
   if (weights.length > 0) {
-    const latest = weights[weights.length - 1];
-    display.textContent = `${latest.weight.toFixed(1)} kg`;
+    display.textContent =
+      `${weights[weights.length - 1].weight.toFixed(1)} kg`;
   } else {
     display.textContent = "-- kg";
   }
@@ -95,6 +144,7 @@ function updateDashboard() {
   drawWeightChart();
 }
 
+// DRAW GRAPH
 function drawWeightChart() {
   const container = document.getElementById("weightChart");
 
@@ -111,16 +161,12 @@ function drawWeightChart() {
     )
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  if (weights.length === 0) {
-    container.innerHTML =
-      "<p>No weight measurements for this period yet.</p>";
-    return;
-  }
-
   const values = weights.map(entry => entry.weight);
 
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
+  // Use a default graph range when there is no data.
+  const minimum = values.length ? Math.min(...values) : 80;
+  const maximum = values.length ? Math.max(...values) : 90;
+
   const padding = Math.max(1, (maximum - minimum) * 0.2);
 
   const minY = minimum - padding;
@@ -133,7 +179,9 @@ function drawWeightChart() {
 
   const xPosition = date => {
     const span = Math.max(1, today - start);
-    return left + ((dateToNumber(date) - start) / span) * (right - left);
+
+    return left +
+      ((dateToNumber(date) - start) / span) * (right - left);
   };
 
   const yPosition = value => {
@@ -154,7 +202,7 @@ function drawWeightChart() {
 
   let svg = "";
 
-  // Horizontal grid lines and weight labels.
+  // GRID LINES
   for (let i = 0; i <= 4; i++) {
     const y = top + i * (bottom - top) / 4;
     const value = maxY - i * (maxY - minY) / 4;
@@ -173,19 +221,21 @@ function drawWeightChart() {
     `;
   }
 
-  // Orange trend line.
-  svg += `
-    <path
-      d="${path}"
-      fill="none"
-      stroke="#ff8c00"
-      stroke-width="3"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-  `;
+  // ORANGE GRAPH LINE
+  if (points.length > 0) {
+    svg += `
+      <path
+        d="${path}"
+        fill="none"
+        stroke="#ff8c00"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    `;
+  }
 
-  // Individual measurements.
+  // MEASUREMENT POINTS
   points.forEach(point => {
     svg += `
       <circle
@@ -199,14 +249,17 @@ function drawWeightChart() {
     `;
   });
 
+  // DATE LABELS
   svg += `
     <text x="${left}" y="180" fill="#b0b0b0" font-size="11">
       Start
     </text>
-    <text x="${right}" y="180"
+    <text
+      x="${right}" y="180"
       text-anchor="end"
       fill="#b0b0b0"
-      font-size="11">
+      font-size="11"
+    >
       Today
     </text>
   `;
@@ -216,12 +269,15 @@ function drawWeightChart() {
       viewBox="0 0 320 190"
       style="width:100%;height:auto;display:block;"
       role="img"
-      aria-label="Bodyweight trend over the selected period"
+      aria-label="Bodyweight graph"
     >
       ${svg}
     </svg>
+    ${weights.length === 0
+      ? '<p style="text-align:center;font-size:13px;">No measurements yet</p>'
+      : ''}
   `;
 }
 
-// Display saved measurements when the app opens.
+// INITIALISE DASHBOARD
 updateDashboard();
