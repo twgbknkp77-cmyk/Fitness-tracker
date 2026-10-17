@@ -1,89 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="theme-color" content="#121212">
+
   <title>Fitness Tracker</title>
-  <link rel="stylesheet" href="style.css">
 
-  <style>
-    body {
-      margin: 0;
-      background: #121212;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
-
-    main {
-      padding: 24px;
-      padding-bottom: 100px;
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      background: #1e1e1e;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    nav button {
-      flex: 1;
-      padding: 20px;
-      background: none;
-      border: none;
-      color: #aaa;
-      font-size: 16px;
-    }
-
-  </style>
+  <!-- MAIN STYLESHEET -->
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 
 <body>
 
   <main>
+
+    <!-- DASHBOARD PAGE -->
     <section id="dashboard" class="page active">
+
       <h1>Dashboard</h1>
-      <p>Welcome to your fitness tracker.</p>
+
+      <!-- NEXT WORKOUT -->
+      <div class="card">
+        <h2>Next Up</h2>
+
+        <p>No workout scheduled</p>
+
+        <button
+          class="primary-button"
+          onclick="showPage('workouts')">
+          View Workouts →
+        </button>
+      </div>
+
+      <!-- WEEKLY PROGRESS -->
+      <div class="card">
+
+        <h2>Workouts This Week</h2>
+
+        <h1>0 / 0</h1>
+
+        <p>Completed workouts this week</p>
+
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+
+      </div>
+
+      <!-- BODYWEIGHT -->
+      <div class="card">
+
+        <h2>Bodyweight</h2>
+
+        <h1>-- kg</h1>
+
+        <p>Your bodyweight graph will appear here.</p>
+
+        <button class="primary-button" disabled>
+          Add Weight — Coming Soon
+        </button>
+
+      </div>
+
     </section>
 
+
+    <!-- WORKOUTS PAGE -->
     <section id="workouts" class="page">
+
       <h1>Workouts</h1>
-      <p>Your workout programmes will appear here.</p>
+
+      <div class="card">
+
+        <h2>Your Programmes</h2>
+
+        <p>
+          Your workout programmes will appear here.
+        </p>
+
+      </div>
+
     </section>
+
   </main>
 
+
+  <!-- BOTTOM NAVIGATION -->
   <nav>
-    <button class="active" onclick="showPage('dashboard', this)">
+
+    <button
+      id="dashboardButton"
+      class="active"
+      onclick="showPage('dashboard')">
       🏠 Dashboard
     </button>
 
-    <button onclick="showPage('workouts', this)">
+    <button
+      id="workoutsButton"
+      onclick="showPage('workouts')">
       💪 Workouts
     </button>
+
   </nav>
 
+
+  <!-- NAVIGATION FUNCTION -->
   <script>
-    function showPage(pageId, button) {
-      document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
+
+    function showPage(pageId) {
+
+      // Hide both pages
+      document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
       });
 
-      document.querySelectorAll('nav button').forEach(btn => {
-        btn.classList.remove('active');
+      // Remove active button highlights
+      document.querySelectorAll("nav button").forEach(button => {
+        button.classList.remove("active");
       });
 
-      document.getElementById(pageId).classList.add('active');
-      button.classList.add('active');
+      // Show selected page
+      document.getElementById(pageId).classList.add("active");
+
+      // Highlight selected navigation button
+      document.getElementById(pageId + "Button").classList.add("active");
+
     }
+
   </script>
 
 </body>
