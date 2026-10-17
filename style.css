@@ -1,1 +1,100 @@
+/* FITNESS TRACKER — COLOUR THEME */
 
+:root {
+  --background: #121212;
+  --card: #1e1e1e;
+  --orange: #ff8c00;
+  --white: #ffffff;
+  --grey: #b0b0b0;
+}
+
+/* MAIN APP */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--white);
+  font-family: Arial, sans-serif;
+}
+
+main {
+  max-width: 650px;
+  margin: auto;
+  padding: 24px 18px 110px;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+p {
+  color: var(--grey);
+}
+
+/* DASHBOARD CARDS */
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+/* BUTTONS */
+
+.primary-button {
+  background: var(--orange);
+  color: var(--background);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* PAGES */
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+/* BOTTOM NAVIGATION */
+
+nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  background: var(--card);
+  border-top: 1px solid #333;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+nav button {
+  flex: 1;
+  min-height: 62px;
+  background: none;
+  border: none;
+  color: var(--grey);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+nav button.active {
+  color: var(--orange);
+  font-weight: bold;
+}
