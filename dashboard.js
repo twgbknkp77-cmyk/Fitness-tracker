@@ -4,7 +4,7 @@ let selectedDays = 30;
 
 const weightForm = document.getElementById("weightForm");
 const weightDate = document.getElementById("weightDate");
-const weightWheel = document.getElementById("weightWheel");
+const weightInput = document.getElementById("weightInput");
 const weightModal = document.getElementById("weightModal");
 const weightMessage = document.getElementById("weightMessage");
 
@@ -26,40 +26,18 @@ function dateToNumber(date) {
   return new Date(`${date}T12:00:00`).getTime();
 }
 
-// CREATE WEIGHT OPTIONS
-function populateWeightWheel() {
-  const weights = FitnessStorage.getWeights()
-    .filter(entry => entry && Number.isFinite(entry.weight))
-    .sort((a, b) => a.date.localeCompare(b.date));
-
-  const latestWeight = weights.length
-    ? weights[weights.length - 1].weight
-    : 87;
-
-  weightWheel.innerHTML = "";
-
-  for (let value = 200; value <= 3000; value++) {
-    const weight = (value / 10).toFixed(1);
-
-    const option = document.createElement("option");
-    option.value = weight;
-    option.textContent = `${weight} kg`;
-
-    weightWheel.appendChild(option);
-  }
-
-  weightWheel.value = Math.min(
-    300,
-    Math.max(20, latestWeight)
-  ).toFixed(1);
-}
-
 // OPEN POP-UP
 openWeightModal.addEventListener("click", function() {
   weightDate.value = todayString();
   weightDate.max = todayString();
 
-  populateWeightWheel();
+  const savedWeights = FitnessStorage.getWeights()
+  .filter(entry => entry && Number.isFinite(entry.weight))
+  .sort((a, b) => a.date.localeCompare(b.date));
+
+weightInput.value = savedWeights.length
+  ? savedWeights[savedWeights.length - 1].weight.toFixed(1)
+  : "";
 
   weightMessage.textContent = "";
   weightModal.showModal();
