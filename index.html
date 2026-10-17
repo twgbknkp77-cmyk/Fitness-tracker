@@ -157,7 +157,18 @@
       <!-- LIBRARY PAGE -->
 <section id="library" class="page">
 
-  <h1>Workout Library</h1>
+  <div class="library-header">
+    <h1>Workout Library</h1>
+
+    <button
+      type="button"
+      class="history-button"
+      onclick="showPage('workoutHistory')"
+      aria-label="View workout history"
+    >
+      🕘 History
+    </button>
+  </div>
 
   <div class="card">
     <h2>My Programmes</h2>
@@ -266,12 +277,35 @@
   </div>
 
 </section>
+<!-- END WORKOUT SESSION -->
+
+<!-- WORKOUT HISTORY PAGE -->
+<section id="workoutHistory" class="page">
+
+  <h1>Workout History</h1>
+
+  <button
+    type="button"
+    onclick="showPage('library')"
+  >
+    ← Back to Library
+  </button>
+
+  <div class="card">
+    <h2>Completed Workouts</h2>
+    <p>Your previous training sessions are saved here.</p>
+  </div>
+
+  <div id="workoutHistoryList">
+    <!-- Saved workouts will appear here -->
+  </div>
+
+</section>
 
 </main>
 
-
-  <!-- BOTTOM NAVIGATION -->
-  <nav>
+<!-- BOTTOM NAVIGATION -->
+<nav>
 
     <button
       id="dashboardButton"
