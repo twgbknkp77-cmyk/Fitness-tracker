@@ -53,7 +53,7 @@ weightForm.addEventListener("submit", function(event) {
   event.preventDefault();
 
   const date = weightDate.value;
-  const weight = Number(weightWheel.value);
+  const weight = Number(weightInput.value);
 
   if (
     !date ||
