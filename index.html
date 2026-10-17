@@ -255,25 +255,31 @@
 
     function showPage(pageId) {
 
-      // Hide both pages
-      document.querySelectorAll(".page").forEach(page => {
-        page.classList.remove("active");
-      });
+  // Hide all pages
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
 
-      // Remove active button highlights
-      document.querySelectorAll("nav button").forEach(button => {
-        button.classList.remove("active");
-      });
+  // Remove navigation highlights
+  document.querySelectorAll("nav button").forEach(button => {
+    button.classList.remove("active");
+  });
 
-      // Show selected page
-      document.getElementById(pageId).classList.add("active");
+  // Show selected page
+  const selectedPage = document.getElementById(pageId);
 
-      // Highlight selected navigation button
-      const navButton = document.getElementById(pageId + "Button");
+  if (selectedPage) {
+    selectedPage.classList.add("active");
+  }
 
-      if (navButton) {
-      navButton.classList.add("active");
-      }
+  // Highlight navigation button, if one exists
+  const navButton = document.getElementById(pageId + "Button");
+
+  if (navButton) {
+    navButton.classList.add("active");
+  }
+
+}
 
   </script>
 
