@@ -117,7 +117,11 @@ function renderLibrary() {
   });
 }
 
-// DISPLAY ACTIVE PROGRAMME ON WORKOUTS PAGE
+// WORKOUTS PAGE VIEW STATE
+let viewedWorkoutWeek = null;
+let viewedWorkoutProgrammeId = null;
+let expandedWorkoutId = null;
+
 // DISPLAY ACTIVE PROGRAMME ON WORKOUTS PAGE
 function renderActiveWorkout() {
   const container = document.getElementById("activeWorkout");
@@ -139,23 +143,93 @@ function renderActiveWorkout() {
     return;
   }
 
+  // Reset the view when a different programme is activated.
+  if (viewedWorkoutProgrammeId !== programme.id) {
+    viewedWorkoutProgrammeId = programme.id;
+    viewedWorkoutWeek = programme.currentWeek || 1;
+    expandedWorkoutId = null;
+  }
+
+  // Keep the viewed week within the programme's limits.
+  if (
+    !viewedWorkoutWeek ||
+    viewedWorkoutWeek < 1 ||
+    viewedWorkoutWeek > programme.durationWeeks
+  ) {
+    viewedWorkoutWeek = programme.currentWeek || 1;
+  }
+
+  const selectedWeek =
+    programme.weeks?.[viewedWorkoutWeek - 1];
+
+  const selectedDays =
+    selectedWeek?.trainingDays || [];
+
   // PROGRAMME HEADING
   const heading = document.createElement("h3");
   heading.textContent = programme.name;
 
   container.appendChild(heading);
 
-  // NO WORKOUTS YET
-  if (!programme.days || programme.days.length === 0) {
+  // WEEK NAVIGATION
+  const weekNavigation = document.createElement("div");
+  weekNavigation.className = "week-navigation";
+
+  const previousWeekButton = document.createElement("button");
+  previousWeekButton.textContent = "← Previous";
+  previousWeekButton.disabled = viewedWorkoutWeek === 1;
+
+  previousWeekButton.addEventListener("click", () => {
+    viewedWorkoutWeek -= 1;
+    expandedWorkoutId = null;
+    renderActiveWorkout();
+  });
+
+  const weekLabel = document.createElement("strong");
+  weekLabel.textContent =
+    `Week ${viewedWorkoutWeek} of ${programme.durationWeeks}`;
+
+  const nextWeekButton = document.createElement("button");
+  nextWeekButton.textContent = "Next →";
+  nextWeekButton.disabled =
+    viewedWorkoutWeek === programme.durationWeeks;
+
+  nextWeekButton.addEventListener("click", () => {
+    viewedWorkoutWeek += 1;
+    expandedWorkoutId = null;
+    renderActiveWorkout();
+  });
+
+  weekNavigation.append(
+    previousWeekButton,
+    weekLabel,
+    nextWeekButton
+  );
+
+  container.appendChild(weekNavigation);
+
+  const weekStatus = document.createElement("p");
+
+  if (viewedWorkoutWeek === programme.currentWeek) {
+    weekStatus.textContent = "Current week";
+  } else {
+    weekStatus.textContent =
+      `Viewing Week ${viewedWorkoutWeek}`;
+  }
+
+  container.appendChild(weekStatus);
+
+  // NO WORKOUTS IN THE SELECTED WEEK
+  if (selectedDays.length === 0) {
     const message = document.createElement("p");
     message.textContent =
-      "This programme has no workouts yet. Add them in your Library.";
+      "This week has no training days yet.";
 
     container.appendChild(message);
     return;
   }
 
-    // FIND WORKOUTS ALREADY COMPLETED IN THIS WEEK
+  // LOAD WORKOUT HISTORY
   let history = [];
 
   try {
@@ -166,10 +240,8 @@ function renderActiveWorkout() {
     history = [];
   }
 
-  const currentWeek =
-    programme.weeks?.[programme.currentWeek - 1];
-
-  const remainingWorkouts = programme.days.filter(workout => {
+  // REMOVE COMPLETED DAYS FROM THIS WEEK
+  const remainingWorkouts = selectedDays.filter(workout => {
     return !history.some(session => {
       const sameProgramme =
         session.programmeId === programme.id;
@@ -177,10 +249,10 @@ function renderActiveWorkout() {
       const sameWorkout =
         session.workoutId === workout.id;
 
-      // Older History entries may not contain a week ID.
+      // Older saved sessions may not contain a week ID.
       const sameWeek =
         !session.weekId ||
-        session.weekId === currentWeek?.id;
+        session.weekId === selectedWeek?.id;
 
       return sameProgramme && sameWorkout && sameWeek;
     });
@@ -195,7 +267,17 @@ function renderActiveWorkout() {
     return;
   }
 
-  // DISPLAY REMAINING WORKOUTS IN LIBRARY ORDER
+  // Expand the next unfinished workout by default.
+  const expandedWorkoutStillExists =
+    remainingWorkouts.some(
+      workout => workout.id === expandedWorkoutId
+    );
+
+  if (!expandedWorkoutStillExists) {
+    expandedWorkoutId = remainingWorkouts[0].id;
+  }
+
+  // DISPLAY DAYS IN LIBRARY ORDER
   remainingWorkouts.forEach((workout, index) => {
     const workoutCard = document.createElement("div");
     workoutCard.className = "card";
@@ -204,44 +286,83 @@ function renderActiveWorkout() {
     workoutTitle.textContent =
       `${index + 1}. ${workout.name}`;
 
-    workoutCard.appendChild(workoutTitle);
+    const toggleButton = document.createElement("button");
+    const isExpanded = expandedWorkoutId === workout.id;
 
-    // DISPLAY EXERCISES
-    if (!workout.exercises || workout.exercises.length === 0) {
-      const emptyMessage = document.createElement("p");
-      emptyMessage.textContent = "No exercises added yet.";
+    toggleButton.textContent =
+      isExpanded ? "Hide Details" : "View Details";
 
-      workoutCard.appendChild(emptyMessage);
-    } else {
-      workout.exercises.forEach(exercise => {
-        const exerciseRow = document.createElement("div");
-        exerciseRow.className = "exercise-row";
+    toggleButton.addEventListener("click", () => {
+      expandedWorkoutId =
+        expandedWorkoutId === workout.id
+          ? null
+          : workout.id;
 
-        const exerciseName = document.createElement("strong");
-        exerciseName.textContent = exercise.name;
+      renderActiveWorkout();
+    });
 
-        const exerciseDetails = document.createElement("p");
-        exerciseDetails.textContent =
-          `${exercise.sets} sets × ${exercise.reps} reps` +
-          (exercise.weight
-            ? ` • ${exercise.weight} kg`
-            : "");
+    workoutCard.append(
+      workoutTitle,
+      toggleButton
+    );
 
-        exerciseRow.append(exerciseName, exerciseDetails);
-        workoutCard.appendChild(exerciseRow);
-      });
+    if (isExpanded) {
+      if (!workout.exercises || workout.exercises.length === 0) {
+        const emptyMessage = document.createElement("p");
+        emptyMessage.textContent =
+          "No exercises added yet.";
+
+        workoutCard.appendChild(emptyMessage);
+      } else {
+        workout.exercises.forEach(exercise => {
+          const exerciseRow = document.createElement("div");
+          exerciseRow.className = "exercise-row";
+
+          const exerciseName =
+            document.createElement("strong");
+          exerciseName.textContent = exercise.name;
+
+          const exerciseDetails =
+            document.createElement("p");
+          exerciseDetails.textContent =
+            `${exercise.sets} sets × ${exercise.reps} reps` +
+            (exercise.weight
+              ? ` • ${exercise.weight} kg`
+              : "");
+
+          exerciseRow.append(
+            exerciseName,
+            exerciseDetails
+          );
+
+          workoutCard.appendChild(exerciseRow);
+        });
+      }
+
+      // Only the actual current week can be started.
+      if (viewedWorkoutWeek === programme.currentWeek) {
+        const startButton =
+          document.createElement("button");
+
+        startButton.className = "primary-button";
+        startButton.textContent = "Start Workout";
+
+        startButton.addEventListener("click", () => {
+          startWorkout(workout.id);
+        });
+
+        workoutCard.appendChild(startButton);
+      } else {
+        const viewingMessage =
+          document.createElement("p");
+
+        viewingMessage.textContent =
+          "This week is available to view only.";
+
+        workoutCard.appendChild(viewingMessage);
+      }
     }
 
-    // START WORKOUT BUTTON
-    const startButton = document.createElement("button");
-    startButton.className = "primary-button";
-    startButton.textContent = "Start Workout";
-
-    startButton.addEventListener("click", () => {
-    startWorkout(workout.id);
-});
-
-    workoutCard.appendChild(startButton);
     container.appendChild(workoutCard);
   });
 }
