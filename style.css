@@ -39,13 +39,24 @@ p {
   color: var(--grey);
 }
 
-/* DASHBOARD CARDS */
+/* UNIVERSAL CARDS */
 
 .card {
+  width: 100%;
   background: var(--card);
+  border: 1px solid #333;
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.card > *:last-child {
+  margin-bottom: 0;
 }
 
 /* BUTTONS */
