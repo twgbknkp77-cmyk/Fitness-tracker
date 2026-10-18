@@ -245,7 +245,42 @@ function renderProgrammeEditor() {
       saveEditedProgramme(programme);
       renderProgrammeEditor();
     });
+// MOVE TRAINING DAY UP
+const moveUpButton = document.createElement("button");
+moveUpButton.textContent = "↑ Move Up";
 
+const dayIndex = week.trainingDays.findIndex(
+  item => item.id === workout.id
+);
+
+moveUpButton.disabled = dayIndex === 0;
+
+moveUpButton.addEventListener("click", () => {
+  if (dayIndex <= 0) return;
+
+  week.trainingDays.splice(dayIndex, 1);
+  week.trainingDays.splice(dayIndex - 1, 0, workout);
+
+  saveEditedProgramme(programme);
+  renderProgrammeEditor();
+});
+
+// MOVE TRAINING DAY DOWN
+const moveDownButton = document.createElement("button");
+moveDownButton.textContent = "↓ Move Down";
+
+moveDownButton.disabled =
+  dayIndex === week.trainingDays.length - 1;
+
+moveDownButton.addEventListener("click", () => {
+  if (dayIndex >= week.trainingDays.length - 1) return;
+
+  week.trainingDays.splice(dayIndex, 1);
+  week.trainingDays.splice(dayIndex + 1, 0, workout);
+
+  saveEditedProgramme(programme);
+  renderProgrammeEditor();
+});
     const deleteWorkoutButton = document.createElement("button");
     deleteWorkoutButton.textContent = "Delete Day";
 
@@ -265,12 +300,14 @@ function renderProgrammeEditor() {
 });
 
     card.append(
-      heading,
-      exerciseList,
-      addExerciseButton,
-      renameWorkoutButton,
-      deleteWorkoutButton
-    );
+    heading,
+    exerciseList,
+    addExerciseButton,
+    renameWorkoutButton,
+    moveUpButton,
+    moveDownButton,
+    deleteWorkoutButton
+);
 
     container.appendChild(card);
   });
