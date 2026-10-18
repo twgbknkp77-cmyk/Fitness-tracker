@@ -27,8 +27,13 @@ function saveEditedProgramme(programme) {
 
   if (index === -1) return;
 
-  programmes[index] = programme;
+    programmes[index] = programme;
   saveProgrammes(programmes);
+
+  // Keep the Workouts page synchronised with Library changes.
+  if (typeof renderActiveWorkout === "function") {
+    renderActiveWorkout();
+  }
 }
 
 // SAVE PROGRAMME NAME
