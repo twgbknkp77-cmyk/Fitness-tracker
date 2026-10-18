@@ -10,7 +10,7 @@ function getEditingProgramme() {
 let editingWeekNumber = 1;
 
 // GET THE WEEK CURRENTLY BEING EDITED
-ffunction getEditingWeek(programme = getEditingProgramme()) {
+function getEditingWeek(programme = getEditingProgramme()) {
   if (!programme || !Array.isArray(programme.weeks)) {
     return null;
   }
