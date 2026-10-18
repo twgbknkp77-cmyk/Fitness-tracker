@@ -1,41 +1,37 @@
 // FITNESS TRACKER — WORKOUT LIBRARY
 
-const LIBRARY_KEY = "fitness_workout_library";
-const ACTIVE_KEY = "fitness_active_programme";
-
-// GET SAVED PROGRAMMES
-function getProgrammes() {
-  try {
-    return JSON.parse(localStorage.getItem(LIBRARY_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
-// SAVE PROGRAMMES
-function saveProgrammes(programmes) {
-  localStorage.setItem(LIBRARY_KEY, JSON.stringify(programmes));
-}
-
-// GET ACTIVE PROGRAMME
-function getActiveProgrammeId() {
-  return localStorage.getItem(ACTIVE_KEY);
-}
-
 // CREATE PROGRAMME
 function createProgramme() {
   const name = prompt("Enter your programme name:");
 
   if (!name || !name.trim()) return;
 
+  const weeksInput = prompt("How many weeks?", "8");
+  if (weeksInput === null) return;
+
+  const durationWeeks = Number(weeksInput);
+  if (!Number.isInteger(durationWeeks) || durationWeeks < 1) {
+    alert("Please enter a whole number of weeks (1 or more).");
+    return;
+  }
+
   const programmes = getProgrammes();
 
   const programme = {
-    id: crypto.randomUUID(),
+    id: createId(),
     name: name.trim(),
     createdAt: new Date().toISOString(),
+    schemaVersion: PROGRAMME_SCHEMA_VERSION,
+    durationWeeks,
+    currentWeek: 1,
+    weeks: Array.from(
+      { length: durationWeeks },
+      (_, index) => createProgrammeWeek(index + 1)
+    ),
     days: []
   };
+
+  programme.days = programme.weeks[0].trainingDays;
 
   programmes.push(programme);
   saveProgrammes(programmes);
