@@ -79,5 +79,119 @@ document.getElementById("saveBodyweightGoal")
     renderBodyweightGoal();
   });
 
+// DISPLAY SAVED EXERCISE GOALS
+function renderExerciseGoals() {
+  const container =
+    document.getElementById("exerciseGoalsList");
+
+  if (!container) return;
+
+  const goals = getProfileGoals();
+  const exerciseGoals = goals.exerciseGoals || [];
+
+  container.innerHTML = "";
+
+  if (exerciseGoals.length === 0) {
+    container.innerHTML =
+      "<p>No exercise goals saved yet.</p>";
+    return;
+  }
+
+  exerciseGoals.forEach(goal => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const heading = document.createElement("h3");
+    heading.textContent = goal.exerciseName;
+
+    const target = document.createElement("p");
+    target.textContent =
+      `${goal.targetWeight} kg × ${goal.targetReps} reps`;
+
+    const removeButton = document.createElement("button");
+    removeButton.textContent = "Remove Goal";
+
+    removeButton.addEventListener("click", () => {
+      const updatedGoals = getProfileGoals();
+
+      updatedGoals.exerciseGoals =
+        (updatedGoals.exerciseGoals || []).filter(
+          item => item.id !== goal.id
+        );
+
+      saveProfileGoals(updatedGoals);
+      renderExerciseGoals();
+    });
+
+    card.append(
+      heading,
+      target,
+      removeButton
+    );
+
+    container.appendChild(card);
+  });
+}
+
+// ADD EXERCISE GOAL
+document.getElementById("addExerciseGoal")
+  ?.addEventListener("click", () => {
+    const nameInput =
+      document.getElementById("exerciseGoalName");
+
+    const weightInput =
+      document.getElementById("exerciseGoalWeight");
+
+    const repsInput =
+      document.getElementById("exerciseGoalReps");
+
+    const exerciseName = nameInput.value.trim();
+    const targetWeight = Number(weightInput.value);
+    const targetReps = Number(repsInput.value);
+
+    if (!exerciseName) {
+      alert("Please enter an exercise name.");
+      return;
+    }
+
+    if (
+      !Number.isFinite(targetWeight) ||
+      targetWeight < 0
+    ) {
+      alert("Please enter a valid target weight.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(targetReps) ||
+      targetReps < 1
+    ) {
+      alert("Please enter a valid number of repetitions.");
+      return;
+    }
+
+    const goals = getProfileGoals();
+
+    if (!Array.isArray(goals.exerciseGoals)) {
+      goals.exerciseGoals = [];
+    }
+
+    goals.exerciseGoals.push({
+      id: createId(),
+      exerciseName,
+      targetWeight,
+      targetReps
+    });
+
+    saveProfileGoals(goals);
+
+    nameInput.value = "";
+    weightInput.value = "";
+    repsInput.value = "";
+
+    renderExerciseGoals();
+  });
+
 // INITIAL DISPLAY
 renderBodyweightGoal();
+renderExerciseGoals();
