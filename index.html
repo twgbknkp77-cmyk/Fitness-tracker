@@ -349,10 +349,56 @@
 </div>
 
   <div class="card">
-    <h2>Exercise Goals</h2>
+  <h2>Exercise Goals</h2>
 
-    <p>Your exercise goals will appear here.</p>
+  <label for="exerciseGoalName">
+    Exercise
+  </label>
+
+  <input
+    type="text"
+    id="exerciseGoalName"
+    placeholder="e.g. Bench Press"
+  >
+
+  <label for="exerciseGoalWeight">
+    Target weight (kg)
+  </label>
+
+  <input
+    type="number"
+    id="exerciseGoalWeight"
+    inputmode="decimal"
+    min="0"
+    step="0.5"
+    placeholder="e.g. 100"
+  >
+
+  <label for="exerciseGoalReps">
+    Target repetitions
+  </label>
+
+  <input
+    type="number"
+    id="exerciseGoalReps"
+    inputmode="numeric"
+    min="1"
+    step="1"
+    placeholder="e.g. 5"
+  >
+
+  <button
+    type="button"
+    id="addExerciseGoal"
+    class="primary-button"
+  >
+    + Add Exercise Goal
+  </button>
+
+  <div id="exerciseGoalsList">
+    <!-- Saved exercise goals will appear here -->
   </div>
+</div>
 
 </section>
 <!-- END PROFILE PAGE -->
