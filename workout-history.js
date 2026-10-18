@@ -46,15 +46,53 @@ function renderWorkoutHistory() {
     button.className = "primary-button";
     button.textContent = "View Results →";
 
-    button.addEventListener("click", () => {
+        button.addEventListener("click", () => {
       viewWorkoutHistoryDetails(session);
     });
 
-    card.append(title, details, button);
+    const restoreButton = document.createElement("button");
+    restoreButton.textContent = "Restore to Workouts";
+
+    restoreButton.addEventListener("click", () => {
+      restoreCompletedWorkout(session);
+    });
+
+    card.append(
+      title,
+      details,
+      button,
+      restoreButton
+    );
     container.appendChild(card);
   });
 }
+function restoreCompletedWorkout(session) {
+  if (
+    !confirm(
+      `Restore "${session.workoutName}" to your workouts?`
+    )
+  ) {
+    return;
+  }
 
+  const history = JSON.parse(
+    localStorage.getItem("fitness_workout_history") || "[]"
+  );
+
+  const updatedHistory = history.filter(
+    item => item.id !== session.id
+  );
+
+  localStorage.setItem(
+    "fitness_workout_history",
+    JSON.stringify(updatedHistory)
+  );
+
+  renderWorkoutHistory();
+  renderActiveWorkout();
+
+  alert("Workout restored.");
+}
 function viewWorkoutHistoryDetails(session) {
   const container = document.getElementById("workoutHistoryList");
   container.innerHTML = "";
