@@ -155,8 +155,48 @@ function renderActiveWorkout() {
     return;
   }
 
-  // DISPLAY EACH WORKOUT
-  programme.days.forEach((workout, index) => {
+    // FIND WORKOUTS ALREADY COMPLETED IN THIS WEEK
+  let history = [];
+
+  try {
+    history = JSON.parse(
+      localStorage.getItem("fitness_workout_history") || "[]"
+    );
+  } catch {
+    history = [];
+  }
+
+  const currentWeek =
+    programme.weeks?.[programme.currentWeek - 1];
+
+  const remainingWorkouts = programme.days.filter(workout => {
+    return !history.some(session => {
+      const sameProgramme =
+        session.programmeId === programme.id;
+
+      const sameWorkout =
+        session.workoutId === workout.id;
+
+      // Older History entries may not contain a week ID.
+      const sameWeek =
+        !session.weekId ||
+        session.weekId === currentWeek?.id;
+
+      return sameProgramme && sameWorkout && sameWeek;
+    });
+  });
+
+  if (remainingWorkouts.length === 0) {
+    const message = document.createElement("p");
+    message.textContent =
+      "All workouts in this week are complete.";
+
+    container.appendChild(message);
+    return;
+  }
+
+  // DISPLAY REMAINING WORKOUTS IN LIBRARY ORDER
+  remainingWorkouts.forEach((workout, index) => {
     const workoutCard = document.createElement("div");
     workoutCard.className = "card";
 
