@@ -20,8 +20,15 @@ function startWorkout(workoutId) {
 
   currentSession = {
     id: crypto.randomUUID(),
-    programmeId: programme.id,
+        programmeId: programme.id,
     programmeName: programme.name,
+
+    weekId:
+      programme.weeks?.[programme.currentWeek - 1]?.id || null,
+
+    weekNumber:
+      programme.currentWeek || 1,
+
     workoutId: workout.id,
     workoutName: workout.name,
     startedAt: new Date().toISOString(),
