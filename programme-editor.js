@@ -10,9 +10,7 @@ function getEditingProgramme() {
 let editingWeekNumber = 1;
 
 // GET THE WEEK CURRENTLY BEING EDITED
-function getEditingWeek() {
-  const programme = getEditingProgramme();
-
+ffunction getEditingWeek(programme = getEditingProgramme()) {
   if (!programme || !Array.isArray(programme.weeks)) {
     return null;
   }
@@ -58,7 +56,7 @@ document.getElementById("saveProgrammeName")
 document.getElementById("addWorkout")
   ?.addEventListener("click", function() {
     const programme = getEditingProgramme();
-    const week = getEditingWeek();
+    const week = getEditingWeek(programme);
 
     if (!programme || !week) return;
 
@@ -82,11 +80,11 @@ function renderProgrammeEditor() {
   if (!programme || !container) return;
 
   // Start at Week 1 if the previously selected week does not exist.
-  if (!getEditingWeek()) {
-    editingWeekNumber = 1;
+  if (!getEditingWeek(programme)) {
+  editingWeekNumber = 1;
   }
 
-  const week = getEditingWeek();
+  const week = getEditingWeek(programme);
 
   if (!week) return;
 
