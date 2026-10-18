@@ -238,9 +238,9 @@ function renderProgrammeEditor() {
     });
 
     const renameWorkoutButton = document.createElement("button");
-    renameWorkoutButton.textContent = "Rename Workout";
+    renameWorkoutButton.textContent = "Rename Day";
     renameWorkoutButton.addEventListener("click", () => {
-      const name = prompt("Workout name:", workout.name);
+    const name = prompt("Training day name:", workout.name);
       if (!name || !name.trim()) return;
 
       workout.name = name.trim();
@@ -249,17 +249,22 @@ function renderProgrammeEditor() {
     });
 
     const deleteWorkoutButton = document.createElement("button");
-    deleteWorkoutButton.textContent = "Delete Workout";
+    deleteWorkoutButton.textContent = "Delete Day";
+
     deleteWorkoutButton.addEventListener("click", () => {
       if (!confirm(`Delete ${workout.name} and all its exercises?`)) return;
 
-      programme.days = programme.days.filter(
-        item => item.id !== workout.id
-      );
+    const dayIndex = week.trainingDays.findIndex(
+      item => item.id === workout.id
+    );
 
-      saveEditedProgramme(programme);
-      renderProgrammeEditor();
-    });
+    if (dayIndex !== -1) {
+    week.trainingDays.splice(dayIndex, 1);
+    }
+
+  saveEditedProgramme(programme);
+  renderProgrammeEditor();
+});
 
     card.append(
       heading,
