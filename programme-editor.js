@@ -6,6 +6,22 @@ function getEditingProgramme() {
   );
 }
 
+// REMEMBER WHICH WEEK IS OPEN
+let editingWeekNumber = 1;
+
+// GET THE WEEK CURRENTLY BEING EDITED
+function getEditingWeek() {
+  const programme = getEditingProgramme();
+
+  if (!programme || !Array.isArray(programme.weeks)) {
+    return null;
+  }
+
+  return programme.weeks.find(
+    week => week.number === editingWeekNumber
+  );
+}
+
 // SAVE CHANGES
 function saveEditedProgramme(programme) {
   const programmes = getProgrammes();
@@ -38,18 +54,19 @@ document.getElementById("saveProgrammeName")
     alert("Programme name saved!");
   });
 
-// ADD WORKOUT
+// ADD TRAINING DAY TO THE SELECTED WEEK
 document.getElementById("addWorkout")
   ?.addEventListener("click", function() {
     const programme = getEditingProgramme();
-    if (!programme) return;
+    const week = getEditingWeek();
 
-    const name = prompt("Workout name (e.g. Full Body A):");
-    if (!name || !name.trim()) return;
+    if (!programme || !week) return;
 
-    programme.days.push({
-      id: crypto.randomUUID(),
-      name: name.trim(),
+    const dayNumber = week.trainingDays.length + 1;
+
+    week.trainingDays.push({
+      id: createId(),
+      name: `Day ${dayNumber}`,
       exercises: []
     });
 
@@ -64,9 +81,48 @@ function renderProgrammeEditor() {
 
   if (!programme || !container) return;
 
+  // Start at Week 1 if the previously selected week does not exist.
+  if (!getEditingWeek()) {
+    editingWeekNumber = 1;
+  }
+
+  const week = getEditingWeek();
+
+  if (!week) return;
+
   container.innerHTML = "";
 
-  programme.days.forEach(workout => {
+  // WEEK SELECTOR
+  const weekSelector = document.createElement("div");
+  weekSelector.className = "week-selector";
+
+  programme.weeks.forEach(weekOption => {
+    const weekButton = document.createElement("button");
+
+    weekButton.textContent = `Week ${weekOption.number}`;
+
+    if (weekOption.number === editingWeekNumber) {
+      weekButton.className = "primary-button";
+    }
+
+    weekButton.addEventListener("click", () => {
+      editingWeekNumber = weekOption.number;
+      renderProgrammeEditor();
+    });
+
+    weekSelector.appendChild(weekButton);
+  });
+
+  container.appendChild(weekSelector);
+
+  // SELECTED WEEK HEADING
+  const weekHeading = document.createElement("h2");
+  weekHeading.textContent = `Week ${week.number}`;
+
+  container.appendChild(weekHeading);
+
+  // DISPLAY THE SELECTED WEEK'S TRAINING DAYS
+  week.trainingDays.forEach(workout => {
     const card = document.createElement("div");
     card.className = "card";
 
