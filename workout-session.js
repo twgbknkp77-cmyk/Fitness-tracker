@@ -289,7 +289,8 @@ document.getElementById("finishWorkout")
       alert("Workout saved successfully!");
     }
 
-    showPage("workouts");
+        showPage("workouts");
+  });
 
 // CANCEL WORKOUT
 document.getElementById("cancelWorkout")
