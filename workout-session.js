@@ -207,6 +207,7 @@ document.getElementById("finishWorkout")
 
     currentSession = null;
 
+    renderActiveWorkout();
     alert("Workout saved successfully!");
     showPage("workouts");
   });
