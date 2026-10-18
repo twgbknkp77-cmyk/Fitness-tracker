@@ -1,15 +1,22 @@
 // FITNESS TRACKER — PROGRAMME EDITOR
 
+// The week displayed in the editor.
+// This is separate from the programme's actual currentWeek.
+let editingWeekNumber = null;
+
+// Used to reset the editor when a different programme is opened.
+let weekSelectionProgrammeId = null;
+
+
+// GET THE PROGRAMME CURRENTLY BEING EDITED
 function getEditingProgramme() {
   return getProgrammes().find(
     programme => programme.id === window.editingProgrammeId
   );
 }
 
-// REMEMBER WHICH WEEK IS OPEN
-let editingWeekNumber = 1;
 
-// GET THE WEEK CURRENTLY BEING EDITED
+// GET THE WEEK CURRENTLY DISPLAYED IN THE EDITOR
 function getEditingWeek(programme = getEditingProgramme()) {
   if (!programme || !Array.isArray(programme.weeks)) {
     return null;
@@ -20,29 +27,38 @@ function getEditingWeek(programme = getEditingProgramme()) {
   );
 }
 
-// SAVE CHANGES
+
+// SAVE PROGRAMME CHANGES
 function saveEditedProgramme(programme) {
   const programmes = getProgrammes();
-  const index = programmes.findIndex(item => item.id === programme.id);
+
+  const index = programmes.findIndex(
+    item => item.id === programme.id
+  );
 
   if (index === -1) return;
 
-    programmes[index] = programme;
+  programmes[index] = programme;
   saveProgrammes(programmes);
 
-  // Keep the Workouts page synchronised with Library changes.
+  // Keep the Workouts page synchronised.
   if (typeof renderActiveWorkout === "function") {
     renderActiveWorkout();
   }
 }
 
+
 // SAVE PROGRAMME NAME
 document.getElementById("saveProgrammeName")
   ?.addEventListener("click", function() {
     const programme = getEditingProgramme();
+
     if (!programme) return;
 
-    const name = document.getElementById("editorProgrammeName").value.trim();
+    const name = document
+      .getElementById("editorProgrammeName")
+      .value
+      .trim();
 
     if (!name) {
       alert("Please enter a programme name.");
@@ -50,14 +66,15 @@ document.getElementById("saveProgrammeName")
     }
 
     programme.name = name;
+
     saveEditedProgramme(programme);
     renderLibrary();
-    renderActiveWorkout();
 
     alert("Programme name saved!");
   });
 
-// ADD TRAINING DAY TO THE SELECTED WEEK
+
+// ADD TRAINING DAY TO THE DISPLAYED EDITOR WEEK
 document.getElementById("addWorkout")
   ?.addEventListener("click", function() {
     const programme = getEditingProgramme();
@@ -77,16 +94,29 @@ document.getElementById("addWorkout")
     renderProgrammeEditor();
   });
 
+
 // DISPLAY PROGRAMME EDITOR
 function renderProgrammeEditor() {
   const programme = getEditingProgramme();
-  const container = document.getElementById("editorWorkouts");
+
+  const container =
+    document.getElementById("editorWorkouts");
 
   if (!programme || !container) return;
 
-  // Start at Week 1 if the previously selected week does not exist.
+  /*
+   * When a programme is first opened, begin on its actual
+   * current training week. Changing editor weeks after this
+   * does not change programme.currentWeek.
+   */
+  if (weekSelectionProgrammeId !== programme.id) {
+    weekSelectionProgrammeId = programme.id;
+    editingWeekNumber = programme.currentWeek || 1;
+  }
+
+  // Recover safely if the selected editor week no longer exists.
   if (!getEditingWeek(programme)) {
-  editingWeekNumber = 1;
+    editingWeekNumber = programme.currentWeek || 1;
   }
 
   const week = getEditingWeek(programme);
@@ -95,20 +125,27 @@ function renderProgrammeEditor() {
 
   container.innerHTML = "";
 
+
   // WEEK SELECTOR
   const weekSelector = document.createElement("div");
   weekSelector.className = "week-selector";
 
   programme.weeks.forEach(weekOption => {
-    const weekButton = document.createElement("button");
+    const weekButton =
+      document.createElement("button");
 
-    weekButton.textContent = `Week ${weekOption.number}`;
+    weekButton.textContent =
+      weekOption.number === programme.currentWeek
+        ? `Week ${weekOption.number} • Current`
+        : `Week ${weekOption.number}`;
 
     if (weekOption.number === editingWeekNumber) {
       weekButton.className = "primary-button";
     }
 
     weekButton.addEventListener("click", () => {
+      // Only change the editor view.
+      // Do not change programme.currentWeek.
       editingWeekNumber = weekOption.number;
       renderProgrammeEditor();
     });
@@ -118,13 +155,36 @@ function renderProgrammeEditor() {
 
   container.appendChild(weekSelector);
 
+
   // SELECTED WEEK HEADING
   const weekHeading = document.createElement("h2");
-  weekHeading.textContent = `Week ${week.number}`;
+  weekHeading.textContent =
+    `Editing Week ${week.number}`;
 
   container.appendChild(weekHeading);
 
+  const weekMessage = document.createElement("p");
+
+  if (week.number === programme.currentWeek) {
+    weekMessage.textContent =
+      "This is your current training week.";
+  } else {
+    weekMessage.textContent =
+      "You are editing this week only. Your training progress has not changed.";
+  }
+
+  container.appendChild(weekMessage);
+
+
   // DISPLAY THE SELECTED WEEK'S TRAINING DAYS
+  if (week.trainingDays.length === 0) {
+    const emptyMessage = document.createElement("p");
+    emptyMessage.textContent =
+      "No training days have been added to this week.";
+
+    container.appendChild(emptyMessage);
+  }
+
   week.trainingDays.forEach(workout => {
     const card = document.createElement("div");
     card.className = "card";
@@ -134,28 +194,54 @@ function renderProgrammeEditor() {
 
     const exerciseList = document.createElement("div");
 
+
+    // DISPLAY EXERCISES
     workout.exercises.forEach(exercise => {
       const row = document.createElement("div");
       row.className = "exercise-row";
 
       const label = document.createElement("p");
       label.textContent =
-        `${exercise.name} — ${exercise.sets} × ${exercise.reps}` +
-        (exercise.weight ? ` @ ${exercise.weight} kg` : "");
+        `${exercise.name} — ` +
+        `${exercise.sets} × ${exercise.reps}` +
+        (exercise.weight
+          ? ` @ ${exercise.weight} kg`
+          : "");
 
-      const editButton = document.createElement("button");
+
+      // EDIT EXERCISE
+      const editButton =
+        document.createElement("button");
+
       editButton.textContent = "Edit";
+
       editButton.addEventListener("click", () => {
-        const name = prompt("Exercise name:", exercise.name);
+        const name = prompt(
+          "Exercise name:",
+          exercise.name
+        );
+
         if (name === null || !name.trim()) return;
 
-        const sets = prompt("Number of sets:", exercise.sets);
+        const sets = prompt(
+          "Number of sets:",
+          exercise.sets
+        );
+
         if (sets === null) return;
 
-        const reps = prompt("Repetitions:", exercise.reps);
+        const reps = prompt(
+          "Repetitions:",
+          exercise.reps
+        );
+
         if (reps === null) return;
 
-        const weight = prompt("Weight in kg (optional):", exercise.weight || "");
+        const weight = prompt(
+          "Weight in kg (optional):",
+          exercise.weight || ""
+        );
+
         if (weight === null) return;
 
         if (
@@ -163,12 +249,18 @@ function renderProgrammeEditor() {
           Number(sets) < 1 ||
           !Number.isInteger(Number(reps)) ||
           Number(reps) < 1 ||
-          (weight.trim() !== "" && (
-            !Number.isFinite(Number(weight)) ||
-            Number(weight) < 0
-          ))
+          (
+            weight.trim() !== "" &&
+            (
+              !Number.isFinite(Number(weight)) ||
+              Number(weight) < 0
+            )
+          )
         ) {
-          alert("Please enter valid sets, reps and weight.");
+          alert(
+            "Please enter valid sets, reps and weight."
+          );
+
           return;
         }
 
@@ -181,37 +273,69 @@ function renderProgrammeEditor() {
         renderProgrammeEditor();
       });
 
-      const deleteButton = document.createElement("button");
-      deleteButton.textContent = "Remove";
-      deleteButton.addEventListener("click", () => {
-        if (!confirm(`Remove ${exercise.name}?`)) return;
 
-        workout.exercises = workout.exercises.filter(
-          item => item.id !== exercise.id
-        );
+      // REMOVE EXERCISE
+      const deleteButton =
+        document.createElement("button");
+
+      deleteButton.textContent = "Remove";
+
+      deleteButton.addEventListener("click", () => {
+        if (
+          !confirm(`Remove ${exercise.name}?`)
+        ) {
+          return;
+        }
+
+        workout.exercises =
+          workout.exercises.filter(
+            item => item.id !== exercise.id
+          );
 
         saveEditedProgramme(programme);
         renderProgrammeEditor();
       });
 
-      row.append(label, editButton, deleteButton);
+      row.append(
+        label,
+        editButton,
+        deleteButton
+      );
+
       exerciseList.appendChild(row);
     });
 
-    const addExerciseButton = document.createElement("button");
+
+    // ADD EXERCISE
+    const addExerciseButton =
+      document.createElement("button");
+
     addExerciseButton.textContent = "+ Add Exercise";
 
     addExerciseButton.addEventListener("click", () => {
       const name = prompt("Exercise name:");
+
       if (!name || !name.trim()) return;
 
-      const sets = prompt("Number of sets:", "3");
+      const sets = prompt(
+        "Number of sets:",
+        "3"
+      );
+
       if (sets === null) return;
 
-      const reps = prompt("Repetitions:", "10");
+      const reps = prompt(
+        "Repetitions:",
+        "10"
+      );
+
       if (reps === null) return;
 
-      const weight = prompt("Weight in kg (optional):", "");
+      const weight = prompt(
+        "Weight in kg (optional):",
+        ""
+      );
+
       if (weight === null) return;
 
       if (
@@ -219,17 +343,23 @@ function renderProgrammeEditor() {
         Number(sets) < 1 ||
         !Number.isInteger(Number(reps)) ||
         Number(reps) < 1 ||
-        (weight.trim() !== "" && (
-          !Number.isFinite(Number(weight)) ||
-          Number(weight) < 0
-        ))
+        (
+          weight.trim() !== "" &&
+          (
+            !Number.isFinite(Number(weight)) ||
+            Number(weight) < 0
+          )
+        )
       ) {
-        alert("Please enter valid sets, reps and weight.");
+        alert(
+          "Please enter valid sets, reps and weight."
+        );
+
         return;
       }
 
       workout.exercises.push({
-        id: crypto.randomUUID(),
+        id: createId(),
         name: name.trim(),
         sets: Number(sets),
         reps: Number(reps),
@@ -240,79 +370,134 @@ function renderProgrammeEditor() {
       renderProgrammeEditor();
     });
 
-    const renameWorkoutButton = document.createElement("button");
-    renameWorkoutButton.textContent = "Rename Day";
-    renameWorkoutButton.addEventListener("click", () => {
-    const name = prompt("Training day name:", workout.name);
-      if (!name || !name.trim()) return;
 
-      workout.name = name.trim();
+    // RENAME TRAINING DAY
+    const renameWorkoutButton =
+      document.createElement("button");
+
+    renameWorkoutButton.textContent = "Rename Day";
+
+    renameWorkoutButton.addEventListener(
+      "click",
+      () => {
+        const name = prompt(
+          "Training day name:",
+          workout.name
+        );
+
+        if (!name || !name.trim()) return;
+
+        workout.name = name.trim();
+
+        saveEditedProgramme(programme);
+        renderProgrammeEditor();
+      }
+    );
+
+
+    const dayIndex =
+      week.trainingDays.findIndex(
+        item => item.id === workout.id
+      );
+
+
+    // MOVE TRAINING DAY UP
+    const moveUpButton =
+      document.createElement("button");
+
+    moveUpButton.textContent = "↑ Move Up";
+    moveUpButton.disabled = dayIndex === 0;
+
+    moveUpButton.addEventListener("click", () => {
+      if (dayIndex <= 0) return;
+
+      week.trainingDays.splice(dayIndex, 1);
+
+      week.trainingDays.splice(
+        dayIndex - 1,
+        0,
+        workout
+      );
+
       saveEditedProgramme(programme);
       renderProgrammeEditor();
     });
-// MOVE TRAINING DAY UP
-const moveUpButton = document.createElement("button");
-moveUpButton.textContent = "↑ Move Up";
 
-const dayIndex = week.trainingDays.findIndex(
-  item => item.id === workout.id
-);
 
-moveUpButton.disabled = dayIndex === 0;
+    // MOVE TRAINING DAY DOWN
+    const moveDownButton =
+      document.createElement("button");
 
-moveUpButton.addEventListener("click", () => {
-  if (dayIndex <= 0) return;
+    moveDownButton.textContent = "↓ Move Down";
 
-  week.trainingDays.splice(dayIndex, 1);
-  week.trainingDays.splice(dayIndex - 1, 0, workout);
+    moveDownButton.disabled =
+      dayIndex === week.trainingDays.length - 1;
 
-  saveEditedProgramme(programme);
-  renderProgrammeEditor();
-});
+    moveDownButton.addEventListener("click", () => {
+      if (
+        dayIndex >=
+        week.trainingDays.length - 1
+      ) {
+        return;
+      }
 
-// MOVE TRAINING DAY DOWN
-const moveDownButton = document.createElement("button");
-moveDownButton.textContent = "↓ Move Down";
+      week.trainingDays.splice(dayIndex, 1);
 
-moveDownButton.disabled =
-  dayIndex === week.trainingDays.length - 1;
+      week.trainingDays.splice(
+        dayIndex + 1,
+        0,
+        workout
+      );
 
-moveDownButton.addEventListener("click", () => {
-  if (dayIndex >= week.trainingDays.length - 1) return;
+      saveEditedProgramme(programme);
+      renderProgrammeEditor();
+    });
 
-  week.trainingDays.splice(dayIndex, 1);
-  week.trainingDays.splice(dayIndex + 1, 0, workout);
 
-  saveEditedProgramme(programme);
-  renderProgrammeEditor();
-});
-    const deleteWorkoutButton = document.createElement("button");
+    // DELETE TRAINING DAY
+    const deleteWorkoutButton =
+      document.createElement("button");
+
     deleteWorkoutButton.textContent = "Delete Day";
 
-    deleteWorkoutButton.addEventListener("click", () => {
-      if (!confirm(`Delete ${workout.name} and all its exercises?`)) return;
+    deleteWorkoutButton.addEventListener(
+      "click",
+      () => {
+        if (
+          !confirm(
+            `Delete ${workout.name} and all its exercises?`
+          )
+        ) {
+          return;
+        }
 
-    const dayIndex = week.trainingDays.findIndex(
-      item => item.id === workout.id
+        const deleteIndex =
+          week.trainingDays.findIndex(
+            item => item.id === workout.id
+          );
+
+        if (deleteIndex !== -1) {
+          week.trainingDays.splice(
+            deleteIndex,
+            1
+          );
+        }
+
+        saveEditedProgramme(programme);
+        renderProgrammeEditor();
+      }
     );
 
-    if (dayIndex !== -1) {
-    week.trainingDays.splice(dayIndex, 1);
-    }
-
-  saveEditedProgramme(programme);
-  renderProgrammeEditor();
-});
 
     card.append(
-    heading,
-    exerciseList,
-    addExerciseButton,
-    renameWorkoutButton,
-    moveUpButton,
-    moveDownButton,
-    deleteWorkoutButton
-);
+      heading,
+      exerciseList,
+      addExerciseButton,
+      renameWorkoutButton,
+      moveUpButton,
+      moveDownButton,
+      deleteWorkoutButton
+    );
 
     container.appendChild(card);
   });
