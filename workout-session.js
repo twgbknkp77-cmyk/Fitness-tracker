@@ -164,7 +164,73 @@ function updateSessionProgress() {
   document.getElementById("sessionProgress").textContent =
     `${completed} / ${sets.length} sets completed`;
 }
+// ADVANCE AFTER THE FINAL WORKOUT IN A WEEK
+function advanceProgrammeIfWeekComplete(session, history) {
+  const programmes = getProgrammes();
 
+  const programmeIndex = programmes.findIndex(
+    programme => programme.id === session.programmeId
+  );
+
+  if (programmeIndex === -1) return false;
+
+  const programme = programmes[programmeIndex];
+
+  const completedWeek = programme.weeks?.find(week =>
+    session.weekId
+      ? week.id === session.weekId
+      : week.number === session.weekNumber
+  );
+
+  if (!completedWeek) return false;
+
+  // Only advance from the programme's actual current week.
+  if (completedWeek.number !== programme.currentWeek) {
+    return false;
+  }
+
+  const trainingDays = completedWeek.trainingDays || [];
+
+  if (trainingDays.length === 0) return false;
+
+  const everyDayComplete = trainingDays.every(workout => {
+    return history.some(historyItem => {
+      const sameProgramme =
+        historyItem.programmeId === programme.id;
+
+      const sameWorkout =
+        historyItem.workoutId === workout.id;
+
+      const sameWeek =
+        !historyItem.weekId ||
+        historyItem.weekId === completedWeek.id;
+
+      return sameProgramme && sameWorkout && sameWeek;
+    });
+  });
+
+  if (!everyDayComplete) return false;
+
+  // Stay on the final week once the programme is complete.
+  if (programme.currentWeek >= programme.durationWeeks) {
+    return false;
+  }
+
+  programme.currentWeek += 1;
+
+  // Point the compatibility days list at the new current week.
+  programme.days =
+    programme.weeks[programme.currentWeek - 1].trainingDays;
+
+  programmes[programmeIndex] = programme;
+  saveProgrammes(programmes);
+
+  // Open the newly activated week on the Workouts page.
+  viewedWorkoutWeek = programme.currentWeek;
+  expandedWorkoutId = null;
+
+  return true;
+}
 // SAVE FINISHED WORKOUT
 document.getElementById("finishWorkout")
   ?.addEventListener("click", () => {
@@ -205,12 +271,25 @@ document.getElementById("finishWorkout")
       return;
     }
 
+        const movedToNextWeek =
+      advanceProgrammeIfWeekComplete(
+        currentSession,
+        history
+      );
+
     currentSession = null;
 
     renderActiveWorkout();
-    alert("Workout saved successfully!");
+
+    if (movedToNextWeek) {
+      alert(
+        "Workout saved! The next week is now active."
+      );
+    } else {
+      alert("Workout saved successfully!");
+    }
+
     showPage("workouts");
-  });
 
 // CANCEL WORKOUT
 document.getElementById("cancelWorkout")
