@@ -22,33 +22,50 @@
 
       <h1>Dashboard</h1>
 
-      <!-- NEXT WORKOUT -->
-      <div class="card">
-        <h2>Next Up</h2>
+      <!-- COMPACT WORKOUT SUMMARY -->
+<div class="dashboard-summary-grid">
 
-        <p>No workout scheduled</p>
+  <!-- NEXT WORKOUT -->
+  <div class="card dashboard-summary-card">
+    <h2>Next Up</h2>
 
-        <button
-          class="primary-button"
-          onclick="showPage('workouts')">
-          View Workouts →
-        </button>
-      </div>
+    <h3 id="nextWorkoutName">
+      No workout scheduled
+    </h3>
 
-      <!-- WEEKLY PROGRESS -->
-      <div class="card">
+    <p id="nextWorkoutDetails">
+      Activate a programme in your Library.
+    </p>
 
-        <h2>Workouts This Week</h2>
+    <button
+      class="primary-button"
+      onclick="showPage('workouts')"
+    >
+      View →
+    </button>
+  </div>
 
-        <h1>0 / 0</h1>
+  <!-- CURRENT WEEK PROGRESS -->
+  <div class="card dashboard-summary-card">
+    <h2>This Week</h2>
 
-        <p>Completed workouts this week</p>
+    <h3 id="weeklyProgressCount">
+      0 / 0
+    </h3>
 
-        <div class="progress-track">
-          <div class="progress-fill"></div>
-        </div>
+    <p id="weeklyProgressLabel">
+      Workouts completed
+    </p>
 
-      </div>
+    <div class="progress-track">
+      <div
+        id="weeklyProgressFill"
+        class="progress-fill"
+      ></div>
+    </div>
+  </div>
+
+</div>
 
       <!-- BODYWEIGHT -->
 <div class="card bodyweight-card">
