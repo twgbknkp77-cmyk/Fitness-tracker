@@ -1,17 +1,22 @@
 // FITNESS TRACKER — PROFILE AND GOALS
 
-const PROFILE_GOALS_KEY = "fitness_profile_goals";
+const PROFILE_GOALS_KEY =
+  "fitness_profile_goals";
+
 
 // GET SAVED PROFILE GOALS
 function getProfileGoals() {
   try {
     return JSON.parse(
-      localStorage.getItem(PROFILE_GOALS_KEY)
+      localStorage.getItem(
+        PROFILE_GOALS_KEY
+      )
     ) || {};
   } catch {
     return {};
   }
 }
+
 
 // SAVE PROFILE GOALS
 function saveProfileGoals(goals) {
@@ -21,111 +26,341 @@ function saveProfileGoals(goals) {
   );
 }
 
+
+// NORMALISE AN EXERCISE NAME
+function normaliseExerciseName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase();
+}
+
+
+// FIND THE BEST COMPLETED WEIGHT
+function getBestExerciseWeight(exerciseName) {
+  let history = [];
+
+  try {
+    history = JSON.parse(
+      localStorage.getItem(
+        "fitness_workout_history"
+      ) || "[]"
+    );
+  } catch {
+    history = [];
+  }
+
+  const requestedName =
+    normaliseExerciseName(exerciseName);
+
+  let bestWeight = 0;
+
+  history.forEach(session => {
+    const exercises =
+      Array.isArray(session.exercises)
+        ? session.exercises
+        : [];
+
+    exercises.forEach(exercise => {
+      const sameExercise =
+        normaliseExerciseName(exercise.name) ===
+        requestedName;
+
+      if (!sameExercise) return;
+
+      const sets =
+        Array.isArray(exercise.sets)
+          ? exercise.sets
+          : [];
+
+      sets.forEach(set => {
+        const weight = Number(set.weight);
+
+        if (
+          set.completed &&
+          Number.isFinite(weight) &&
+          weight > bestWeight
+        ) {
+          bestWeight = weight;
+        }
+      });
+    });
+  });
+
+  return bestWeight;
+}
+
+
 // DISPLAY SAVED BODYWEIGHT GOAL
 function renderBodyweightGoal() {
   const goals = getProfileGoals();
-  const bodyweightGoal = goals.bodyweight;
 
-  const weightInput = document.getElementById("goalBodyweight");
-  const dateInput = document.getElementById("goalBodyweightDate");
-  const message = document.getElementById("bodyweightGoalMessage");
+  const bodyweightGoal =
+    goals.bodyweight;
 
-  if (!weightInput || !dateInput || !message) return;
+  const weightInput =
+    document.getElementById(
+      "goalBodyweight"
+    );
 
-  if (!bodyweightGoal) {
-    message.textContent = "No bodyweight goal saved yet.";
+  const dateInput =
+    document.getElementById(
+      "goalBodyweightDate"
+    );
+
+  const message =
+    document.getElementById(
+      "bodyweightGoalMessage"
+    );
+
+  if (
+    !weightInput ||
+    !dateInput ||
+    !message
+  ) {
     return;
   }
 
-  weightInput.value = bodyweightGoal.targetWeight;
-  dateInput.value = bodyweightGoal.targetDate || "";
+  if (!bodyweightGoal) {
+    message.textContent =
+      "No bodyweight goal saved yet.";
+
+    return;
+  }
+
+  weightInput.value =
+    bodyweightGoal.targetWeight;
+
+  dateInput.value =
+    bodyweightGoal.targetDate || "";
 
   message.textContent =
-    `Current goal: ${bodyweightGoal.targetWeight} kg` +
-    (bodyweightGoal.targetDate
-      ? ` by ${bodyweightGoal.targetDate}`
-      : "");
+    `Current goal: ` +
+    `${bodyweightGoal.targetWeight} kg` +
+    (
+      bodyweightGoal.targetDate
+        ? ` by ${bodyweightGoal.targetDate}`
+        : ""
+    );
 }
 
-// SAVE BODYWEIGHT GOAL BUTTON
-document.getElementById("saveBodyweightGoal")
+
+// SAVE BODYWEIGHT GOAL
+document
+  .getElementById("saveBodyweightGoal")
   ?.addEventListener("click", () => {
     const weightInput =
-      document.getElementById("goalBodyweight");
+      document.getElementById(
+        "goalBodyweight"
+      );
 
     const dateInput =
-      document.getElementById("goalBodyweightDate");
+      document.getElementById(
+        "goalBodyweightDate"
+      );
 
-    const targetWeight = Number(weightInput.value);
-    const targetDate = dateInput.value;
+    const targetWeight =
+      Number(weightInput.value);
+
+    const targetDate =
+      dateInput.value;
 
     if (
       !Number.isFinite(targetWeight) ||
       targetWeight < 20 ||
       targetWeight > 300
     ) {
-      alert("Please enter a valid target weight.");
+      alert(
+        "Please enter a valid target weight."
+      );
+
       return;
     }
 
     const goals = getProfileGoals();
 
+    /*
+     * Preserve an existing starting weight.
+     * If this is a new goal, use the latest
+     * recorded bodyweight as its starting point.
+     */
+    let startingWeight =
+      goals.bodyweight?.startingWeight;
+
+    if (!Number.isFinite(startingWeight)) {
+      const weights =
+        FitnessStorage.getWeights()
+          .filter(entry =>
+            entry &&
+            Number.isFinite(entry.weight)
+          )
+          .sort((a, b) => {
+            const aTime =
+              a.recordedAt
+                ? new Date(
+                    a.recordedAt
+                  ).getTime()
+                : new Date(
+                    `${a.date}T12:00:00`
+                  ).getTime();
+
+            const bTime =
+              b.recordedAt
+                ? new Date(
+                    b.recordedAt
+                  ).getTime()
+                : new Date(
+                    `${b.date}T12:00:00`
+                  ).getTime();
+
+            return aTime - bTime;
+          });
+
+      startingWeight =
+        weights.length > 0
+          ? weights[
+              weights.length - 1
+            ].weight
+          : null;
+    }
+
     goals.bodyweight = {
       targetWeight,
-      targetDate
+      targetDate,
+      startingWeight
     };
 
     saveProfileGoals(goals);
     renderBodyweightGoal();
+
+    if (
+      typeof updateDashboard ===
+      "function"
+    ) {
+      updateDashboard();
+    }
   });
+
 
 // DISPLAY SAVED EXERCISE GOALS
 function renderExerciseGoals() {
   const container =
-    document.getElementById("exerciseGoalsList");
+    document.getElementById(
+      "exerciseGoalsList"
+    );
 
   if (!container) return;
 
   const goals = getProfileGoals();
-  const exerciseGoals = goals.exerciseGoals || [];
+
+  const exerciseGoals =
+    Array.isArray(goals.exerciseGoals)
+      ? goals.exerciseGoals
+      : [];
 
   container.innerHTML = "";
 
   if (exerciseGoals.length === 0) {
     container.innerHTML =
       "<p>No exercise goals saved yet.</p>";
+
     return;
   }
 
   exerciseGoals.forEach(goal => {
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
+
     card.className = "card";
 
-    const heading = document.createElement("h3");
-    heading.textContent = goal.exerciseName;
+    const heading =
+      document.createElement("h3");
 
-    const target = document.createElement("p");
+    heading.textContent =
+      goal.exerciseName;
+
+    const target =
+      document.createElement("p");
+
     target.textContent =
-      `${goal.targetWeight} kg × ${goal.targetReps} reps`;
+      `Target: ${goal.targetWeight} kg`;
 
-    const removeButton = document.createElement("button");
-    removeButton.textContent = "Remove Goal";
+    const bestWeight =
+      getBestExerciseWeight(
+        goal.exerciseName
+      );
 
-    removeButton.addEventListener("click", () => {
-      const updatedGoals = getProfileGoals();
+    const current =
+      document.createElement("p");
 
-      updatedGoals.exerciseGoals =
-        (updatedGoals.exerciseGoals || []).filter(
-          item => item.id !== goal.id
-        );
+    current.textContent =
+      bestWeight > 0
+        ? `Current best: ${bestWeight} kg`
+        : "Current best: No completed sets yet";
 
-      saveProfileGoals(updatedGoals);
-      renderExerciseGoals();
-    });
+    const percentage =
+      goal.targetWeight > 0
+        ? Math.min(
+            100,
+            Math.round(
+              (
+                bestWeight /
+                goal.targetWeight
+              ) * 100
+            )
+          )
+        : 0;
+
+    const progress =
+      document.createElement("p");
+
+    progress.textContent =
+      `Progress: ${percentage}%`;
+
+    const removeButton =
+      document.createElement("button");
+
+    removeButton.textContent =
+      "Remove Goal";
+
+    removeButton.addEventListener(
+      "click",
+      () => {
+        if (
+          !confirm(
+            `Remove the ${goal.exerciseName} goal?`
+          )
+        ) {
+          return;
+        }
+
+        const updatedGoals =
+          getProfileGoals();
+
+        updatedGoals.exerciseGoals =
+          (
+            updatedGoals.exerciseGoals ||
+            []
+          ).filter(
+            item => item.id !== goal.id
+          );
+
+        saveProfileGoals(updatedGoals);
+        renderExerciseGoals();
+
+        if (
+          typeof updateDashboard ===
+          "function"
+        ) {
+          updateDashboard();
+        }
+      }
+    );
 
     card.append(
       heading,
       target,
+      current,
+      progress,
       removeButton
     );
 
@@ -133,64 +368,77 @@ function renderExerciseGoals() {
   });
 }
 
+
 // ADD EXERCISE GOAL
-document.getElementById("addExerciseGoal")
+document
+  .getElementById("addExerciseGoal")
   ?.addEventListener("click", () => {
     const nameInput =
-      document.getElementById("exerciseGoalName");
+      document.getElementById(
+        "exerciseGoalName"
+      );
 
     const weightInput =
-      document.getElementById("exerciseGoalWeight");
+      document.getElementById(
+        "exerciseGoalWeight"
+      );
 
-    const repsInput =
-      document.getElementById("exerciseGoalReps");
+    const exerciseName =
+      nameInput.value.trim();
 
-    const exerciseName = nameInput.value.trim();
-    const targetWeight = Number(weightInput.value);
-    const targetReps = Number(repsInput.value);
+    const targetWeight =
+      Number(weightInput.value);
 
     if (!exerciseName) {
-      alert("Please enter an exercise name.");
+      alert(
+        "Please enter an exercise name."
+      );
+
       return;
     }
 
     if (
       !Number.isFinite(targetWeight) ||
-      targetWeight < 0
+      targetWeight <= 0
     ) {
-      alert("Please enter a valid target weight.");
-      return;
-    }
+      alert(
+        "Please enter a valid target weight."
+      );
 
-    if (
-      !Number.isInteger(targetReps) ||
-      targetReps < 1
-    ) {
-      alert("Please enter a valid number of repetitions.");
       return;
     }
 
     const goals = getProfileGoals();
 
-    if (!Array.isArray(goals.exerciseGoals)) {
+    if (
+      !Array.isArray(
+        goals.exerciseGoals
+      )
+    ) {
       goals.exerciseGoals = [];
     }
 
     goals.exerciseGoals.push({
       id: createId(),
       exerciseName,
-      targetWeight,
-      targetReps
+      targetWeight
     });
 
     saveProfileGoals(goals);
 
     nameInput.value = "";
     weightInput.value = "";
-    repsInput.value = "";
 
     renderExerciseGoals();
+
+    if (
+      typeof updateDashboard ===
+      "function"
+    ) {
+      updateDashboard();
+    }
   });
+
 
 // INITIAL DISPLAY
 renderBodyweightGoal();
