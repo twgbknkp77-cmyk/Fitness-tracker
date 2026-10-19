@@ -407,3 +407,35 @@ nav button.active {
 .weight-filter-control .weight-filters button {
   width: 100%;
 }
+
+/* GOAL RADAR CHART */
+
+#goalRadarChart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 420px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.goal-progress-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.goal-progress-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+  color: var(--grey);
+  font-size: 14px;
+}
+
+.goal-progress-row span:last-child {
+  text-align: right;
+  color: var(--white);
+}
