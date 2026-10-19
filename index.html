@@ -10,7 +10,7 @@
   <title>Fitness Tracker</title>
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 
 <body>
@@ -37,12 +37,23 @@
       Activate a programme in your Library.
     </p>
 
-    <button
-      class="primary-button"
-      onclick="showPage('workouts')"
-    >
-      View →
-    </button>
+    <div class="dashboard-card-actions">
+      <button
+        type="button"
+        id="dashboardStartWorkout"
+        class="primary-button"
+        hidden
+      >
+        Start
+      </button>
+
+      <button
+        type="button"
+        onclick="showPage('workouts')"
+      >
+        View →
+      </button>
+    </div>
   </div>
 
   <!-- CURRENT WEEK PROGRESS -->
@@ -65,6 +76,23 @@
     </div>
   </div>
 
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="card recent-activity-card">
+  <h2>Recent Activity</h2>
+
+  <div class="recent-activity-grid">
+    <div>
+      <strong>Latest Workout</strong>
+      <p id="recentWorkout">No completed workouts yet.</p>
+    </div>
+
+    <div>
+      <strong>Weight Change</strong>
+      <p id="recentWeightChange">Add two measurements to compare.</p>
+    </div>
+  </div>
 </div>
 
       <!-- BODYWEIGHT -->
@@ -139,6 +167,13 @@
     + Add Weight
   </button>
 
+  <button
+    type="button"
+    onclick="renderMeasurements(); showPage('measurements')"
+  >
+    View Measurements
+  </button>
+
     <p id="weightMessage" aria-live="polite"></p>
 
 </div>
@@ -211,6 +246,58 @@
 </dialog>
 </section>
 <!-- END DASHBOARD PAGE -->
+
+<!-- MEASUREMENTS PAGE -->
+<section id="measurements" class="page">
+  <h1>Bodyweight Measurements</h1>
+
+  <button
+    type="button"
+    onclick="showPage('dashboard')"
+  >
+    ← Back to Dashboard
+  </button>
+
+  <p>Edit or remove any measurement below.</p>
+
+  <div id="measurementsList"></div>
+</section>
+
+<!-- EDIT MEASUREMENT POP-UP -->
+<dialog
+  id="editMeasurementModal"
+  aria-labelledby="editMeasurementTitle"
+>
+  <h2 id="editMeasurementTitle">Edit Measurement</h2>
+
+  <form id="editMeasurementForm">
+    <input type="hidden" id="editMeasurementId">
+
+    <label for="editMeasurementDate">Date</label>
+    <input type="date" id="editMeasurementDate" required>
+
+    <label for="editMeasurementWeight">Weight (kg)</label>
+    <input
+      type="number"
+      id="editMeasurementWeight"
+      inputmode="decimal"
+      min="20"
+      max="300"
+      step="0.1"
+      required
+    >
+
+    <div class="modal-actions">
+      <button type="button" id="cancelMeasurementEdit">
+        Cancel
+      </button>
+
+      <button type="submit" class="primary-button">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</dialog>
 
 
     <!-- WORKOUTS PAGE -->
@@ -406,6 +493,13 @@
     Save Bodyweight Goal
   </button>
 
+  <button
+    type="button"
+    id="resetBodyweightGoalStart"
+  >
+    Reset Starting Point
+  </button>
+
   <p
     id="bodyweightGoalMessage"
     aria-live="polite"
@@ -419,11 +513,9 @@
     Exercise
   </label>
 
-  <input
-    type="text"
-    id="exerciseGoalName"
-    placeholder="e.g. Bench Press"
-  >
+  <select id="exerciseGoalName">
+    <option value="">Choose an exercise</option>
+  </select>
 
   <label for="exerciseGoalWeight">
     Target weight (kg)
@@ -447,6 +539,34 @@
   </button>
 
   </div>
+
+<div class="card">
+  <h2>Data & Backup</h2>
+  <p>Download a backup before changing phones or clearing browser data.</p>
+
+  <div class="data-actions">
+    <button
+      type="button"
+      id="downloadBackup"
+      class="primary-button"
+    >
+      Download Backup
+    </button>
+
+    <button type="button" id="chooseBackupFile">
+      Restore Backup
+    </button>
+
+    <input
+      type="file"
+      id="backupFileInput"
+      accept="application/json,.json"
+      hidden
+    >
+  </div>
+
+  <p id="backupMessage" aria-live="polite"></p>
+</div>
 
 <div id="exerciseGoalsList">
   <!-- Saved exercise goals will appear here -->
@@ -523,17 +643,40 @@
     updateDashboard();
   }
 
+  if (
+    pageId === "measurements" &&
+    typeof renderMeasurements === "function"
+  ) {
+    renderMeasurements();
+  }
+
+  if (pageId === "profile") {
+    if (typeof renderBodyweightGoal === "function") {
+      renderBodyweightGoal();
+    }
+
+    if (typeof renderExerciseGoals === "function") {
+      renderExerciseGoals();
+    }
+
+    if (typeof populateExerciseSuggestions === "function") {
+      populateExerciseSuggestions();
+    }
+  }
+
 }
 
   </script>
 
   <script src="storage.js"></script>
-  <script src="dashboard.js?v=7"></script>
+  <script src="dashboard.js?v=8"></script>
   <script src="library.js?v=8"></script>
   <script src="programme-editor.js?v=7"></script>
   <script src="workout-session.js?v=5"></script>
   <script src="workout-history.js?v=2"></script>
-  <script src="profile.js?v=3"></script>
+  <script src="profile.js?v=4"></script>
+  <script src="measurements.js?v=1"></script>
+  <script src="data-management.js?v=1"></script>
 
 </body>
 </html>
