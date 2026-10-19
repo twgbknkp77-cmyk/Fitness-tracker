@@ -1,4 +1,4 @@
-// FITNESS TRACKER — DATA STORAGE
+// FITNESS TRACKER â€” DATA STORAGE
 
 const LIBRARY_KEY = "fitness_workout_library";
 const LIBRARY_BACKUP_KEY = "fitness_workout_library_backup_v1";
