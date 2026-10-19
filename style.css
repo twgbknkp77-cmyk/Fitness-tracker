@@ -361,3 +361,49 @@ nav button.active {
     grid-template-columns: 1fr;
   }
 }
+/* BODYWEIGHT FILTER MENU */
+
+.bodyweight-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bodyweight-header h2 {
+  margin-bottom: 16px;
+}
+
+.weight-filter-control {
+  position: relative;
+  flex-shrink: 0;
+}
+
+#toggleWeightFilters {
+  white-space: nowrap;
+}
+
+.weight-filter-control .weight-filters {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 210px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  margin: 0;
+  background: var(--card);
+  border: 1px solid #444;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.weight-filter-control .weight-filters[hidden] {
+  display: none;
+}
+
+.weight-filter-control .weight-filters button {
+  width: 100%;
+}
