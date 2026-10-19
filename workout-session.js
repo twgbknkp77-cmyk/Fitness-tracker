@@ -392,7 +392,7 @@ document
       })
     };
 
-    history.push(finishedSession);
+        history.push(finishedSession);
 
     try {
       localStorage.setItem(
@@ -404,6 +404,15 @@ document
       return;
     }
 
+    const progression =
+      typeof advanceProgrammeAfterCompletedWorkout ===
+      "function"
+        ? advanceProgrammeAfterCompletedWorkout(
+            currentSession.programmeId,
+            currentSession.weekId
+          )
+        : { advanced: false };
+
     currentSession = null;
 
     if (typeof renderActiveWorkout === "function") {
@@ -414,7 +423,18 @@ document
       updateDashboard();
     }
 
-    alert("Workout saved successfully!");
+        if (progression.advanced) {
+      alert(
+        `Workout saved! Week complete — moving to Week ${progression.newWeek}.`
+      );
+    } else if (progression.programmeComplete) {
+      alert(
+        "Workout saved! You have completed the entire programme."
+      );
+    } else {
+      alert("Workout saved successfully!");
+    }
+
     showPage("workouts");
   });
 
