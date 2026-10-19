@@ -4,6 +4,93 @@ const SESSION_HISTORY_KEY = "fitness_workout_history";
 
 let currentSession = null;
 
+
+// READ HISTORY SAFELY
+function getWorkoutSessionHistory() {
+  try {
+    const history = JSON.parse(
+      localStorage.getItem(SESSION_HISTORY_KEY) || "[]"
+    );
+
+    return Array.isArray(history) ? history : [];
+  } catch {
+    return [];
+  }
+}
+
+
+// MATCH EXERCISES BY ID WHEN POSSIBLE, THEN BY NAME FOR OLDER DATA
+function sessionExerciseName(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase();
+}
+
+
+// FIND THE MOST RECENT RESULT FOR AN EXERCISE
+function getPreviousExerciseResult(exercise, beforeTime) {
+  const history = getWorkoutSessionHistory()
+    .filter(session => {
+      const finishedTime = new Date(session.finishedAt).getTime();
+
+      return (
+        Number.isFinite(finishedTime) &&
+        finishedTime < beforeTime
+      );
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.finishedAt) -
+        new Date(a.finishedAt)
+    );
+
+  for (const session of history) {
+    const previousExercise = (
+      Array.isArray(session.exercises)
+        ? session.exercises
+        : []
+    ).find(item => {
+      const sameId =
+        exercise.id &&
+        item.id &&
+        exercise.id === item.id;
+
+      const sameName =
+        sessionExerciseName(item.name) ===
+        sessionExerciseName(exercise.name);
+
+      return sameId || sameName;
+    });
+
+    if (previousExercise) {
+      return {
+        finishedAt: session.finishedAt,
+        sets: Array.isArray(previousExercise.sets)
+          ? previousExercise.sets.filter(set => set.completed)
+          : []
+      };
+    }
+  }
+
+  return null;
+}
+
+
+// CREATE ONE SET FOR A NEW SESSION
+function createSessionSet(plannedWeight, plannedReps) {
+  const weight = Number(plannedWeight) || 0;
+  const reps = Number(plannedReps) || 0;
+
+  return {
+    plannedWeight: weight,
+    plannedReps: reps,
+    weight,
+    reps,
+    completed: false
+  };
+}
+
+
 // START A WORKOUT
 function startWorkout(workoutId) {
   const programme = getProgrammes().find(
@@ -12,38 +99,45 @@ function startWorkout(workoutId) {
 
   if (!programme) return;
 
-  const workout = programme.days.find(
+  const week =
+    programme.weeks?.[programme.currentWeek - 1];
+
+  const trainingDays =
+    week?.trainingDays ||
+    programme.days ||
+    [];
+
+  const workout = trainingDays.find(
     item => item.id === workoutId
   );
 
   if (!workout) return;
 
+  const startedAt = new Date().toISOString();
+  const startedTime = new Date(startedAt).getTime();
+
   currentSession = {
-    id: crypto.randomUUID(),
-        programmeId: programme.id,
+    id: createId(),
+    programmeId: programme.id,
     programmeName: programme.name,
-
-    weekId:
-      programme.weeks?.[programme.currentWeek - 1]?.id || null,
-
-    weekNumber:
-      programme.currentWeek || 1,
-
+    weekId: week?.id || null,
+    weekNumber: programme.currentWeek || 1,
     workoutId: workout.id,
     workoutName: workout.name,
-    startedAt: new Date().toISOString(),
+    startedAt,
 
-    exercises: workout.exercises.map(exercise => ({
+    exercises: (workout.exercises || []).map(exercise => ({
       id: exercise.id,
       name: exercise.name,
+      previousResult:
+        getPreviousExerciseResult(exercise, startedTime),
 
       sets: Array.from(
-        { length: exercise.sets },
-        () => ({
-          weight: Number(exercise.weight) || 0,
-          reps: Number(exercise.reps) || 0,
-          completed: false
-        })
+        { length: Number(exercise.sets) || 0 },
+        () => createSessionSet(
+          exercise.weight,
+          exercise.reps
+        )
       )
     }))
   };
@@ -51,6 +145,21 @@ function startWorkout(workoutId) {
   renderWorkoutSession();
   showPage("workoutSession");
 }
+
+
+// FORMAT THE PREVIOUS RESULT FOR ONE SET
+function previousSetText(exercise, setIndex) {
+  const previousSet =
+    exercise.previousResult?.sets?.[setIndex];
+
+  if (!previousSet) return "No previous result";
+
+  const weight = Number(previousSet.weight) || 0;
+  const reps = Number(previousSet.reps) || 0;
+
+  return `${weight} kg × ${reps} reps`;
+}
+
 
 // DISPLAY WORKOUT SESSION
 function renderWorkoutSession() {
@@ -60,26 +169,54 @@ function renderWorkoutSession() {
     currentSession.workoutName;
 
   document.getElementById("sessionProgrammeName").textContent =
-    currentSession.programmeName;
+    `${currentSession.programmeName} • Week ${currentSession.weekNumber}`;
 
-  const container = document.getElementById("sessionExercises");
+  const container =
+    document.getElementById("sessionExercises");
+
   container.innerHTML = "";
 
-  currentSession.exercises.forEach((exercise, exerciseIndex) => {
+  currentSession.exercises.forEach(exercise => {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "card session-exercise-card";
 
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
 
-    card.appendChild(heading);
+    const previousHeading = document.createElement("p");
+    previousHeading.className = "previous-session-heading";
+
+    if (exercise.previousResult) {
+      const date = new Date(
+        exercise.previousResult.finishedAt
+      ).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short"
+      });
+
+      previousHeading.textContent =
+        `Last completed: ${date}`;
+    } else {
+      previousHeading.textContent =
+        "No previous result for this exercise.";
+    }
+
+    card.append(heading, previousHeading);
 
     exercise.sets.forEach((set, setIndex) => {
       const row = document.createElement("div");
       row.className = "session-set-row";
 
-      const label = document.createElement("span");
+      const label = document.createElement("strong");
       label.textContent = `Set ${setIndex + 1}`;
+
+      const previous = document.createElement("span");
+      previous.className = "previous-set-result";
+      previous.textContent =
+        `Last: ${previousSetText(exercise, setIndex)}`;
+
+      const weightGroup = document.createElement("label");
+      weightGroup.textContent = "Today kg";
 
       const weightInput = document.createElement("input");
       weightInput.type = "number";
@@ -92,9 +229,14 @@ function renderWorkoutSession() {
         `${exercise.name} set ${setIndex + 1} weight in kilograms`
       );
 
-      weightInput.addEventListener("change", () => {
+      weightInput.addEventListener("input", () => {
         set.weight = Number(weightInput.value);
       });
+
+      weightGroup.appendChild(weightInput);
+
+      const repsGroup = document.createElement("label");
+      repsGroup.textContent = "Today reps";
 
       const repsInput = document.createElement("input");
       repsInput.type = "number";
@@ -107,11 +249,14 @@ function renderWorkoutSession() {
         `${exercise.name} set ${setIndex + 1} repetitions`
       );
 
-      repsInput.addEventListener("change", () => {
+      repsInput.addEventListener("input", () => {
         set.reps = Number(repsInput.value);
       });
 
+      repsGroup.appendChild(repsInput);
+
       const completeLabel = document.createElement("label");
+      completeLabel.className = "session-complete-label";
       completeLabel.textContent = "Done ";
 
       const checkbox = document.createElement("input");
@@ -120,26 +265,60 @@ function renderWorkoutSession() {
 
       checkbox.addEventListener("change", () => {
         set.completed = checkbox.checked;
+        row.classList.toggle(
+          "completed-set",
+          set.completed
+        );
         updateSessionProgress();
       });
 
       completeLabel.appendChild(checkbox);
 
-      row.append(label, weightInput, repsInput, completeLabel);
+      row.classList.toggle(
+        "completed-set",
+        set.completed
+      );
+
+      row.append(
+        label,
+        previous,
+        weightGroup,
+        repsGroup,
+        completeLabel
+      );
+
+      if (exercise.sets.length > 1) {
+        const removeSetButton =
+          document.createElement("button");
+
+        removeSetButton.type = "button";
+        removeSetButton.className = "secondary-button";
+        removeSetButton.textContent = "Remove";
+
+        removeSetButton.addEventListener("click", () => {
+          exercise.sets.splice(setIndex, 1);
+          renderWorkoutSession();
+        });
+
+        row.appendChild(removeSetButton);
+      }
+
       card.appendChild(row);
     });
 
     const addSetButton = document.createElement("button");
+    addSetButton.type = "button";
     addSetButton.textContent = "+ Add Set";
 
     addSetButton.addEventListener("click", () => {
       const previousSet = exercise.sets.at(-1);
 
-      exercise.sets.push({
-        weight: previousSet ? previousSet.weight : 0,
-        reps: previousSet ? previousSet.reps : 0,
-        completed: false
-      });
+      exercise.sets.push(
+        createSessionSet(
+          previousSet?.weight || 0,
+          previousSet?.reps || 0
+        )
+      );
 
       renderWorkoutSession();
     });
@@ -151,6 +330,7 @@ function renderWorkoutSession() {
   updateSessionProgress();
 }
 
+
 // UPDATE COMPLETED SET COUNT
 function updateSessionProgress() {
   if (!currentSession) return;
@@ -159,141 +339,89 @@ function updateSessionProgress() {
     exercise => exercise.sets
   );
 
-  const completed = sets.filter(set => set.completed).length;
+  const completed =
+    sets.filter(set => set.completed).length;
 
   document.getElementById("sessionProgress").textContent =
     `${completed} / ${sets.length} sets completed`;
 }
-// ADVANCE AFTER THE FINAL WORKOUT IN A WEEK
-function advanceProgrammeIfWeekComplete(session, history) {
-  const programmes = getProgrammes();
 
-  const programmeIndex = programmes.findIndex(
-    programme => programme.id === session.programmeId
-  );
 
-  if (programmeIndex === -1) return false;
-
-  const programme = programmes[programmeIndex];
-
-  const completedWeek = programme.weeks?.find(week =>
-    session.weekId
-      ? week.id === session.weekId
-      : week.number === session.weekNumber
-  );
-
-  if (!completedWeek) return false;
-
-  // Only advance from the programme's actual current week.
-  if (completedWeek.number !== programme.currentWeek) {
-    return false;
-  }
-
-  const trainingDays = completedWeek.trainingDays || [];
-
-  if (trainingDays.length === 0) return false;
-
-  const everyDayComplete = trainingDays.every(workout => {
-    return history.some(historyItem => {
-      const sameProgramme =
-        historyItem.programmeId === programme.id;
-
-      const sameWorkout =
-        historyItem.workoutId === workout.id;
-
-      const sameWeek =
-        !historyItem.weekId ||
-        historyItem.weekId === completedWeek.id;
-
-      return sameProgramme && sameWorkout && sameWeek;
-    });
-  });
-
-  if (!everyDayComplete) return false;
-
-  // Stay on the final week once the programme is complete.
-  if (programme.currentWeek >= programme.durationWeeks) {
-    return false;
-  }
-
-  programme.currentWeek += 1;
-
-  // Point the compatibility days list at the new current week.
-  programme.days =
-    programme.weeks[programme.currentWeek - 1].trainingDays;
-
-  programmes[programmeIndex] = programme;
-  saveProgrammes(programmes);
-
-  // Open the newly activated week on the Workouts page.
-  viewedWorkoutWeek = programme.currentWeek;
-  expandedWorkoutId = null;
-
-  return true;
-}
 // SAVE FINISHED WORKOUT
-document.getElementById("finishWorkout")
+document
+  .getElementById("finishWorkout")
   ?.addEventListener("click", () => {
     if (!currentSession) return;
 
-    // Save any values still being edited.
     document.activeElement?.blur();
 
     const allSets = currentSession.exercises.flatMap(
       exercise => exercise.sets
     );
 
-    const completedSets = allSets.filter(set => set.completed).length;
+    const completedSets =
+      allSets.filter(set => set.completed);
 
-    if (completedSets === 0) {
+    if (completedSets.length === 0) {
       alert("Complete at least one set before finishing.");
+      return;
+    }
+
+    const invalidCompletedSet = completedSets.some(set =>
+      !Number.isFinite(Number(set.weight)) ||
+      Number(set.weight) < 0 ||
+      !Number.isInteger(Number(set.reps)) ||
+      Number(set.reps) < 0
+    );
+
+    if (invalidCompletedSet) {
+      alert("Please enter a valid weight and number of reps for every completed set.");
       return;
     }
 
     if (!confirm("Finish and save this workout?")) return;
 
-    const history = JSON.parse(
-      localStorage.getItem(SESSION_HISTORY_KEY) || "[]"
-    );
+    const history = getWorkoutSessionHistory();
 
-    history.push({
+    const finishedSession = {
       ...currentSession,
-      finishedAt: new Date().toISOString()
-    });
+      finishedAt: new Date().toISOString(),
+      exercises: currentSession.exercises.map(exercise => {
+        const { previousResult, ...savedExercise } = exercise;
+        return savedExercise;
+      })
+    };
+
+    history.push(finishedSession);
 
     try {
       localStorage.setItem(
         SESSION_HISTORY_KEY,
         JSON.stringify(history)
       );
-    } catch (error) {
+    } catch {
       alert("Unable to save workout. Please try again.");
       return;
     }
 
-        const movedToNextWeek =
-      advanceProgrammeIfWeekComplete(
-        currentSession,
-        history
-      );
-
     currentSession = null;
 
-    renderActiveWorkout();
-
-    if (movedToNextWeek) {
-      alert(
-        "Workout saved! The next week is now active."
-      );
-    } else {
-      alert("Workout saved successfully!");
+    if (typeof renderActiveWorkout === "function") {
+      renderActiveWorkout();
     }
 
-        showPage("workouts");
+    if (typeof updateDashboard === "function") {
+      updateDashboard();
+    }
+
+    alert("Workout saved successfully!");
+    showPage("workouts");
   });
 
+
 // CANCEL WORKOUT
-document.getElementById("cancelWorkout")
+document
+  .getElementById("cancelWorkout")
   ?.addEventListener("click", () => {
     if (!currentSession) return;
 
