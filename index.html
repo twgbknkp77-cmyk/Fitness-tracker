@@ -468,8 +468,15 @@
   // Highlight navigation button, if one exists
   const navButton = document.getElementById(pageId + "Button");
 
-  if (navButton) {
+    if (navButton) {
     navButton.classList.add("active");
+  }
+
+  if (
+    pageId === "dashboard" &&
+    typeof updateDashboard === "function"
+  ) {
+    updateDashboard();
   }
 
 }
