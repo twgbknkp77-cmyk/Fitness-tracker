@@ -1,4 +1,4 @@
-// FITNESS TRACKER â€” DASHBOARD
+// FITNESS TRACKER - DASHBOARD
 
 let selectedDays = 30;
 
@@ -271,7 +271,7 @@ document
         button.classList.add("active");
 
         toggleWeightFilters.textContent =
-          `Filter: ${button.textContent.trim()} â–¾`;
+          `Filter: ${button.textContent.trim()} v`;
 
         weightFilterOptions.hidden = true;
 
@@ -421,7 +421,7 @@ function updateWorkoutSummary() {
       remainingWorkouts[0].name;
 
     nextDetails.textContent =
-      `${programme.name} â€¢ ` +
+      `${programme.name} - ` +
       `Week ${programme.currentWeek}`;
 
     dashboardNextWorkoutId =
@@ -433,7 +433,7 @@ function updateWorkoutSummary() {
       "No workouts added";
 
     nextDetails.textContent =
-      `${programme.name} â€¢ ` +
+      `${programme.name} - ` +
       `Week ${programme.currentWeek}`;
 
     dashboardNextWorkoutId = null;
@@ -443,7 +443,7 @@ function updateWorkoutSummary() {
       "Week complete";
 
     nextDetails.textContent =
-      `${programme.name} â€¢ Great work!`;
+      `${programme.name} - Great work!`;
 
     dashboardNextWorkoutId = null;
     dashboardStartWorkout.hidden = true;
@@ -488,7 +488,7 @@ function updateRecentActivity() {
     });
 
     workoutDisplay.textContent =
-      `${latestWorkout.workoutName} â€¢ ${date}`;
+      `${latestWorkout.workoutName} - ${date}`;
   } else {
     workoutDisplay.textContent =
       "No completed workouts yet.";
@@ -1089,7 +1089,7 @@ function drawGoalRadarChart() {
 
     const shortName =
       goal.name.length > 16
-        ? `${goal.name.slice(0, 14)}â€¦`
+        ? `${goal.name.slice(0, 14)}...`
         : goal.name;
 
     svg += `
@@ -1186,7 +1186,7 @@ function drawGoalRadarChart() {
 
           <span>
             ${escapeRadarText(goal.details)}
-            â€¢ ${Math.round(goal.percentage)}%
+            - ${Math.round(goal.percentage)}%
           </span>
         </div>
       `;
