@@ -1,4 +1,576 @@
-/* ADD THIS TO THE BOTTOM OF style.css */
+/* FITNESS TRACKER — COLOUR THEME */
+
+:root {
+  --background: #121212;
+  --card: #1e1e1e;
+  --orange: #ff8c00;
+  --white: #ffffff;
+  --grey: #b0b0b0;
+}
+
+/* MAIN APP */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--white);
+  font-family: Arial, sans-serif;
+}
+
+main {
+  max-width: 650px;
+  margin: auto;
+  padding: 24px 18px 110px;
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+p {
+  color: var(--grey);
+}
+
+/* UNIVERSAL CARDS */
+
+.card {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+.card > *:last-child {
+  margin-bottom: 0;
+}
+
+/* BUTTONS */
+
+.primary-button {
+  background: var(--orange);
+  color: var(--background);
+  border: none;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* PAGES */
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+/* BOTTOM NAVIGATION */
+
+nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  background: var(--card);
+  border-top: 1px solid #333;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+nav button {
+  flex: 1;
+  min-height: 62px;
+  background: none;
+  border: none;
+  color: var(--grey);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+nav button.active {
+  color: var(--orange);
+  font-weight: bold;
+}
+/* BODYWEIGHT TRACKER */
+
+/* Latest weight */
+#currentWeight {
+  font-size: 36px;
+  font-weight: bold;
+  margin: 12px 0 20px;
+}
+
+/* Graph time filters */
+.weight-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.weight-filters button {
+  flex: 1;
+  background: #333;
+  color: #b0b0b0;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.weight-filters button.active {
+  background: #ff8c00;
+  color: #121212;
+  font-weight: bold;
+}
+/* PROGRAMME PROGRESS AND WEEK CONTROLS */
+
+.programme-progress .progress-track {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  background: #333;
+  border-radius: 999px;
+  margin: 14px 0;
+}
+
+.programme-progress .progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--orange);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.week-navigation strong {
+  text-align: center;
+}
+
+.active-week-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.active-week-controls button {
+  flex: 1;
+  min-width: 140px;
+}
+
+.week-navigation button:disabled,
+.active-week-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Graph container */
+#weightChart {
+  width: 100%;
+  min-height: 180px;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 24px;
+}
+
+#weightChart p {
+  text-align: center;
+  padding: 40px 10px;
+  font-size: 14px;
+}
+
+/* Weight entry form */
+#weightForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#weightForm label {
+  color: #b0b0b0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#weightForm input {
+  width: 100%;
+  min-width: 0;
+  background: #292929;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+#weightForm input:focus {
+  outline: 2px solid #ff8c00;
+  border-color: #ff8c00;
+}
+
+#weightForm .primary-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Save confirmation */
+#weightMessage {
+  font-size: 14px;
+  color: #ff8c00;
+  margin-top: 12px;
+}
+
+/* Small phone screens */
+@media (max-width: 360px) {
+  .weight-filters {
+    gap: 4px;
+  }
+
+  .weight-filters button {
+    font-size: 12px;
+    padding: 10px 2px;
+  }
+}
+/* PROGRAMME PROGRESS AND WEEK CONTROLS */
+
+.programme-progress .progress-track {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  background: #333;
+  border-radius: 999px;
+  margin: 14px 0;
+}
+
+.programme-progress .progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--orange);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+.week-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.week-navigation strong {
+  text-align: center;
+}
+
+.active-week-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.active-week-controls button {
+  flex: 1;
+  min-width: 140px;
+}
+
+.week-navigation button:disabled,
+.active-week-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* COMPACT DASHBOARD SUMMARY */
+
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.dashboard-summary-grid .card {
+  margin-bottom: 0;
+}
+
+.dashboard-summary-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dashboard-summary-card h2,
+.dashboard-summary-card h3 {
+  margin-top: 0;
+}
+
+.dashboard-summary-card h3 {
+  overflow-wrap: anywhere;
+}
+
+.dashboard-summary-card .primary-button {
+  width: 100%;
+  margin-top: auto;
+}
+
+.dashboard-summary-card .progress-track {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  background: #333;
+  border-radius: 999px;
+  margin-top: auto;
+}
+
+.dashboard-summary-card .progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--orange);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 340px) {
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* BODYWEIGHT FILTER MENU */
+
+.bodyweight-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bodyweight-header h2 {
+  margin-bottom: 16px;
+}
+
+.weight-filter-control {
+  position: relative;
+  flex-shrink: 0;
+}
+
+#toggleWeightFilters {
+  white-space: nowrap;
+}
+
+.weight-filter-control .weight-filters {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 210px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  margin: 0;
+  background: var(--card);
+  border: 1px solid #444;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.weight-filter-control .weight-filters[hidden] {
+  display: none;
+}
+
+.weight-filter-control .weight-filters button {
+  width: 100%;
+}
+
+/* GOAL RADAR CHART */
+
+#goalRadarChart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 420px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.goal-progress-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.goal-progress-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+  color: var(--grey);
+  font-size: 14px;
+}
+
+.goal-progress-row span:last-child {
+  text-align: right;
+  color: var(--white);
+}
+
+/* DASHBOARD ACTIONS AND RECENT ACTIVITY */
+
+.dashboard-card-actions,
+.data-actions,
+.measurement-actions,
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dashboard-card-actions {
+  margin-top: auto;
+}
+
+.dashboard-card-actions button {
+  flex: 1;
+}
+
+.recent-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.recent-activity-grid > div + div {
+  padding-left: 18px;
+  border-left: 1px solid #333;
+}
+
+/* FORMS AND DIALOGS */
+
+input,
+select {
+  max-width: 100%;
+}
+
+#profile input,
+#profile select {
+  width: 100%;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 8px 0 14px;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+dialog {
+  width: min(92vw, 460px);
+  color: var(--white);
+  background: var(--card);
+  border: 1px solid #444;
+  border-radius: 16px;
+  padding: 22px;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+#editMeasurementForm {
+  display: grid;
+  gap: 10px;
+}
+
+#editMeasurementForm input {
+  width: 100%;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 16px;
+  color-scheme: dark;
+}
+
+/* MEASUREMENT HISTORY */
+
+.measurement-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.measurement-card h2,
+.measurement-card p {
+  margin: 0;
+}
+
+.measurement-card p {
+  margin-top: 6px;
+}
+
+.measurement-actions {
+  flex-shrink: 0;
+}
+
+/* PROFILE DATA TOOLS */
+
+.data-actions button {
+  flex: 1;
+  min-width: 140px;
+}
+
+#backupMessage {
+  color: var(--orange);
+}
+
+@media (max-width: 430px) {
+  .recent-activity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recent-activity-grid > div + div {
+    padding-top: 14px;
+    padding-left: 0;
+    border-top: 1px solid #333;
+    border-left: 0;
+  }
+
+  .measurement-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* WORKOUT SESSION — PREVIOUS AND CURRENT SETS */
 
 .session-exercise-card {
   display: grid;
