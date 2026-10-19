@@ -229,6 +229,88 @@ function getRemainingWorkouts(
   });
 }
 
+// ADVANCE AUTOMATICALLY WHEN THE CURRENT WEEK IS COMPLETE
+function advanceProgrammeAfterCompletedWorkout(
+  programmeId,
+  completedWeekId
+) {
+  const programmes = getProgrammes();
+
+  const programmeIndex =
+    programmes.findIndex(
+      programme => programme.id === programmeId
+    );
+
+  if (programmeIndex === -1) {
+    return { advanced: false };
+  }
+
+  const programme = programmes[programmeIndex];
+
+  const currentWeek =
+    programme.weeks?.[programme.currentWeek - 1];
+
+  if (
+    !currentWeek ||
+    (
+      completedWeekId &&
+      currentWeek.id !== completedWeekId
+    )
+  ) {
+    return { advanced: false };
+  }
+
+  const trainingDays =
+    currentWeek.trainingDays || [];
+
+  if (trainingDays.length === 0) {
+    return { advanced: false };
+  }
+
+  const history = getWorkoutHistory();
+
+  const weekComplete = trainingDays.every(
+    workout =>
+      isWorkoutComplete(
+        programme,
+        currentWeek,
+        workout,
+        history
+      )
+  );
+
+  if (!weekComplete) {
+    return { advanced: false };
+  }
+
+  if (
+    programme.currentWeek >=
+    programme.durationWeeks
+  ) {
+    return {
+      advanced: false,
+      programmeComplete: true
+    };
+  }
+
+  programme.currentWeek += 1;
+
+  programme.days =
+    programme.weeks[
+      programme.currentWeek - 1
+    ].trainingDays;
+
+  programmes[programmeIndex] = programme;
+  saveProgrammes(programmes);
+
+  viewedWorkoutWeek = programme.currentWeek;
+  expandedWorkoutId = null;
+
+  return {
+    advanced: true,
+    newWeek: programme.currentWeek
+  };
+}
 
 // MANUALLY CHANGE THE ACTIVE TRAINING WEEK
 function changeActiveProgrammeWeek(
