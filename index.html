@@ -10,17 +10,29 @@
   <title>Fitness Tracker</title>
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 
 <body>
+
+  <!-- SHARED OUTLINE ICONS -->
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="icon-progress" viewBox="0 0 24 24"><path d="M4 19V13M10 19V9M16 19V5M3 21h18"/></symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5z"/><path d="M5 4.5v17M9 6h7M9 10h7"/></symbol>
+    <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="icon-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  </svg>
 
   <main>
 
     <!-- DASHBOARD PAGE -->
     <section id="dashboard" class="page active">
 
-      <h1>Dashboard</h1>
+      <div class="page-header"><h1>Dashboard</h1></div>
 
       <!-- COMPACT WORKOUT SUMMARY -->
 <div class="dashboard-summary-grid">
@@ -47,11 +59,8 @@
         Start
       </button>
 
-      <button
-        type="button"
-        onclick="showPage('workouts')"
-      >
-        View →
+      <button type="button" class="icon-button" onclick="showPage('workouts')" aria-label="View workouts">
+        <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
       </button>
     </div>
   </div>
@@ -114,7 +123,8 @@
       aria-expanded="false"
       aria-controls="weightFilterOptions"
     >
-      Filter: 30 Days ▾
+      <svg aria-hidden="true"><use href="#icon-filter"></use></svg>
+      <span class="sr-only">Filter weight graph</span>
     </button>
 
     <div
@@ -302,8 +312,12 @@
 
     <!-- WORKOUTS PAGE -->
 <section id="workouts" class="page">
-  <h1>Workouts</h1>
-  <h2>Active Programme</h2>
+  <div class="page-header">
+    <h1>Workouts</h1>
+    <button type="button" class="icon-button" onclick="renderWorkoutHistory(); showPage('workoutHistory')" aria-label="View workout history">
+      <svg aria-hidden="true"><use href="#icon-history"></use></svg>
+    </button>
+  </div>
 
   <div id="activeWorkout">
     <p>No active programme selected.</p>
@@ -313,29 +327,17 @@
       <!-- LIBRARY PAGE -->
 <section id="library" class="page">
 
-  <div class="library-header">
-    <h1>Workout Library</h1>
-
-    <button
-      type="button"
-      class="history-button"
-      onclick="renderWorkoutHistory(); showPage('workoutHistory')"
-      aria-label="View workout history"
-    >
-      🕘 History
+  <div class="page-header">
+    <h1>Library</h1>
+    <button type="button" class="icon-button" id="createProgramme" aria-label="Create programme">
+      <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
     </button>
   </div>
 
   <h2>My Programmes</h2>
-<p>Create, save and manage your workout programmes.</p>
-
 <div id="programmeLibrary">
   <!-- Saved programmes will appear here -->
 </div>
-
-<button type="button" id="createProgramme" class="primary-button">
-  + Create Programme
-</button>
 
 </section>
 
@@ -378,29 +380,21 @@
 
   <button
     type="button"
-    onclick="showPage('library')"
+    onclick="showPage('workouts')"
   >
-    ← Back to Library
+    ← Back to Workouts
   </button>
 
 </section>
 
 <!-- WORKOUT SESSION PAGE -->
 <section id="workoutSession" class="page">
-
-  <h1 id="sessionWorkoutName">Workout Session</h1>
-
-  <!-- SESSION INFORMATION -->
-  <div class="card">
-
-    <h2>Current Workout</h2>
-
-    <p id="sessionProgrammeName"></p>
-
-    <p id="sessionProgress">
-      0 sets completed
-    </p>
-
+  <div class="session-header">
+    <button type="button" id="cancelWorkout" class="icon-button" aria-label="Exit workout">×</button>
+    <div>
+      <h1 id="sessionWorkoutName">Workout Session</h1>
+      <p id="sessionProgrammeName"></p>
+    </div>
   </div>
 
   <!-- EXERCISES AND SETS -->
@@ -408,24 +402,9 @@
     <!-- Exercises will appear here automatically -->
   </div>
 
-  <!-- SESSION ACTIONS -->
-  <div class="card">
-
-    <button
-      type="button"
-      id="finishWorkout"
-      class="primary-button"
-    >
-      ✓ Finish Workout
-    </button>
-
-    <button
-      type="button"
-      id="cancelWorkout"
-    >
-      Cancel Workout
-    </button>
-
+  <div class="session-action-bar">
+    <p id="sessionProgress">0 sets recorded</p>
+    <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
   </div>
 
 </section>
@@ -456,11 +435,10 @@
 
 <!-- PROFILE PAGE -->
 <section id="profile" class="page">
+  <div class="page-header"><h1>Profile</h1></div>
 
-  <h1>Profile & Goals</h1>
-
-  <div class="card">
-  <h2>Bodyweight Goal</h2>
+  <details class="card profile-editor-card">
+  <summary><span>Bodyweight Goal</span><span class="summary-action">Edit</span></summary>
 
   <label for="goalBodyweight">
     Target bodyweight (kg)
@@ -504,10 +482,10 @@
     id="bodyweightGoalMessage"
     aria-live="polite"
   ></p>
-</div>
+</details>
 
-  <div class="card">
-  <h2>Exercise Goals</h2>
+  <details class="card profile-editor-card">
+  <summary><span>Exercise Goals</span><span class="summary-action">＋</span></summary>
 
   <label for="exerciseGoalName">
     Exercise
@@ -538,35 +516,7 @@
     + Add Exercise Goal
   </button>
 
-  </div>
-
-<div class="card">
-  <h2>Data & Backup</h2>
-  <p>Download a backup before changing phones or clearing browser data.</p>
-
-  <div class="data-actions">
-    <button
-      type="button"
-      id="downloadBackup"
-      class="primary-button"
-    >
-      Download Backup
-    </button>
-
-    <button type="button" id="chooseBackupFile">
-      Restore Backup
-    </button>
-
-    <input
-      type="file"
-      id="backupFileInput"
-      accept="application/json,.json"
-      hidden
-    >
-  </div>
-
-  <p id="backupMessage" aria-live="polite"></p>
-</div>
+  </details>
 
 <div id="exerciseGoalsList">
   <!-- Saved exercise goals will appear here -->
@@ -584,24 +534,24 @@
       id="dashboardButton"
       class="active"
       onclick="showPage('dashboard')">
-      🏠 Dashboard
+      <svg aria-hidden="true"><use href="#icon-dashboard"></use></svg><span class="sr-only">Dashboard</span>
     </button>
 
     <button
       id="workoutsButton"
       onclick="showPage('workouts')">
-      💪 Workouts
+      <svg aria-hidden="true"><use href="#icon-progress"></use></svg><span class="sr-only">Workouts</span>
     </button>
 
     <button
       id="libraryButton"
       onclick="showPage('library')">
-      📚 Library
+      <svg aria-hidden="true"><use href="#icon-library"></use></svg><span class="sr-only">Library</span>
     </button>
     <button
       id="profileButton"
       onclick="showPage('profile')">
-      👤 Profile
+      <svg aria-hidden="true"><use href="#icon-profile"></use></svg><span class="sr-only">Profile</span>
     </button>
 
 </nav>
@@ -635,6 +585,11 @@
     if (navButton) {
     navButton.classList.add("active");
   }
+
+  document.body.classList.toggle(
+    "session-active",
+    pageId === "workoutSession"
+  );
 
   if (
     pageId === "dashboard" &&
@@ -670,13 +625,12 @@
 
   <script src="storage.js"></script>
   <script src="dashboard.js?v=9"></script>
-  <script src="library.js?v=9"></script>
+  <script src="library.js?v=10"></script>
   <script src="programme-editor.js?v=7"></script>
-  <script src="workout-session.js?v=7"></script>
+  <script src="workout-session.js?v=8"></script>
   <script src="workout-history.js?v=3"></script>
-  <script src="profile.js?v=4"></script>
+  <script src="profile.js?v=5"></script>
   <script src="measurements.js?v=1"></script>
-  <script src="data-management.js?v=1"></script>
 
 </body>
 </html>

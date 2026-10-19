@@ -270,8 +270,10 @@ document
 
         button.classList.add("active");
 
-        toggleWeightFilters.textContent =
-          `Filter: ${button.textContent.trim()} v`;
+        toggleWeightFilters.setAttribute(
+          "aria-label",
+          `Weight graph filter: ${button.textContent.trim()}`
+        );
 
         weightFilterOptions.hidden = true;
 

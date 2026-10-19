@@ -81,7 +81,7 @@ function deleteProgramme(id) {
 
 
 // DISPLAY LIBRARY
-function renderLibrary() {
+function renderLibraryLegacy() {
   const container =
     document.getElementById("programmeLibrary");
 
@@ -357,7 +357,7 @@ function changeActiveProgrammeWeek(
 
 
 // DISPLAY ACTIVE PROGRAMME ON WORKOUTS PAGE
-function renderActiveWorkout() {
+function renderActiveWorkoutLegacy() {
   const container =
     document.getElementById("activeWorkout");
 
@@ -958,6 +958,269 @@ function renderActiveWorkout() {
       }
     );
   }
+}
+
+
+// COMPACT LIBRARY CARDS
+function renderLibrary() {
+  const container = document.getElementById("programmeLibrary");
+  if (!container) return;
+
+  const programmes = getProgrammes();
+  const activeId = getActiveProgrammeId();
+  const history = getWorkoutHistory();
+
+  container.innerHTML = "";
+
+  if (programmes.length === 0) {
+    container.innerHTML = "<div class='card'><p>No programmes saved yet.</p></div>";
+    return;
+  }
+
+  programmes.forEach(programme => {
+    const card = document.createElement("div");
+    card.className = "card programme-card";
+
+    if (programme.id === activeId) {
+      card.classList.add("active-programme");
+    }
+
+    const header = document.createElement("div");
+    header.className = "compact-card-header";
+
+    const copy = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = programme.name;
+
+    const details = document.createElement("p");
+    details.textContent =
+      `${programme.durationWeeks} weeks • Week ${programme.currentWeek}`;
+    copy.append(title, details);
+
+    const menu = document.createElement("details");
+    menu.className = "overflow-menu";
+    const summary = document.createElement("summary");
+    summary.textContent = "⋯";
+    summary.setAttribute("aria-label", `${programme.name} options`);
+    const panel = document.createElement("div");
+    panel.className = "overflow-menu-panel";
+
+    const edit = document.createElement("button");
+    edit.textContent = "Edit programme";
+    edit.addEventListener("click", () => openProgrammeEditor(programme.id));
+
+    const activate = document.createElement("button");
+    activate.textContent = programme.id === activeId ? "Active programme" : "Activate programme";
+    activate.disabled = programme.id === activeId;
+    activate.addEventListener("click", () => activateProgramme(programme.id));
+
+    const remove = document.createElement("button");
+    remove.textContent = "Delete programme";
+    remove.className = "danger-action";
+    remove.addEventListener("click", () => deleteProgramme(programme.id));
+
+    panel.append(edit, activate, remove);
+    menu.append(summary, panel);
+    header.append(copy, menu);
+    card.appendChild(header);
+
+    if (programme.id === activeId) {
+      const week = programme.weeks?.[programme.currentWeek - 1];
+      const days = week?.trainingDays || [];
+      const remaining = getRemainingWorkouts(programme, week, history);
+      const completed = days.length - remaining.length;
+      const percentage = days.length
+        ? Math.round((completed / days.length) * 100)
+        : 0;
+
+      const status = document.createElement("span");
+      status.className = "status-label";
+      status.textContent = `Active • ${percentage}% complete`;
+      card.appendChild(status);
+    }
+
+    card.addEventListener("click", event => {
+      if (event.target.closest(".overflow-menu")) return;
+      openProgrammeEditor(programme.id);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+
+// COMPACT WORKOUTS PAGE
+function renderActiveWorkout() {
+  const container = document.getElementById("activeWorkout");
+  if (!container) return;
+
+  const programme = getProgrammes().find(
+    item => item.id === getActiveProgrammeId()
+  );
+
+  container.innerHTML = "";
+
+  if (!programme) {
+    container.innerHTML = "<div class='card'><p>No active programme. Activate one in your Library.</p></div>";
+    return;
+  }
+
+  if (viewedWorkoutProgrammeId !== programme.id) {
+    viewedWorkoutProgrammeId = programme.id;
+    viewedWorkoutWeek = programme.currentWeek || 1;
+    expandedWorkoutId = null;
+  }
+
+  viewedWorkoutWeek = Math.min(
+    Math.max(viewedWorkoutWeek || programme.currentWeek || 1, 1),
+    programme.durationWeeks
+  );
+
+  const history = getWorkoutHistory();
+  const currentWeek = programme.weeks?.[programme.currentWeek - 1];
+  const currentDays = currentWeek?.trainingDays || [];
+  const currentRemaining = getRemainingWorkouts(programme, currentWeek, history);
+  const completed = currentDays.length - currentRemaining.length;
+  const percentage = currentDays.length
+    ? Math.round((completed / currentDays.length) * 100)
+    : 0;
+
+  const progress = document.createElement("div");
+  progress.className = "card programme-progress";
+  progress.innerHTML = `
+    <div class="compact-card-header">
+      <div><h2>${programme.name}</h2><p>Week ${programme.currentWeek} of ${programme.durationWeeks}</p></div>
+      <strong>${percentage}%</strong>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${percentage}%"></div></div>
+  `;
+  container.appendChild(progress);
+
+  const navigation = document.createElement("div");
+  navigation.className = "card unified-week-card";
+  const navRow = document.createElement("div");
+  navRow.className = "week-navigation";
+
+  const previous = document.createElement("button");
+  previous.textContent = "‹";
+  previous.setAttribute("aria-label", "Previous week");
+  previous.disabled = viewedWorkoutWeek === 1;
+  previous.addEventListener("click", () => {
+    viewedWorkoutWeek -= 1;
+    expandedWorkoutId = null;
+    renderActiveWorkout();
+  });
+
+  const weekCopy = document.createElement("div");
+  weekCopy.className = "week-navigation-copy";
+  const weekName = document.createElement("strong");
+  weekName.textContent = `Week ${viewedWorkoutWeek} of ${programme.durationWeeks}`;
+  weekCopy.appendChild(weekName);
+  if (viewedWorkoutWeek === programme.currentWeek) {
+    const current = document.createElement("span");
+    current.className = "status-label";
+    current.textContent = "Current";
+    weekCopy.appendChild(current);
+  }
+
+  const next = document.createElement("button");
+  next.textContent = "›";
+  next.setAttribute("aria-label", "Next week");
+  next.disabled = viewedWorkoutWeek === programme.durationWeeks;
+  next.addEventListener("click", () => {
+    viewedWorkoutWeek += 1;
+    expandedWorkoutId = null;
+    renderActiveWorkout();
+  });
+
+  navRow.append(previous, weekCopy, next);
+  navigation.appendChild(navRow);
+  container.appendChild(navigation);
+
+  const week = programme.weeks?.[viewedWorkoutWeek - 1];
+  const remaining = getRemainingWorkouts(programme, week, history);
+
+  if (expandedWorkoutId) {
+    const workout = (week?.trainingDays || []).find(item => item.id === expandedWorkoutId);
+    if (workout) {
+      const back = document.createElement("button");
+      back.textContent = "← Back to Week";
+      back.addEventListener("click", () => {
+        expandedWorkoutId = null;
+        renderActiveWorkout();
+      });
+      container.appendChild(back);
+
+      const detail = document.createElement("div");
+      detail.className = "card workout-detail-card";
+      const title = document.createElement("h2");
+      title.textContent = workout.name;
+      detail.appendChild(title);
+
+      (workout.exercises || []).forEach(exercise => {
+        const row = document.createElement("div");
+        row.className = "exercise-row";
+        row.innerHTML = `<strong>${exercise.name}</strong><p>${exercise.sets} sets × ${exercise.reps} reps${exercise.weight ? ` • ${exercise.weight} kg` : ""}</p>`;
+        detail.appendChild(row);
+      });
+
+      const start = document.createElement("button");
+      start.className = "primary-button";
+      start.textContent = viewedWorkoutWeek === programme.currentWeek
+        ? "Start Workout"
+        : `Make Week ${viewedWorkoutWeek} Current & Start`;
+      start.addEventListener("click", () => {
+        if (viewedWorkoutWeek !== programme.currentWeek) {
+          if (!confirm(`Make Week ${viewedWorkoutWeek} your current training week?`)) return;
+          changeActiveProgrammeWeek(programme.id, viewedWorkoutWeek);
+        }
+        startWorkout(workout.id);
+      });
+      detail.appendChild(start);
+      container.appendChild(detail);
+      return;
+    }
+  }
+
+  if (!week || (week.trainingDays || []).length === 0) {
+    container.innerHTML += "<div class='card'><p>This week has no training days yet.</p></div>";
+    return;
+  }
+
+  if (remaining.length === 0) {
+    container.innerHTML += "<div class='card'><p>All workouts in this week are complete.</p></div>";
+    return;
+  }
+
+  remaining.forEach((workout, index) => {
+    const card = document.createElement("div");
+    card.className = "card workout-summary-card";
+    if (index === 0) card.classList.add("next-workout");
+
+    const header = document.createElement("div");
+    header.className = "compact-card-header";
+    const copy = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = workout.name;
+    const detail = document.createElement("p");
+    const exerciseCount = (workout.exercises || []).length;
+    detail.textContent = `${exerciseCount} ${exerciseCount === 1 ? "exercise" : "exercises"}`;
+    copy.append(title, detail);
+    if (index === 0) {
+      const badge = document.createElement("span");
+      badge.className = "status-label";
+      badge.textContent = "Next";
+      header.append(copy, badge);
+    } else {
+      header.appendChild(copy);
+    }
+    card.appendChild(header);
+    card.addEventListener("click", () => {
+      expandedWorkoutId = workout.id;
+      renderActiveWorkout();
+    });
+    container.appendChild(card);
+  });
 }
 
 

@@ -356,7 +356,7 @@ document
 
 
 // DISPLAY SAVED EXERCISE GOALS
-function renderExerciseGoals() {
+function renderExerciseGoalsLegacy() {
   const container =
     document.getElementById(
       "exerciseGoalsList"
@@ -519,6 +519,102 @@ function renderExerciseGoals() {
       removeButton
     );
 
+    container.appendChild(card);
+  });
+}
+
+
+// COMPACT EXERCISE GOAL CARDS
+function renderExerciseGoals() {
+  const container = document.getElementById("exerciseGoalsList");
+  if (!container) return;
+
+  const goals = getProfileGoals();
+  const exerciseGoals = Array.isArray(goals.exerciseGoals)
+    ? goals.exerciseGoals
+    : [];
+
+  container.innerHTML = "";
+
+  if (exerciseGoals.length === 0) {
+    container.innerHTML = "<div class='card'><p>No exercise goals saved yet.</p></div>";
+    return;
+  }
+
+  exerciseGoals.forEach(goal => {
+    const bestWeight = getBestExerciseWeight(goal.exerciseName);
+    const percentage = goal.targetWeight > 0
+      ? Math.min(100, Math.round((bestWeight / goal.targetWeight) * 100))
+      : 0;
+
+    const card = document.createElement("div");
+    card.className = "card goal-card";
+    const header = document.createElement("div");
+    header.className = "compact-card-header";
+    const copy = document.createElement("div");
+    const heading = document.createElement("h3");
+    heading.textContent = goal.exerciseName;
+    const current = document.createElement("p");
+    current.textContent = bestWeight > 0
+      ? `Current: ${bestWeight} kg • Target: ${goal.targetWeight} kg`
+      : `No result yet • Target: ${goal.targetWeight} kg`;
+    copy.append(heading, current);
+
+    const menu = document.createElement("details");
+    menu.className = "overflow-menu";
+    const summary = document.createElement("summary");
+    summary.textContent = "⋯";
+    summary.setAttribute("aria-label", `${goal.exerciseName} goal options`);
+    const panel = document.createElement("div");
+    panel.className = "overflow-menu-panel";
+
+    const edit = document.createElement("button");
+    edit.textContent = "Edit goal";
+    edit.addEventListener("click", () => {
+      const value = prompt("Target weight (kg):", goal.targetWeight);
+      if (value === null) return;
+      const targetWeight = Number(value);
+      if (!Number.isFinite(targetWeight) || targetWeight <= 0) {
+        alert("Please enter a valid target weight.");
+        return;
+      }
+      const updated = getProfileGoals();
+      const saved = (updated.exerciseGoals || []).find(item => item.id === goal.id);
+      if (!saved) return;
+      saved.targetWeight = targetWeight;
+      delete saved.targetReps;
+      saveProfileGoals(updated);
+      renderExerciseGoals();
+      if (typeof updateDashboard === "function") updateDashboard();
+    });
+
+    const remove = document.createElement("button");
+    remove.textContent = "Remove goal";
+    remove.className = "danger-action";
+    remove.addEventListener("click", () => {
+      if (!confirm(`Remove the ${goal.exerciseName} goal?`)) return;
+      const updated = getProfileGoals();
+      updated.exerciseGoals = (updated.exerciseGoals || [])
+        .filter(item => item.id !== goal.id);
+      saveProfileGoals(updated);
+      renderExerciseGoals();
+      if (typeof updateDashboard === "function") updateDashboard();
+    });
+
+    panel.append(edit, remove);
+    menu.append(summary, panel);
+    header.append(copy, menu);
+
+    const progress = document.createElement("div");
+    progress.className = "progress-track";
+    const fill = document.createElement("div");
+    fill.className = "progress-fill";
+    fill.style.width = `${percentage}%`;
+    progress.appendChild(fill);
+
+    const label = document.createElement("p");
+    label.textContent = `${percentage}% complete`;
+    card.append(header, progress, label);
     container.appendChild(card);
   });
 }
