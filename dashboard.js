@@ -1,4 +1,4 @@
-// FITNESS TRACKER — DASHBOARD
+// FITNESS TRACKER â€” DASHBOARD
 
 let selectedDays = 30;
 
@@ -28,6 +28,19 @@ const toggleWeightFilters =
 
 const weightFilterOptions =
   document.getElementById("weightFilterOptions");
+
+const dashboardStartWorkout =
+  document.getElementById("dashboardStartWorkout");
+
+let dashboardNextWorkoutId = null;
+
+dashboardStartWorkout?.addEventListener("click", () => {
+  if (!dashboardNextWorkoutId) return;
+
+  if (typeof startWorkout === "function") {
+    startWorkout(dashboardNextWorkoutId);
+  }
+});
 
 
 // TODAY'S DATE
@@ -258,7 +271,7 @@ document
         button.classList.add("active");
 
         toggleWeightFilters.textContent =
-          `Filter: ${button.textContent.trim()} ▾`;
+          `Filter: ${button.textContent.trim()} â–¾`;
 
         weightFilterOptions.hidden = true;
 
@@ -331,6 +344,8 @@ function updateWorkoutSummary() {
       "Workouts completed";
 
     progressFill.style.width = "0%";
+    dashboardNextWorkoutId = null;
+    dashboardStartWorkout.hidden = true;
 
     return;
   }
@@ -406,28 +421,101 @@ function updateWorkoutSummary() {
       remainingWorkouts[0].name;
 
     nextDetails.textContent =
-      `${programme.name} • ` +
+      `${programme.name} â€¢ ` +
       `Week ${programme.currentWeek}`;
+
+    dashboardNextWorkoutId =
+      remainingWorkouts[0].id;
+
+    dashboardStartWorkout.hidden = false;
   } else if (trainingDays.length === 0) {
     nextName.textContent =
       "No workouts added";
 
     nextDetails.textContent =
-      `${programme.name} • ` +
+      `${programme.name} â€¢ ` +
       `Week ${programme.currentWeek}`;
+
+    dashboardNextWorkoutId = null;
+    dashboardStartWorkout.hidden = true;
   } else {
     nextName.textContent =
       "Week complete";
 
     nextDetails.textContent =
-      `${programme.name} • Great work!`;
+      `${programme.name} â€¢ Great work!`;
+
+    dashboardNextWorkoutId = null;
+    dashboardStartWorkout.hidden = true;
   }
+}
+
+
+// UPDATE RECENT ACTIVITY
+function updateRecentActivity() {
+  const workoutDisplay =
+    document.getElementById("recentWorkout");
+
+  const weightDisplay =
+    document.getElementById("recentWeightChange");
+
+  if (!workoutDisplay || !weightDisplay) return;
+
+  let history = [];
+
+  try {
+    history = JSON.parse(
+      localStorage.getItem("fitness_workout_history") || "[]"
+    );
+  } catch {
+    history = [];
+  }
+
+  const latestWorkout = history
+    .filter(session => session?.finishedAt)
+    .sort(
+      (a, b) =>
+        new Date(b.finishedAt) -
+        new Date(a.finishedAt)
+    )[0];
+
+  if (latestWorkout) {
+    const date = new Date(
+      latestWorkout.finishedAt
+    ).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short"
+    });
+
+    workoutDisplay.textContent =
+      `${latestWorkout.workoutName} â€¢ ${date}`;
+  } else {
+    workoutDisplay.textContent =
+      "No completed workouts yet.";
+  }
+
+  const weights = getValidWeights();
+
+  if (weights.length < 2) {
+    weightDisplay.textContent =
+      "Add two measurements to compare.";
+    return;
+  }
+
+  const latest = weights[weights.length - 1].weight;
+  const previous = weights[weights.length - 2].weight;
+  const change = latest - previous;
+  const sign = change > 0 ? "+" : "";
+
+  weightDisplay.textContent =
+    `${sign}${change.toFixed(1)} kg since last entry`;
 }
 
 
 // UPDATE DASHBOARD
 function updateDashboard() {
   updateWorkoutSummary();
+  updateRecentActivity();
 
   const weights = getValidWeights();
 
@@ -446,6 +534,7 @@ function updateDashboard() {
   }
 
   drawWeightChart();
+  drawGoalRadarChart();
 }
 
 
@@ -1000,7 +1089,7 @@ function drawGoalRadarChart() {
 
     const shortName =
       goal.name.length > 16
-        ? `${goal.name.slice(0, 14)}…`
+        ? `${goal.name.slice(0, 14)}â€¦`
         : goal.name;
 
     svg += `
@@ -1097,7 +1186,7 @@ function drawGoalRadarChart() {
 
           <span>
             ${escapeRadarText(goal.details)}
-            • ${Math.round(goal.percentage)}%
+            â€¢ ${Math.round(goal.percentage)}%
           </span>
         </div>
       `;
