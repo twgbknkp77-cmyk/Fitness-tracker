@@ -10,7 +10,7 @@
   <title>Fitness Tracker</title>
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=11">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 
 <body>
@@ -437,7 +437,7 @@
 <section id="profile" class="page">
   <div class="page-header"><h1>Profile</h1></div>
 
-  <details class="card profile-editor-card">
+  <details class="card profile-editor-card" id="bodyweightGoalEditor">
   <summary><span>Bodyweight Goal</span><span class="summary-action">Edit</span></summary>
 
   <label for="goalBodyweight">
@@ -463,20 +463,10 @@
     id="goalBodyweightDate"
   >
 
-  <button
-    type="button"
-    id="saveBodyweightGoal"
-    class="primary-button"
-  >
-    Save Bodyweight Goal
-  </button>
-
-  <button
-    type="button"
-    id="resetBodyweightGoalStart"
-  >
-    Reset Starting Point
-  </button>
+  <div class="editor-actions">
+    <button type="button" id="cancelBodyweightGoal">Cancel</button>
+    <button type="button" id="saveBodyweightGoal" class="primary-button">Done</button>
+  </div>
 
   <p
     id="bodyweightGoalMessage"
@@ -484,7 +474,7 @@
   ></p>
 </details>
 
-  <details class="card profile-editor-card">
+  <details class="card profile-editor-card" id="exerciseGoalEditor">
   <summary><span>Exercise Goals</span><span class="summary-action">＋</span></summary>
 
   <label for="exerciseGoalName">
@@ -508,13 +498,10 @@
     placeholder="e.g. 100"
   >
 
-  <button
-    type="button"
-    id="addExerciseGoal"
-    class="primary-button"
-  >
-    + Add Exercise Goal
-  </button>
+  <div class="editor-actions">
+    <button type="button" id="cancelExerciseGoal">Cancel</button>
+    <button type="button" id="addExerciseGoal" class="primary-button">Done</button>
+  </div>
 
   </details>
 
@@ -625,11 +612,11 @@
 
   <script src="storage.js"></script>
   <script src="dashboard.js?v=9"></script>
-  <script src="library.js?v=10"></script>
+  <script src="library.js?v=11"></script>
   <script src="programme-editor.js?v=7"></script>
   <script src="workout-session.js?v=8"></script>
   <script src="workout-history.js?v=3"></script>
-  <script src="profile.js?v=5"></script>
+  <script src="profile.js?v=6"></script>
   <script src="measurements.js?v=1"></script>
 
 </body>

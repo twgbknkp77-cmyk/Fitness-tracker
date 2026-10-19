@@ -299,6 +299,7 @@ document
 
     saveProfileGoals(goals);
     renderBodyweightGoal();
+    document.getElementById("bodyweightGoalEditor")?.removeAttribute("open");
 
     if (
       typeof updateDashboard ===
@@ -306,6 +307,15 @@ document
     ) {
       updateDashboard();
     }
+  });
+
+
+// CLOSE BODYWEIGHT EDITOR WITHOUT SAVING
+document
+  .getElementById("cancelBodyweightGoal")
+  ?.addEventListener("click", () => {
+    renderBodyweightGoal();
+    document.getElementById("bodyweightGoalEditor")?.removeAttribute("open");
   });
 
 
@@ -683,6 +693,7 @@ document
     weightInput.value = "";
 
     renderExerciseGoals();
+    document.getElementById("exerciseGoalEditor")?.removeAttribute("open");
 
     if (
       typeof updateDashboard ===
@@ -690,6 +701,18 @@ document
     ) {
       updateDashboard();
     }
+  });
+
+
+// CLOSE EXERCISE GOAL EDITOR WITHOUT SAVING
+document
+  .getElementById("cancelExerciseGoal")
+  ?.addEventListener("click", () => {
+    const nameInput = document.getElementById("exerciseGoalName");
+    const weightInput = document.getElementById("exerciseGoalWeight");
+    if (nameInput) nameInput.value = "";
+    if (weightInput) weightInput.value = "";
+    document.getElementById("exerciseGoalEditor")?.removeAttribute("open");
   });
 
 

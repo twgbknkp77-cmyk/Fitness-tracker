@@ -1183,12 +1183,18 @@ function renderActiveWorkout() {
   }
 
   if (!week || (week.trainingDays || []).length === 0) {
-    container.innerHTML += "<div class='card'><p>This week has no training days yet.</p></div>";
+    const empty = document.createElement("div");
+    empty.className = "card";
+    empty.innerHTML = "<p>This week has no training days yet.</p>";
+    container.appendChild(empty);
     return;
   }
 
   if (remaining.length === 0) {
-    container.innerHTML += "<div class='card'><p>All workouts in this week are complete.</p></div>";
+    const complete = document.createElement("div");
+    complete.className = "card";
+    complete.innerHTML = "<p>All workouts in this week are complete.</p>";
+    container.appendChild(complete);
     return;
   }
 
