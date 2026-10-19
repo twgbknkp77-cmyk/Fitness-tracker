@@ -267,8 +267,9 @@ document
           "false"
         );
 
-        drawWeightChart();
-      }
+          drawWeightChart();
+          drawGoalRadarChart();
+        }
     );
   });
 
@@ -703,6 +704,419 @@ function drawWeightChart() {
   `;
 }
 
+// GET DASHBOARD GOALS
+function getDashboardGoals() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(
+        "fitness_profile_goals"
+      )
+    ) || {};
+  } catch {
+    return {};
+  }
+}
+
+
+// FIND THE BEST COMPLETED EXERCISE WEIGHT
+function getDashboardBestWeight(exerciseName) {
+  let history = [];
+
+  try {
+    history = JSON.parse(
+      localStorage.getItem(
+        "fitness_workout_history"
+      ) || "[]"
+    );
+  } catch {
+    history = [];
+  }
+
+  const requestedName =
+    String(exerciseName || "")
+      .trim()
+      .toLowerCase();
+
+  let bestWeight = 0;
+
+  history.forEach(session => {
+    const exercises =
+      Array.isArray(session.exercises)
+        ? session.exercises
+        : [];
+
+    exercises.forEach(exercise => {
+      const sameExercise =
+        String(exercise.name || "")
+          .trim()
+          .toLowerCase() === requestedName;
+
+      if (!sameExercise) return;
+
+      const sets =
+        Array.isArray(exercise.sets)
+          ? exercise.sets
+          : [];
+
+      sets.forEach(set => {
+        const weight = Number(set.weight);
+
+        if (
+          set.completed &&
+          Number.isFinite(weight) &&
+          weight > bestWeight
+        ) {
+          bestWeight = weight;
+        }
+      });
+    });
+  });
+
+  return bestWeight;
+}
+
+
+// KEEP A PERCENTAGE BETWEEN 0 AND 100
+function limitGoalPercentage(value) {
+  if (!Number.isFinite(value)) return 0;
+
+  return Math.min(
+    100,
+    Math.max(0, value)
+  );
+}
+
+
+// CALCULATE BODYWEIGHT GOAL PROGRESS
+function getBodyweightGoalProgress(goal) {
+  const weights = getValidWeights();
+
+  if (weights.length === 0) return 0;
+
+  const currentWeight =
+    weights[weights.length - 1].weight;
+
+  const targetWeight =
+    Number(goal.targetWeight);
+
+  let startingWeight =
+    Number(goal.startingWeight);
+
+  /*
+   * Older bodyweight goals may not have a saved
+   * starting weight. Use the earliest measurement.
+   */
+  if (!Number.isFinite(startingWeight)) {
+    startingWeight =
+      weights[0].weight;
+  }
+
+  if (
+    !Number.isFinite(currentWeight) ||
+    !Number.isFinite(targetWeight) ||
+    !Number.isFinite(startingWeight)
+  ) {
+    return 0;
+  }
+
+  if (startingWeight === targetWeight) {
+    return currentWeight === targetWeight
+      ? 100
+      : 0;
+  }
+
+  let progress;
+
+  if (targetWeight < startingWeight) {
+    progress =
+      (
+        (startingWeight - currentWeight) /
+        (startingWeight - targetWeight)
+      ) * 100;
+  } else {
+    progress =
+      (
+        (currentWeight - startingWeight) /
+        (targetWeight - startingWeight)
+      ) * 100;
+  }
+
+  return limitGoalPercentage(progress);
+}
+
+
+// PROTECT TEXT USED INSIDE THE SVG
+function escapeRadarText(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+
+// DRAW GOAL RADAR CHART
+function drawGoalRadarChart() {
+  const container =
+    document.getElementById(
+      "goalRadarChart"
+    );
+
+  if (!container) return;
+
+  const goals = getDashboardGoals();
+  const chartGoals = [];
+
+  if (goals.bodyweight) {
+    const weights = getValidWeights();
+
+    const currentWeight =
+      weights.length > 0
+        ? weights[
+            weights.length - 1
+          ].weight
+        : 0;
+
+    chartGoals.push({
+      name: "Bodyweight",
+      percentage:
+        getBodyweightGoalProgress(
+          goals.bodyweight
+        ),
+      details:
+        currentWeight > 0
+          ? `${currentWeight} / ` +
+            `${goals.bodyweight.targetWeight} kg`
+          : `Target: ` +
+            `${goals.bodyweight.targetWeight} kg`
+    });
+  }
+
+  const exerciseGoals =
+    Array.isArray(goals.exerciseGoals)
+      ? goals.exerciseGoals
+      : [];
+
+  exerciseGoals.forEach(goal => {
+    const bestWeight =
+      getDashboardBestWeight(
+        goal.exerciseName
+      );
+
+    const targetWeight =
+      Number(goal.targetWeight);
+
+    const percentage =
+      targetWeight > 0
+        ? limitGoalPercentage(
+            (
+              bestWeight /
+              targetWeight
+            ) * 100
+          )
+        : 0;
+
+    chartGoals.push({
+      name: goal.exerciseName,
+      percentage,
+      details:
+        `${bestWeight} / ` +
+        `${targetWeight} kg`
+    });
+  });
+
+  if (chartGoals.length === 0) {
+    container.innerHTML = `
+      <p>
+        Add goals in your Profile to see
+        your progress.
+      </p>
+    `;
+
+    return;
+  }
+
+  const width = 340;
+  const height = 320;
+  const centreX = 170;
+  const centreY = 140;
+  const radius = 95;
+  const labelRadius = 125;
+
+  const count = chartGoals.length;
+
+  const pointAt = (
+    index,
+    distance
+  ) => {
+    const angle =
+      -Math.PI / 2 +
+      index * (Math.PI * 2 / count);
+
+    return {
+      x:
+        centreX +
+        Math.cos(angle) * distance,
+
+      y:
+        centreY +
+        Math.sin(angle) * distance
+    };
+  };
+
+  let svg = "";
+
+  // CIRCULAR 25%, 50%, 75% AND 100% GUIDES
+  [0.25, 0.5, 0.75, 1].forEach(level => {
+    svg += `
+      <circle
+        cx="${centreX}"
+        cy="${centreY}"
+        r="${radius * level}"
+        fill="none"
+        stroke="#444"
+        stroke-width="1"
+      />
+    `;
+  });
+
+  // AXES AND LABELS
+  chartGoals.forEach((goal, index) => {
+    const outside =
+      pointAt(index, radius);
+
+    const label =
+      pointAt(index, labelRadius);
+
+    let textAnchor = "middle";
+
+    if (label.x < centreX - 10) {
+      textAnchor = "end";
+    }
+
+    if (label.x > centreX + 10) {
+      textAnchor = "start";
+    }
+
+    const shortName =
+      goal.name.length > 16
+        ? `${goal.name.slice(0, 14)}…`
+        : goal.name;
+
+    svg += `
+      <line
+        x1="${centreX}"
+        y1="${centreY}"
+        x2="${outside.x}"
+        y2="${outside.y}"
+        stroke="#555"
+        stroke-width="1"
+      />
+
+      <text
+        x="${label.x}"
+        y="${label.y}"
+        text-anchor="${textAnchor}"
+        dominant-baseline="middle"
+        fill="#ffffff"
+        font-size="11"
+      >
+        ${escapeRadarText(shortName)}
+      </text>
+    `;
+  });
+
+  // PROGRESS SHAPE POINTS
+  const progressPoints =
+    chartGoals.map((goal, index) => {
+      return pointAt(
+        index,
+        radius *
+        (goal.percentage / 100)
+      );
+    });
+
+  if (progressPoints.length >= 3) {
+    const polygonPoints =
+      progressPoints
+        .map(point =>
+          `${point.x},${point.y}`
+        )
+        .join(" ");
+
+    svg += `
+      <polygon
+        points="${polygonPoints}"
+        fill="rgba(255, 140, 0, 0.28)"
+        stroke="#ff8c00"
+        stroke-width="3"
+        stroke-linejoin="round"
+      />
+    `;
+  } else if (progressPoints.length === 2) {
+    svg += `
+      <line
+        x1="${progressPoints[0].x}"
+        y1="${progressPoints[0].y}"
+        x2="${progressPoints[1].x}"
+        y2="${progressPoints[1].y}"
+        stroke="#ff8c00"
+        stroke-width="3"
+      />
+    `;
+  }
+
+  // INDIVIDUAL PROGRESS POINTS
+  progressPoints.forEach(
+    (point, index) => {
+      const goal = chartGoals[index];
+
+      svg += `
+        <circle
+          cx="${point.x}"
+          cy="${point.y}"
+          r="5"
+          fill="#ff8c00"
+        >
+          <title>
+            ${escapeRadarText(goal.name)}:
+            ${Math.round(goal.percentage)}%
+          </title>
+        </circle>
+      `;
+    }
+  );
+
+  const goalSummary =
+    chartGoals.map(goal => {
+      return `
+        <div class="goal-progress-row">
+          <span>
+            ${escapeRadarText(goal.name)}
+          </span>
+
+          <span>
+            ${escapeRadarText(goal.details)}
+            • ${Math.round(goal.percentage)}%
+          </span>
+        </div>
+      `;
+    }).join("");
+
+  container.innerHTML = `
+    <svg
+      viewBox="0 0 ${width} ${height}"
+      role="img"
+      aria-label="Goal progress radar chart"
+    >
+      ${svg}
+    </svg>
+
+    <div class="goal-progress-summary">
+      ${goalSummary}
+    </div>
+  `;
+}
 
 // INITIALISE DASHBOARD
 updateDashboard();
