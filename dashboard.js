@@ -100,8 +100,145 @@ document.querySelectorAll(".weight-filters button").forEach(button => {
   });
 });
 
+// UPDATE WORKOUT SUMMARY
+function updateWorkoutSummary() {
+  const nextName =
+    document.getElementById("nextWorkoutName");
+
+  const nextDetails =
+    document.getElementById("nextWorkoutDetails");
+
+  const progressCount =
+    document.getElementById("weeklyProgressCount");
+
+  const progressLabel =
+    document.getElementById("weeklyProgressLabel");
+
+  const progressFill =
+    document.getElementById("weeklyProgressFill");
+
+  if (
+    !nextName ||
+    !nextDetails ||
+    !progressCount ||
+    !progressLabel ||
+    !progressFill
+  ) {
+    return;
+  }
+
+  const programmes = getProgrammes();
+
+  const programme = programmes.find(
+    item => item.id === getActiveProgrammeId()
+  );
+
+  if (!programme) {
+    nextName.textContent =
+      "No workout scheduled";
+
+    nextDetails.textContent =
+      "Activate a programme in your Library.";
+
+    progressCount.textContent = "0 / 0";
+    progressLabel.textContent =
+      "Workouts completed";
+
+    progressFill.style.width = "0%";
+
+    return;
+  }
+
+  const week =
+    programme.weeks?.[
+      programme.currentWeek - 1
+    ];
+
+  const trainingDays =
+    week?.trainingDays || [];
+
+  let history = [];
+
+  try {
+    history = JSON.parse(
+      localStorage.getItem(
+        "fitness_workout_history"
+      ) || "[]"
+    );
+  } catch {
+    history = [];
+  }
+
+  const remainingWorkouts =
+    trainingDays.filter(workout => {
+      return !history.some(session => {
+        const sameProgramme =
+          session.programmeId === programme.id;
+
+        const sameWorkout =
+          session.workoutId === workout.id;
+
+        const sameWeek =
+          !session.weekId ||
+          session.weekId === week?.id;
+
+        return (
+          sameProgramme &&
+          sameWorkout &&
+          sameWeek
+        );
+      });
+    });
+
+  const completed =
+    trainingDays.length -
+    remainingWorkouts.length;
+
+  const percentage =
+    trainingDays.length > 0
+      ? Math.round(
+          (completed / trainingDays.length) *
+          100
+        )
+      : 0;
+
+  progressCount.textContent =
+    `${completed} / ${trainingDays.length}`;
+
+  progressLabel.textContent =
+    `Week ${programme.currentWeek} of ` +
+    `${programme.durationWeeks}`;
+
+  progressFill.style.width =
+    `${percentage}%`;
+
+  if (remainingWorkouts.length > 0) {
+    nextName.textContent =
+      remainingWorkouts[0].name;
+
+    nextDetails.textContent =
+      `${programme.name} • ` +
+      `Week ${programme.currentWeek}`;
+  } else if (trainingDays.length === 0) {
+    nextName.textContent =
+      "No workouts added";
+
+    nextDetails.textContent =
+      `${programme.name} • ` +
+      `Week ${programme.currentWeek}`;
+  } else {
+    nextName.textContent =
+      "Week complete";
+
+    nextDetails.textContent =
+      `${programme.name} • Great work!`;
+  }
+}
+
 // UPDATE LATEST WEIGHT
 function updateDashboard() {
+  updateWorkoutSummary();
+
   const weights = FitnessStorage.getWeights()
     .filter(entry =>
       entry &&
