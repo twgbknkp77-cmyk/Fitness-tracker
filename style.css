@@ -1125,3 +1125,46 @@ summary:focus-visible {
     padding-right: 14px;
   }
 }
+
+/* COMPACT ADD WEIGHT POP-UP ON PHONES */
+
+#weightModal {
+  width: calc(100% - 28px);
+  max-width: 420px;
+  max-height: calc(100dvh - 32px);
+  padding: 18px;
+  overflow-y: auto;
+}
+
+#weightForm,
+#weightForm input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+#weightForm input {
+  padding: 12px;
+}
+
+#weightModal .modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+#weightModal .modal-actions button {
+  width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 430px) {
+  #weightModal h2 {
+    margin-bottom: 14px;
+  }
+
+  #weightForm input {
+    min-height: 48px;
+  }
+}
