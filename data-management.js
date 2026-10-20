@@ -1,4 +1,4 @@
-// FITNESS TRACKER â€” DATA BACKUP AND RESTORE
+// SPOT — DATA BACKUP AND RESTORE
 
 const FITNESS_BACKUP_KEYS = [
   "fitness_workout_library",
@@ -30,7 +30,7 @@ document
   .getElementById("downloadBackup")
   ?.addEventListener("click", () => {
     const backup = {
-      app: "Fitness Tracker",
+      app: "Spot",
       formatVersion: 1,
       exportedAt: new Date().toISOString(),
       data: collectFitnessData()
@@ -46,7 +46,7 @@ document
     const date = new Date().toISOString().slice(0, 10);
 
     link.href = url;
-    link.download = `fitness-tracker-backup-${date}.json`;
+    link.download = `spot-backup-${date}.json`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -69,7 +69,7 @@ document
 function isValidFitnessBackup(backup) {
   if (
     !backup ||
-    backup.app !== "Fitness Tracker" ||
+    !["Spot", "Fitness Tracker"].includes(backup.app) ||
     backup.formatVersion !== 1 ||
     !backup.data ||
     typeof backup.data !== "object"
@@ -104,7 +104,7 @@ document
     }
 
     if (!isValidFitnessBackup(backup)) {
-      if (message) message.textContent = "That is not a valid Fitness Tracker backup.";
+      if (message) message.textContent = "That is not a valid Spot backup.";
       input.value = "";
       return;
     }

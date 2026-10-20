@@ -1845,6 +1845,62 @@ summary,
   }
 }
 
+/* PROFILE — DATA BACKUP */
+
+.data-backup-card {
+  display: grid;
+  gap: 14px;
+}
+
+.data-backup-card h2,
+.data-backup-card p {
+  margin: 0;
+}
+
+.data-backup-card > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.data-backup-card > div:first-child p {
+  color: var(--grey);
+  line-height: 1.45;
+}
+
+.data-backup-card .data-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.data-backup-card .data-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  margin: 0;
+}
+
+#chooseBackupFile {
+  color: var(--text);
+  background: #2a2a2a;
+  border: 1px solid var(--border);
+}
+
+#backupMessage {
+  color: var(--orange);
+  font-size: 14px;
+}
+
+#backupMessage:empty {
+  display: none;
+}
+
+@media (max-width: 360px) {
+  .data-backup-card .data-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* MENU DIRECTION AND SINGLE-PAGE SLIDE/BLUR */
 
 .programme-card:last-child .overflow-menu-panel,

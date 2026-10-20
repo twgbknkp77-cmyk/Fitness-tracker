@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=29">
+  <link rel="stylesheet" href="style.css?v=30">
 </head>
 
 <body>
@@ -468,6 +468,30 @@
   <!-- Saved exercise goals will appear here -->
 </div>
 
+<div class="card data-backup-card">
+  <div>
+    <h2>Backup &amp; Restore</h2>
+    <p>Save a copy of your programmes, workout history, weight entries and goals.</p>
+  </div>
+
+  <div class="data-actions">
+    <button type="button" id="downloadBackup" class="primary-button">
+      Save Backup
+    </button>
+    <button type="button" id="chooseBackupFile">
+      Restore Backup
+    </button>
+  </div>
+
+  <input
+    type="file"
+    id="backupFileInput"
+    accept=".json,application/json"
+    hidden
+  >
+  <p id="backupMessage" aria-live="polite"></p>
+</div>
+
 </section>
 <!-- END PROFILE PAGE -->
 
@@ -747,6 +771,7 @@
   <script src="workout-history.js?v=6"></script>
   <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=2"></script>
+  <script src="data-management.js?v=2"></script>
 
 </body>
 </html>
