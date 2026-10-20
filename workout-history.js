@@ -21,11 +21,16 @@ function renderWorkoutHistory() {
 
   const pageBack = document.getElementById("workoutHistoryBack");
   if (pageBack) {
-    pageBack.setAttribute("aria-label", "Back to Library");
-    pageBack.onclick = () => showPage("library");
+    pageBack.setAttribute("aria-label", "Back to Workouts");
+    pageBack.onclick = () => showPage("workouts");
   }
 
   const history = getSavedWorkoutHistory();
+  const intro = document.getElementById("workoutHistoryIntro");
+
+  if (intro) {
+    intro.hidden = history.length > 0;
+  }
 
   container.innerHTML = "";
 
@@ -95,6 +100,9 @@ function viewWorkoutHistoryDetails(session) {
   if (!container) return;
 
   container.innerHTML = "";
+
+  const intro = document.getElementById("workoutHistoryIntro");
+  if (intro) intro.hidden = true;
 
   const pageBack = document.getElementById("workoutHistoryBack");
   if (pageBack) {

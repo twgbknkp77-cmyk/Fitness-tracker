@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=26">
+  <link rel="stylesheet" href="style.css?v=27">
 </head>
 
 <body>
@@ -26,7 +26,8 @@
   <svg class="icon-sprite" aria-hidden="true">
     <symbol id="icon-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
     <symbol id="icon-progress" viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7" rx="1" fill="currentColor" stroke="none"/><rect x="10" y="9" width="4" height="12" rx="1" fill="currentColor" stroke="none"/><rect x="17" y="4" width="4" height="17" rx="1" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="icon-library" viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"/><path d="M9 3v18M3 7h4M3 12h4M3 17h4M12 8h5M12 12h5"/></symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18M11 8h6M11 12h6M11 16h5"/></symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24"><path d="m4 20 4.2-1 10.9-10.9a2.1 2.1 0 0 0-3-3L5.2 16Z"/><path d="m14.8 6.4 2.8 2.8"/></symbol>
     <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     <symbol id="icon-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
     <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
@@ -364,12 +365,12 @@
 
   <div class="page-header history-header">
     <h1>Workout History</h1>
-    <button type="button" class="icon-button" id="workoutHistoryBack" onclick="showPage('library')" aria-label="Back to Library">
+    <button type="button" class="icon-button" id="workoutHistoryBack" onclick="showPage('workouts')" aria-label="Back to Workouts">
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
   </div>
 
-  <div class="card">
+  <div class="card" id="workoutHistoryIntro">
     <h2>Completed Workouts</h2>
     <p>Your previous training sessions are saved here.</p>
   </div>
@@ -385,7 +386,13 @@
   <div class="page-header"><h1>Profile</h1></div>
 
   <details class="card profile-editor-card" id="bodyweightGoalEditor">
-  <summary><span>Bodyweight Goal</span><span class="summary-action">Edit</span></summary>
+  <summary>
+    <span class="profile-summary-copy">
+      <span>Bodyweight Goal</span>
+      <small id="bodyweightGoalMessage" aria-live="polite"></small>
+    </span>
+    <svg class="summary-action-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>
+  </summary>
 
   <label for="goalBodyweight">
     Target bodyweight (kg)
@@ -415,14 +422,13 @@
     <button type="button" id="saveBodyweightGoal" class="primary-button">Done</button>
   </div>
 
-  <p
-    id="bodyweightGoalMessage"
-    aria-live="polite"
-  ></p>
 </details>
 
   <details class="card profile-editor-card" id="exerciseGoalEditor">
-  <summary><span>Exercise Goals</span><span class="summary-action">＋</span></summary>
+  <summary>
+    <span>Exercise Goals</span>
+    <svg class="summary-action-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>
+  </summary>
 
   <label for="exerciseGoalName">
     Exercise
@@ -626,6 +632,57 @@
 
 }
 
+  const mainPageOrder = ["dashboard", "workouts", "library", "profile"];
+  let swipeStartX = 0;
+  let swipeStartY = 0;
+
+  document.addEventListener("touchstart", event => {
+    if (
+      event.touches.length !== 1 ||
+      event.target.closest("input, select, textarea, dialog, .overflow-menu")
+    ) {
+      return;
+    }
+
+    swipeStartX = event.touches[0].clientX;
+    swipeStartY = event.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener("touchend", event => {
+    if (!swipeStartX || !event.changedTouches.length) return;
+
+    const endX = event.changedTouches[0].clientX;
+    const endY = event.changedTouches[0].clientY;
+    const distanceX = endX - swipeStartX;
+    const distanceY = endY - swipeStartY;
+    const startedAtEdge =
+      swipeStartX < 24 ||
+      swipeStartX > window.innerWidth - 24;
+
+    swipeStartX = 0;
+    swipeStartY = 0;
+
+    if (
+      startedAtEdge ||
+      Math.abs(distanceX) < 55 ||
+      Math.abs(distanceX) <= Math.abs(distanceY) * 1.2
+    ) {
+      return;
+    }
+
+    const activePageId = document.querySelector(".page.active")?.id;
+    const currentIndex = mainPageOrder.indexOf(activePageId);
+    if (currentIndex === -1) return;
+
+    const nextIndex = distanceX < 0
+      ? currentIndex + 1
+      : currentIndex - 1;
+
+    if (nextIndex >= 0 && nextIndex < mainPageOrder.length) {
+      showPage(mainPageOrder[nextIndex]);
+    }
+  }, { passive: true });
+
   // Close any open ellipsis menu when the user taps elsewhere.
   document.addEventListener("click", event => {
     document.querySelectorAll("details.overflow-menu[open]").forEach(menu => {
@@ -660,7 +717,7 @@
   <script src="library.js?v=17"></script>
   <script src="programme-editor.js?v=11"></script>
   <script src="workout-session.js?v=9"></script>
-  <script src="workout-history.js?v=5"></script>
+  <script src="workout-history.js?v=6"></script>
   <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=2"></script>
 

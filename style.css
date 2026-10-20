@@ -601,6 +601,78 @@ dialog::backdrop {
   }
 }
 
+/* WARMER CARDS, PROFILE CONTROLS AND SMOOTHER MOTION */
+
+.card {
+  border-color: rgba(255, 140, 0, 0.24);
+  box-shadow:
+    0 5px 16px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 140, 0, 0.035);
+}
+
+.profile-summary-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.profile-summary-copy small {
+  color: var(--grey);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.summary-action-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.page.active.page-enter-forward,
+.page.active.page-enter-back {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+.page.active.page-enter-pop {
+  animation-duration: 190ms;
+  animation-timing-function: ease-out;
+}
+
+.page.active > .card,
+.page.active > div > .card {
+  animation: content-rise 260ms cubic-bezier(0.22, 0.75, 0.25, 1) both;
+}
+
+.page.active > div > .card:nth-child(2) {
+  animation-delay: 25ms;
+}
+
+.page.active > div > .card:nth-child(3) {
+  animation-delay: 50ms;
+}
+
+.overflow-menu[open] .overflow-menu-panel,
+.profile-editor-card[open] > *:not(summary) {
+  animation: control-reveal 170ms ease-out both;
+}
+
+@keyframes content-rise {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes control-reveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* WORKOUT SESSION — PREVIOUS AND CURRENT SETS */
 
 .session-exercise-card {
@@ -1917,4 +1989,14 @@ summary,
   .measurement-actions button {
     width: 100%;
   }
+}
+
+.page.active.page-enter-forward,
+.page.active.page-enter-back {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.22, 0.75, 0.25, 1);
+}
+
+.page.active.page-enter-pop {
+  animation-duration: 190ms;
 }
