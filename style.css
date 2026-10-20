@@ -1845,6 +1845,65 @@ summary,
   }
 }
 
+/* MENU DIRECTION AND SINGLE-PAGE SLIDE/BLUR */
+
+.programme-card:last-child .overflow-menu-panel,
+.goal-card:last-child .overflow-menu-panel {
+  top: auto;
+  bottom: 46px;
+}
+
+.page.active.page-enter-right {
+  animation: blur-slide-from-right 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+.page.active.page-enter-left {
+  animation: blur-slide-from-left 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page.active.page-enter-right,
+  .page.active.page-enter-left,
+  #activeWorkout.week-enter-from-right,
+  #activeWorkout.week-enter-from-left {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+#activeWorkout.week-enter-from-right {
+  animation: blur-slide-from-right 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+#activeWorkout.week-enter-from-left {
+  animation: blur-slide-from-left 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+@keyframes blur-slide-from-right {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes blur-slide-from-left {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateX(0);
+  }
+}
+
 /* WEIGHT FILTER, DATES AND MEASUREMENT HISTORY */
 
 .weight-filter-control .weight-filters button {
@@ -2147,6 +2206,24 @@ main {
   .page.active.page-enter-left,
   .page.active.page-exit-left,
   .page.active.page-exit-right {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Final page-transition override: only the incoming page is animated. */
+.page.active.page-enter-right {
+  animation: blur-slide-from-right 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+.page.active.page-enter-left {
+  animation: blur-slide-from-left 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page.active.page-enter-right,
+  .page.active.page-enter-left,
+  #activeWorkout.week-enter-from-right,
+  #activeWorkout.week-enter-from-left {
     animation-duration: 0.01ms !important;
   }
 }

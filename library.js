@@ -144,6 +144,31 @@ let viewedWorkoutWeek = null;
 let viewedWorkoutProgrammeId = null;
 let expandedWorkoutId = null;
 
+function animateWorkoutWeek(direction) {
+  const container = document.getElementById("activeWorkout");
+  if (!container) return;
+
+  container.classList.remove(
+    "week-enter-from-left",
+    "week-enter-from-right"
+  );
+
+  void container.offsetWidth;
+
+  container.classList.add(
+    direction === "back"
+      ? "week-enter-from-left"
+      : "week-enter-from-right"
+  );
+
+  setTimeout(() => {
+    container.classList.remove(
+      "week-enter-from-left",
+      "week-enter-from-right"
+    );
+  }, 240);
+}
+
 
 // LOAD WORKOUT HISTORY SAFELY
 function getWorkoutHistory() {
@@ -1072,6 +1097,7 @@ function renderActiveWorkout() {
     viewedWorkoutWeek -= 1;
     expandedWorkoutId = null;
     renderActiveWorkout();
+    animateWorkoutWeek("back");
   });
 
   const weekCopy = document.createElement("div");
@@ -1094,6 +1120,7 @@ function renderActiveWorkout() {
     viewedWorkoutWeek += 1;
     expandedWorkoutId = null;
     renderActiveWorkout();
+    animateWorkoutWeek("forward");
   });
 
   navRow.append(previous, weekCopy, next);
@@ -1163,13 +1190,18 @@ function renderActiveWorkout() {
     return;
   }
 
-  const nextHeading = document.createElement("h2");
-  nextHeading.className = "workout-group-heading";
-  nextHeading.textContent = "Next Up";
-  container.appendChild(nextHeading);
+  const isCurrentWeek =
+    viewedWorkoutWeek === programme.currentWeek;
+
+  const firstHeading = document.createElement("h2");
+  firstHeading.className = "workout-group-heading";
+  firstHeading.textContent = isCurrentWeek
+    ? "Next Up"
+    : "Upcoming";
+  container.appendChild(firstHeading);
 
   remaining.forEach((workout, index) => {
-    if (index === 1) {
+    if (isCurrentWeek && index === 1) {
       const upcomingHeading = document.createElement("h2");
       upcomingHeading.className = "workout-group-heading";
       upcomingHeading.textContent = "Upcoming";
@@ -1178,7 +1210,9 @@ function renderActiveWorkout() {
 
     const card = document.createElement("div");
     card.className = "card workout-summary-card";
-    if (index === 0) card.classList.add("next-workout");
+    if (isCurrentWeek && index === 0) {
+      card.classList.add("next-workout");
+    }
 
     const header = document.createElement("div");
     header.className = "compact-card-header";

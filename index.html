@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=29">
 </head>
 
 <body>
@@ -566,17 +566,10 @@
   clearTimeout(pageTransitionTimer);
 
   document.querySelectorAll(".page").forEach(page => {
-    if (page.classList.contains("is-leaving")) {
-      page.classList.remove("active");
-    }
-
     page.classList.remove(
       "is-entering",
-      "is-leaving",
       "page-enter-left",
       "page-enter-right",
-      "page-exit-left",
-      "page-exit-right",
       "page-enter-forward",
       "page-enter-back",
       "page-enter-pop"
@@ -596,15 +589,8 @@
     const movingForward = nextPosition >= previousPosition;
 
     document.querySelectorAll(".page").forEach(page => {
-      if (page !== previousPage && page !== selectedPage) {
-        page.classList.remove("active");
-      }
+      page.classList.remove("active");
     });
-
-    previousPage.classList.add(
-      "is-leaving",
-      movingForward ? "page-exit-left" : "page-exit-right"
-    );
 
     selectedPage.classList.add(
       "active",
@@ -613,19 +599,12 @@
     );
 
     pageTransitionTimer = setTimeout(() => {
-      previousPage.classList.remove(
-        "active",
-        "is-leaving",
-        "page-exit-left",
-        "page-exit-right"
-      );
-
       selectedPage.classList.remove(
         "is-entering",
         "page-enter-left",
         "page-enter-right"
       );
-    }, 300);
+    }, 240);
   } else {
     document.querySelectorAll(".page").forEach(page => {
       if (page !== selectedPage) page.classList.remove("active");
@@ -762,7 +741,7 @@
 
   <script src="storage.js"></script>
   <script src="dashboard.js?v=16"></script>
-  <script src="library.js?v=17"></script>
+  <script src="library.js?v=18"></script>
   <script src="programme-editor.js?v=11"></script>
   <script src="workout-session.js?v=9"></script>
   <script src="workout-history.js?v=6"></script>
