@@ -1200,3 +1200,9 @@ summary:focus-visible {
   appearance: none;
   -webkit-appearance: none;
 }
+
+/* SPACE BELOW BODYWEIGHT GRAPH CONTROLS */
+
+.weight-chart-actions {
+  margin-bottom: 10px;
+}
