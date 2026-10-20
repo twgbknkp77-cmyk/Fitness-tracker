@@ -3,32 +3,13 @@
 
 // CREATE PROGRAMME
 function createProgramme() {
-  const name = prompt("Enter your programme name:");
-
-  if (!name || !name.trim()) return;
-
-  const weeksInput = prompt("How many weeks?", "8");
-
-  if (weeksInput === null) return;
-
-  const durationWeeks = Number(weeksInput);
-
-  if (
-    !Number.isInteger(durationWeeks) ||
-    durationWeeks < 1
-  ) {
-    alert(
-      "Please enter a whole number of weeks (1 or more)."
-    );
-
-    return;
-  }
+  const durationWeeks = DEFAULT_PROGRAMME_WEEKS;
 
   const programmes = getProgrammes();
 
   const programme = {
     id: createId(),
-    name: name.trim(),
+    name: "New Programme",
     createdAt: new Date().toISOString(),
     schemaVersion: PROGRAMME_SCHEMA_VERSION,
     durationWeeks,
@@ -48,7 +29,7 @@ function createProgramme() {
   programmes.push(programme);
   saveProgrammes(programmes);
 
-  renderLibrary();
+  openProgrammeEditor(programme.id);
 }
 
 
@@ -1182,7 +1163,19 @@ function renderActiveWorkout() {
     return;
   }
 
+  const nextHeading = document.createElement("h2");
+  nextHeading.className = "workout-group-heading";
+  nextHeading.textContent = "Next Up";
+  container.appendChild(nextHeading);
+
   remaining.forEach((workout, index) => {
+    if (index === 1) {
+      const upcomingHeading = document.createElement("h2");
+      upcomingHeading.className = "workout-group-heading";
+      upcomingHeading.textContent = "Upcoming";
+      container.appendChild(upcomingHeading);
+    }
+
     const card = document.createElement("div");
     card.className = "card workout-summary-card";
     if (index === 0) card.classList.add("next-workout");

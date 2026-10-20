@@ -1246,6 +1246,80 @@ summary:focus-visible {
   padding: 12px 14px;
 }
 
+.editor-setup-card {
+  display: grid;
+  gap: 18px;
+  padding: 16px;
+}
+
+.editor-setup-field {
+  display: grid;
+  gap: 8px;
+}
+
+.editor-setup-field label,
+.editor-setup-label {
+  color: var(--grey);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.editor-setup-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 13px;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #444;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.programme-length-control {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  min-height: 48px;
+  overflow: hidden;
+  background: #292929;
+  border: 1px solid #444;
+  border-radius: 10px;
+}
+
+.programme-length-control button {
+  height: 100%;
+  min-height: 48px;
+  padding: 0;
+  color: var(--white);
+  background: transparent;
+  border: 0;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.programme-length-control button:first-child {
+  border-right: 1px solid #444;
+}
+
+.programme-length-control button:last-child {
+  border-left: 1px solid #444;
+}
+
+.programme-length-control button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.programme-length-control strong {
+  text-align: center;
+}
+
+.workout-group-heading {
+  margin: 20px 4px 10px;
+  font-size: 17px;
+}
+
 .editable-name {
   display: flex;
   align-items: center;

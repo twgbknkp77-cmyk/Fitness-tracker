@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=23">
+  <link rel="stylesheet" href="style.css?v=24">
 </head>
 
 <body>
@@ -308,7 +308,7 @@
 <!-- PROGRAMME EDITOR PAGE -->
 <section id="programmeEditor" class="page">
   <div class="page-header editor-page-header">
-    <button type="button" class="icon-button" onclick="showPage('workouts')" aria-label="Back to workouts">&#8592;</button>
+    <button type="button" class="icon-button" onclick="showPage('library')" aria-label="Back to library">&#8592;</button>
     <h1>Programme Editor</h1>
   </div>
 
@@ -453,24 +453,6 @@
 
 </section>
 <!-- END PROFILE PAGE -->
-
-<!-- CREATE PROGRAMME POP-UP -->
-<dialog id="programmeDialog" aria-labelledby="programmeDialogTitle">
-  <form id="programmeForm">
-    <h2 id="programmeDialogTitle">Create Programme</h2>
-
-    <label for="programmeNameInput">Programme name</label>
-    <input type="text" id="programmeNameInput" placeholder="e.g. Strength Block" autocomplete="off" required>
-
-    <label for="programmeWeeksInput">Number of weeks</label>
-    <input type="number" id="programmeWeeksInput" inputmode="numeric" min="1" max="52" value="8" required>
-
-    <div class="modal-actions">
-      <button type="button" id="cancelProgrammeDialog">Cancel</button>
-      <button type="submit" class="primary-button">Create Programme</button>
-    </div>
-  </form>
-</dialog>
 
 <!-- ADD OR EDIT EXERCISE POP-UP -->
 <dialog id="exerciseDialog" aria-labelledby="exerciseDialogTitle">
@@ -621,8 +603,8 @@
 
   <script src="storage.js"></script>
   <script src="dashboard.js?v=14"></script>
-  <script src="library.js?v=16"></script>
-  <script src="programme-editor.js?v=10"></script>
+  <script src="library.js?v=17"></script>
+  <script src="programme-editor.js?v=11"></script>
   <script src="workout-session.js?v=8"></script>
   <script src="workout-history.js?v=4"></script>
   <script src="profile.js?v=7"></script>
