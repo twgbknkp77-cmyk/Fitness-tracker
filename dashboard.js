@@ -1189,28 +1189,55 @@ function drawGoalRadarChart() {
       `;
     }).join("");
 
-  container.innerHTML = `
+    container.innerHTML = `
+    <svg
+      viewBox="0 0 ${width} ${height}"
+      role="img"
+      aria-label="Goal progress spider chart"
+    >
+      ${svg}
+    </svg>
+
     <details class="goal-progress-disclosure">
-      <summary aria-label="Show full goal progress">
-        <span>View goal details</span>
-        <span class="disclosure-arrow">⌄</span>
+      <summary aria-label="Show goal details">
+        <span class="goal-disclosure-label">
+          Show More
+        </span>
+
+        <span class="disclosure-arrow">
+          ⌄
+        </span>
       </summary>
 
       <div class="goal-progress-content">
-        <svg
-          viewBox="0 0 ${width} ${height}"
-          role="img"
-          aria-label="Goal progress radar chart"
-        >
-          ${svg}
-        </svg>
-
         <div class="goal-progress-summary">
           ${goalSummary}
         </div>
       </div>
     </details>
   `;
+
+  const disclosure =
+    container.querySelector(
+      ".goal-progress-disclosure"
+    );
+
+  disclosure?.addEventListener(
+    "toggle",
+    () => {
+      const label =
+        disclosure.querySelector(
+          ".goal-disclosure-label"
+        );
+
+      if (!label) return;
+
+      label.textContent =
+        disclosure.open
+          ? "Show Less"
+          : "Show More";
+    }
+  );
 }
 
 // INITIALISE DASHBOARD
