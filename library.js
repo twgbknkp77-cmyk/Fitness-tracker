@@ -1,56 +1,129 @@
 // FITNESS TRACKER — WORKOUT LIBRARY
 
 
-// CREATE PROGRAMME
+// CREATE PROGRAMME POP-UP
 function createProgramme() {
-  const name = prompt("Enter your programme name:");
+  const dialog =
+    document.getElementById("programmeDialog");
 
-  if (!name || !name.trim()) return;
+  const form =
+    document.getElementById("programmeForm");
 
-  const weeksInput = prompt("How many weeks?", "8");
+  const nameInput =
+    document.getElementById("programmeNameInput");
 
-  if (weeksInput === null) return;
-
-  const durationWeeks = Number(weeksInput);
+  const weeksInput =
+    document.getElementById("programmeWeeksInput");
 
   if (
-    !Number.isInteger(durationWeeks) ||
-    durationWeeks < 1
+    !dialog ||
+    !form ||
+    !nameInput ||
+    !weeksInput
   ) {
-    alert(
-      "Please enter a whole number of weeks (1 or more)."
-    );
-
     return;
   }
 
-  const programmes = getProgrammes();
+  form.reset();
+  weeksInput.value = "8";
 
-  const programme = {
-    id: createId(),
-    name: name.trim(),
-    createdAt: new Date().toISOString(),
-    schemaVersion: PROGRAMME_SCHEMA_VERSION,
-    durationWeeks,
-    currentWeek: 1,
+  dialog.showModal();
 
-    weeks: Array.from(
-      { length: durationWeeks },
-      (_, index) => createProgrammeWeek(index + 1)
-    ),
-
-    days: []
-  };
-
-  programme.days =
-    programme.weeks[0].trainingDays;
-
-  programmes.push(programme);
-  saveProgrammes(programmes);
-
-  renderLibrary();
+  setTimeout(() => {
+    nameInput.focus();
+  }, 0);
 }
 
+
+// CANCEL PROGRAMME CREATION
+document
+  .getElementById("cancelProgrammeDialog")
+  ?.addEventListener("click", () => {
+    document
+      .getElementById("programmeDialog")
+      ?.close();
+  });
+
+
+// SAVE NEW PROGRAMME
+document
+  .getElementById("programmeForm")
+  ?.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const nameInput =
+      document.getElementById(
+        "programmeNameInput"
+      );
+
+    const weeksInput =
+      document.getElementById(
+        "programmeWeeksInput"
+      );
+
+    const name =
+      nameInput.value.trim();
+
+    const durationWeeks =
+      Number(weeksInput.value);
+
+    if (!name) {
+      alert("Please enter a programme name.");
+      nameInput.focus();
+      return;
+    }
+
+    if (
+      !Number.isInteger(durationWeeks) ||
+      durationWeeks < 1 ||
+      durationWeeks > 52
+    ) {
+      alert(
+        "Please enter a whole number between 1 and 52."
+      );
+
+      weeksInput.focus();
+      return;
+    }
+
+    const programmes =
+      getProgrammes();
+
+    const programme = {
+      id: createId(),
+      name,
+      createdAt:
+        new Date().toISOString(),
+
+      schemaVersion:
+        PROGRAMME_SCHEMA_VERSION,
+
+      durationWeeks,
+      currentWeek: 1,
+
+      weeks: Array.from(
+        { length: durationWeeks },
+        (_, index) =>
+          createProgrammeWeek(index + 1)
+      ),
+
+      days: []
+    };
+
+    programme.days =
+      programme.weeks[0].trainingDays;
+
+    programmes.push(programme);
+    saveProgrammes(programmes);
+
+    document
+      .getElementById("programmeDialog")
+      ?.close();
+
+    renderLibrary();
+
+    openProgrammeEditor(programme.id);
+  });
 
 // ACTIVATE PROGRAMME
 function activateProgramme(id) {
@@ -1201,6 +1274,35 @@ function renderActiveWorkout() {
   }
 
   remaining.forEach((workout, index) => {
+        if (index === 0) {
+      const nextHeading =
+        document.createElement("h2");
+
+      nextHeading.className =
+        "workout-section-heading";
+
+      nextHeading.textContent =
+        "Next Up";
+
+      container.appendChild(
+        nextHeading
+      );
+    }
+
+    if (index === 1) {
+      const upcomingHeading =
+        document.createElement("h2");
+
+      upcomingHeading.className =
+        "workout-section-heading";
+
+      upcomingHeading.textContent =
+        "Upcoming Workouts";
+
+      container.appendChild(
+        upcomingHeading
+      );
+    }
     const card = document.createElement("div");
     card.className = "card workout-summary-card";
     if (index === 0) card.classList.add("next-workout");
