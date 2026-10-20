@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="style.css?v=28">
 </head>
 
 <body>
@@ -82,10 +82,10 @@
 <!-- BODYWEIGHT HEADING AND FILTER -->
 <div class="bodyweight-header">
 
-  <h2>
-    Bodyweight —
-    <span id="currentWeight">-- kg</span>
-  </h2>
+  <div class="bodyweight-title">
+    <span>Bodyweight</span>
+    <strong id="currentWeight">-- kg</strong>
+  </div>
 
   <div class="bodyweight-actions">
   <div class="weight-filter-control">
@@ -140,18 +140,21 @@
       <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
     </button>
 
-    <details class="overflow-menu">
-      <summary aria-label="Bodyweight options">⋯</summary>
-      <div class="overflow-menu-panel">
-        <button type="button" onclick="renderMeasurements(); showPage('measurements')">View measurements</button>
-      </div>
-    </details>
   </div>
 
 </div>
 
   <!-- BODYWEIGHT GRAPH -->
   <div id="weightChart"></div>
+
+  <button
+    type="button"
+    class="bodyweight-measurements-link"
+    onclick="renderMeasurements(); showPage('measurements')"
+  >
+    View Measurements
+    <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+  </button>
 
     <p id="weightMessage" aria-live="polite"></p>
 
@@ -556,39 +559,84 @@
       measurements: 3.5
     };
 
+    let pageTransitionTimer = null;
+
     function showPage(pageId) {
 
-  const previousPage = document.querySelector(".page.active");
-  const previousPageId = previousPage?.id || "dashboard";
-  const previousPosition = pagePositions[previousPageId] ?? 0;
-  const nextPosition = pagePositions[pageId] ?? previousPosition;
-  const transitionClass = nextPosition < previousPosition
-    ? "page-enter-back"
-    : nextPosition > previousPosition
-      ? "page-enter-forward"
-      : "page-enter-pop";
+  clearTimeout(pageTransitionTimer);
 
-  // Hide all pages
   document.querySelectorAll(".page").forEach(page => {
+    if (page.classList.contains("is-leaving")) {
+      page.classList.remove("active");
+    }
+
     page.classList.remove(
-      "active",
+      "is-entering",
+      "is-leaving",
+      "page-enter-left",
+      "page-enter-right",
+      "page-exit-left",
+      "page-exit-right",
       "page-enter-forward",
       "page-enter-back",
       "page-enter-pop"
     );
   });
 
+  const previousPage = document.querySelector(".page.active");
+  const selectedPage = document.getElementById(pageId);
+
+  if (!selectedPage) return;
+
+  const previousPageId = previousPage?.id || "dashboard";
+  const previousPosition = pagePositions[previousPageId] ?? 0;
+  const nextPosition = pagePositions[pageId] ?? previousPosition;
+
+  if (previousPage && previousPage !== selectedPage) {
+    const movingForward = nextPosition >= previousPosition;
+
+    document.querySelectorAll(".page").forEach(page => {
+      if (page !== previousPage && page !== selectedPage) {
+        page.classList.remove("active");
+      }
+    });
+
+    previousPage.classList.add(
+      "is-leaving",
+      movingForward ? "page-exit-left" : "page-exit-right"
+    );
+
+    selectedPage.classList.add(
+      "active",
+      "is-entering",
+      movingForward ? "page-enter-right" : "page-enter-left"
+    );
+
+    pageTransitionTimer = setTimeout(() => {
+      previousPage.classList.remove(
+        "active",
+        "is-leaving",
+        "page-exit-left",
+        "page-exit-right"
+      );
+
+      selectedPage.classList.remove(
+        "is-entering",
+        "page-enter-left",
+        "page-enter-right"
+      );
+    }, 300);
+  } else {
+    document.querySelectorAll(".page").forEach(page => {
+      if (page !== selectedPage) page.classList.remove("active");
+    });
+    selectedPage.classList.add("active");
+  }
+
   // Remove navigation highlights
   document.querySelectorAll("nav button").forEach(button => {
     button.classList.remove("active");
   });
-
-  // Show selected page
-  const selectedPage = document.getElementById(pageId);
-
-  if (selectedPage) {
-    selectedPage.classList.add("active", transitionClass);
-  }
 
   // Highlight navigation button, if one exists
   const navButton = document.getElementById(pageId + "Button");

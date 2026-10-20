@@ -2000,3 +2000,153 @@ summary,
 .page.active.page-enter-pop {
   animation-duration: 190ms;
 }
+
+/* TRUE DIRECTIONAL PAGE SLIDES */
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+main {
+  position: relative;
+}
+
+.page.is-entering {
+  position: relative;
+  z-index: 2;
+}
+
+.page.is-leaving {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+
+.page.active.page-enter-right {
+  animation: slide-page-from-right 300ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+.page.active.page-enter-left {
+  animation: slide-page-from-left 300ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+.page.active.page-exit-left {
+  animation: slide-page-to-left 300ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+.page.active.page-exit-right {
+  animation: slide-page-to-right 300ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
+}
+
+@keyframes slide-page-from-right {
+  from { opacity: 0.72; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-page-from-left {
+  from { opacity: 0.72; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-page-to-left {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0.55; transform: translateX(-35%); }
+}
+
+@keyframes slide-page-to-right {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0.55; transform: translateX(35%); }
+}
+
+/* KEEP OPEN MENUS ABOVE FOLLOWING CARDS */
+
+#programmeLibrary,
+#exerciseGoalsList {
+  position: relative;
+}
+
+.programme-card:has(.overflow-menu[open]),
+.goal-card:has(.overflow-menu[open]) {
+  z-index: 200;
+}
+
+.overflow-menu[open] {
+  z-index: 210;
+}
+
+.overflow-menu[open] .overflow-menu-panel {
+  z-index: 220;
+}
+
+/* CLEANER BODYWEIGHT HEADER */
+
+.bodyweight-header {
+  align-items: center;
+}
+
+.bodyweight-title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.bodyweight-title > span {
+  color: var(--grey);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+#currentWeight {
+  margin: 0;
+  font-size: clamp(25px, 7vw, 34px);
+  line-height: 1.1;
+}
+
+.bodyweight-actions {
+  margin-left: auto;
+}
+
+.bodyweight-measurements-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 40px;
+  margin-top: -2px;
+  padding: 6px 10px;
+  color: var(--grey);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bodyweight-measurements-link svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.goal-card .progress-track {
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page.active.page-enter-right,
+  .page.active.page-enter-left,
+  .page.active.page-exit-left,
+  .page.active.page-exit-right {
+    animation-duration: 0.01ms !important;
+  }
+}
