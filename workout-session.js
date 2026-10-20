@@ -598,7 +598,25 @@ document
   ?.addEventListener("click", () => {
     if (!currentSession) return;
 
-    if (!confirm("Discard this workout session?")) return;
+    document
+      .getElementById("discardWorkoutDialog")
+      ?.showModal();
+  });
+
+document
+  .getElementById("keepWorkoutSession")
+  ?.addEventListener("click", () => {
+    document
+      .getElementById("discardWorkoutDialog")
+      ?.close();
+  });
+
+document
+  .getElementById("confirmDiscardWorkout")
+  ?.addEventListener("click", () => {
+    document
+      .getElementById("discardWorkoutDialog")
+      ?.close();
 
     currentSession = null;
     showPage("workouts");

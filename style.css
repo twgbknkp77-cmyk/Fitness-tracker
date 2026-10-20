@@ -1609,3 +1609,166 @@ summary:focus-visible {
 .goal-progress-content {
   order: 1;
 }
+
+/* FINAL MOBILE POLISH */
+
+.goal-progress-card {
+  padding-bottom: 8px;
+}
+
+.goal-progress-card #goalRadarChart svg {
+  margin-top: -4px;
+  margin-bottom: -10px;
+}
+
+.goal-progress-disclosure > summary {
+  min-height: 36px;
+  margin-top: 0;
+}
+
+.decision-dialog {
+  width: calc(100% - 32px);
+  max-width: 380px;
+  padding: 20px;
+  color: var(--white);
+  background: var(--card);
+  border: 1px solid #444;
+  border-radius: 16px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.decision-dialog[open] {
+  animation: dialog-pop 160ms ease-out;
+}
+
+.decision-dialog h2 {
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.decision-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.decision-dialog-actions button {
+  min-height: 48px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#keepWorkoutSession {
+  color: var(--orange);
+  background: transparent;
+  border: 1px solid var(--orange);
+}
+
+.danger-button {
+  color: var(--white);
+  background: #d84b4b;
+  border: 1px solid #e26363;
+}
+
+.editor-setup-card,
+.editor-week-card,
+.editor-day-card {
+  background:
+    linear-gradient(rgba(255, 140, 0, 0.055), rgba(255, 140, 0, 0.055)),
+    var(--card);
+  border-color: rgba(255, 140, 0, 0.32);
+}
+
+.editor-setup-label,
+.editor-setup-field label,
+.editor-week-card label {
+  color: #ffc06f;
+}
+
+.page.active.page-enter-forward {
+  animation: page-from-right 180ms ease-out;
+}
+
+.page.active.page-enter-back {
+  animation: page-from-left 180ms ease-out;
+}
+
+.page.active.page-enter-pop {
+  animation: page-pop 140ms ease-out;
+}
+
+button,
+summary,
+.card[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active,
+summary:active,
+.workout-summary-card:active {
+  transform: scale(0.975);
+}
+
+button,
+summary,
+.workout-summary-card {
+  transition: transform 100ms ease, background-color 140ms ease,
+    border-color 140ms ease, opacity 140ms ease;
+}
+
+@keyframes page-from-right {
+  from { opacity: 0; transform: translateX(18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-from-left {
+  from { opacity: 0; transform: translateX(-18px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes page-pop {
+  from { opacity: 0.75; transform: scale(0.992); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes dialog-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 430px) {
+  main {
+    padding-bottom: calc(82px + env(safe-area-inset-bottom));
+  }
+
+  nav {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    transform: none;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    background: rgba(30, 30, 30, 0.98);
+    border: 0;
+    border-top: 1px solid #3a3a3a;
+    border-radius: 0;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  nav button {
+    min-height: 52px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

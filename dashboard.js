@@ -1010,9 +1010,9 @@ function drawGoalRadarChart() {
   }
 
   const width = 340;
-  const height = 320;
+  const height = 270;
   const centreX = 170;
-  const centreY = 140;
+  const centreY = 135;
   const radius = 95;
   const labelRadius = 125;
 
