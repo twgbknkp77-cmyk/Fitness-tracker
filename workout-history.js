@@ -67,6 +67,9 @@ function renderWorkoutHistory() {
         )
         .filter(set => set.completed)
         .length;
+      const completedCardio = (session.exercises || []).filter(
+        exercise => exercise.type === "cardio" && Number(exercise.durationMinutes) > 0
+      ).length;
 
       const title = document.createElement("h3");
       title.textContent = session.workoutName;
@@ -77,7 +80,7 @@ function renderWorkoutHistory() {
         (session.weekNumber
           ? ` • Week ${session.weekNumber}`
           : "") +
-        ` • ${completedSets} sets completed`;
+        ` • ${completedSets + completedCardio} results recorded`;
 
       const button = document.createElement("button");
       button.className = "history-view-button";
@@ -134,6 +137,15 @@ function viewWorkoutHistoryDetails(session) {
     title.textContent = exercise.name;
 
     card.appendChild(title);
+
+    if (exercise.type === "cardio") {
+      const row = document.createElement("p");
+      row.className = "history-set-row";
+      row.textContent = `${Number(exercise.durationMinutes) || 0} minutes`;
+      card.appendChild(row);
+      container.appendChild(card);
+      return;
+    }
 
     (exercise.sets || []).forEach((set, index) => {
       const row = document.createElement("p");

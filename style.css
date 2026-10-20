@@ -1901,6 +1901,137 @@ summary,
   }
 }
 
+/* CLEAN PROGRAMME EDITOR DIALOGS */
+
+#exerciseDialog,
+#weekScopeDialog {
+  box-sizing: border-box;
+  width: min(calc(100% - 28px), 440px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+#exerciseDialog form {
+  display: grid;
+  gap: 10px;
+}
+
+#exerciseDialog h2,
+#weekScopeDialog h2 {
+  margin: 0 0 8px;
+}
+
+#exerciseDialog label {
+  color: var(--grey);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+#exerciseDialog input,
+#exerciseDialog select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  margin: 0 0 6px;
+  padding: 12px 14px;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #494949;
+  border-radius: 12px;
+  font: inherit;
+  color-scheme: dark;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+#exerciseDialog input:focus,
+#exerciseDialog select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.16);
+}
+
+.exercise-type-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.exercise-type-fields[hidden] {
+  display: none;
+}
+
+.exercise-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#exerciseDialog .modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#exerciseDialog .modal-actions button {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+}
+
+.week-scope-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.week-scope-actions button {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  margin: 0;
+}
+
+.week-scope-actions [data-week-scope="cancel"] {
+  grid-column: 1 / -1;
+}
+
+.session-cardio-row label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--grey);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.session-cardio-row input {
+  grid-column: 1;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #494949;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 16px;
+}
+
+@media (max-width: 390px) {
+  .week-scope-actions,
+  #exerciseDialog .modal-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .week-scope-actions [data-week-scope="cancel"] {
+    grid-column: auto;
+  }
+}
+
 /* MENU DIRECTION AND SINGLE-PAGE SLIDE/BLUR */
 
 .programme-card:last-child .overflow-menu-panel,

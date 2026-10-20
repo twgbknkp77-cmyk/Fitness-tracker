@@ -317,8 +317,10 @@ function renderProgrammeEditor() {
       const exerciseName = document.createElement("strong");
       exerciseName.textContent = exercise.name;
       const prescription = document.createElement("p");
-      prescription.textContent = `${exercise.sets} × ${exercise.reps}` +
-        (exercise.weight ? ` @ ${exercise.weight} kg` : "");
+      prescription.textContent = exercise.type === "cardio"
+        ? `${exercise.durationMinutes || 0} min target`
+        : `${exercise.sets} × ${exercise.reps}` +
+          (exercise.weight ? ` @ ${exercise.weight} kg` : "");
       copy.append(exerciseName, prescription);
       const menu = createOverflowMenu(`${exercise.name} options`, [
         {
@@ -356,6 +358,26 @@ function renderProgrammeEditor() {
 
 let exerciseDialogContext = null;
 
+function updateExerciseTypeFields() {
+  const type = document.getElementById("exerciseTypeInput")?.value || "strength";
+  const strengthFields = document.getElementById("strengthExerciseFields");
+  const cardioFields = document.getElementById("cardioExerciseFields");
+  const setsInput = document.getElementById("exerciseSetsInput");
+  const repsInput = document.getElementById("exerciseRepsInput");
+  const durationInput = document.getElementById("exerciseDurationInput");
+
+  if (strengthFields) strengthFields.hidden = type !== "strength";
+  if (cardioFields) cardioFields.hidden = type !== "cardio";
+  if (setsInput) setsInput.required = type === "strength";
+  if (repsInput) repsInput.required = type === "strength";
+  if (durationInput) durationInput.required = type === "cardio";
+}
+
+document.getElementById("exerciseTypeInput")?.addEventListener(
+  "change",
+  updateExerciseTypeFields
+);
+
 function openExerciseDialog(programme, week, workout, exercise = null) {
   const dialog = document.getElementById("exerciseDialog");
   const form = document.getElementById("exerciseForm");
@@ -366,10 +388,14 @@ function openExerciseDialog(programme, week, workout, exercise = null) {
     exercise ? "Edit Exercise" : "Add Exercise";
   document.getElementById("exerciseDialogWorkoutId").value = workout.id;
   document.getElementById("exerciseDialogExerciseId").value = exercise?.id || "";
+  document.getElementById("exerciseTypeInput").value = exercise?.type || "strength";
   document.getElementById("exerciseNameInput").value = exercise?.name || "";
   document.getElementById("exerciseSetsInput").value = exercise?.sets || 3;
   document.getElementById("exerciseRepsInput").value = exercise?.reps || 10;
   document.getElementById("exerciseWeightInput").value = exercise?.weight || "";
+  document.getElementById("exerciseDurationInput").value =
+    exercise?.durationMinutes || "";
+  updateExerciseTypeFields();
 
   exerciseDialogContext = { programme, week, workout, exercise };
   dialog.showModal();
@@ -394,15 +420,28 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   if (!exerciseDialogContext) return;
 
   const name = document.getElementById("exerciseNameInput").value.trim();
+  const type = document.getElementById("exerciseTypeInput").value;
   const sets = Number(document.getElementById("exerciseSetsInput").value);
   const reps = Number(document.getElementById("exerciseRepsInput").value);
   const weightText = document.getElementById("exerciseWeightInput").value.trim();
   const weight = weightText === "" ? "" : Number(weightText);
+  const durationMinutes = Number(
+    document.getElementById("exerciseDurationInput").value
+  );
 
-  if (!name || !Number.isInteger(sets) || sets < 1 ||
-      !Number.isInteger(reps) || reps < 1 ||
-      (weightText !== "" && (!Number.isFinite(weight) || weight < 0))) {
-    alert("Please enter a valid exercise, sets, reps and weight.");
+  const invalidStrength = type === "strength" && (
+    !Number.isInteger(sets) || sets < 1 ||
+    !Number.isInteger(reps) || reps < 1 ||
+    (weightText !== "" && (!Number.isFinite(weight) || weight < 0))
+  );
+  const invalidCardio = type === "cardio" && (
+    !Number.isInteger(durationMinutes) || durationMinutes < 1
+  );
+
+  if (!name || invalidStrength || invalidCardio) {
+    alert(type === "cardio"
+      ? "Please enter an activity name and valid target time."
+      : "Please enter a valid exercise, sets, reps and weight.");
     return;
   }
 
@@ -417,7 +456,9 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
     return;
   }
 
-  const values = { name, sets, reps, weight: weightText === "" ? "" : weight };
+  const values = type === "cardio"
+    ? { name, type, durationMinutes }
+    : { name, type, sets, reps, weight: weightText === "" ? "" : weight };
   if (exerciseDialogContext.exercise) {
     Object.assign(exerciseDialogContext.exercise, values);
   } else {

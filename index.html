@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=30">
+  <link rel="stylesheet" href="style.css?v=31">
 </head>
 
 <body>
@@ -502,9 +502,16 @@
     <input type="hidden" id="exerciseDialogWorkoutId">
     <input type="hidden" id="exerciseDialogExerciseId">
 
+    <label for="exerciseTypeInput">Exercise type</label>
+    <select id="exerciseTypeInput">
+      <option value="strength">Strength</option>
+      <option value="cardio">Cardio</option>
+    </select>
+
     <label for="exerciseNameInput">Exercise name</label>
     <input type="text" id="exerciseNameInput" placeholder="e.g. Bench Press" autocomplete="off" required>
 
+    <div id="strengthExerciseFields" class="exercise-type-fields">
     <div class="exercise-form-grid">
       <div>
         <label for="exerciseSetsInput">Sets</label>
@@ -518,6 +525,12 @@
 
     <label for="exerciseWeightInput">Target weight (kg, optional)</label>
     <input type="number" id="exerciseWeightInput" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 50">
+    </div>
+
+    <div id="cardioExerciseFields" class="exercise-type-fields" hidden>
+      <label for="exerciseDurationInput">Target time (minutes)</label>
+      <input type="number" id="exerciseDurationInput" inputmode="numeric" min="1" step="1" placeholder="e.g. 30">
+    </div>
 
     <div class="modal-actions">
       <button type="button" id="cancelExerciseDialog">Cancel</button>
@@ -765,10 +778,10 @@
 
   <script src="storage.js"></script>
   <script src="dashboard.js?v=16"></script>
-  <script src="library.js?v=18"></script>
-  <script src="programme-editor.js?v=11"></script>
-  <script src="workout-session.js?v=9"></script>
-  <script src="workout-history.js?v=6"></script>
+  <script src="library.js?v=19"></script>
+  <script src="programme-editor.js?v=12"></script>
+  <script src="workout-session.js?v=10"></script>
+  <script src="workout-history.js?v=7"></script>
   <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=2"></script>
   <script src="data-management.js?v=2"></script>

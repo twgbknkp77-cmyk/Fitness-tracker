@@ -65,6 +65,7 @@ function getPreviousExerciseResult(exercise, beforeTime) {
     if (previousExercise) {
       return {
         finishedAt: session.finishedAt,
+        durationMinutes: previousExercise.durationMinutes,
         sets: Array.isArray(previousExercise.sets)
           ? previousExercise.sets.filter(set => set.completed)
           : []
@@ -129,10 +130,18 @@ function startWorkout(workoutId) {
     exercises: (workout.exercises || []).map(exercise => ({
       id: exercise.id,
       name: exercise.name,
+      type: exercise.type || "strength",
       previousResult:
         getPreviousExerciseResult(exercise, startedTime),
 
-      sets: Array.from(
+      targetDurationMinutes: exercise.type === "cardio"
+        ? Number(exercise.durationMinutes) || 0
+        : undefined,
+      durationMinutes: exercise.type === "cardio"
+        ? Number(exercise.durationMinutes) || 0
+        : undefined,
+
+      sets: exercise.type === "cardio" ? [] : Array.from(
         { length: Number(exercise.sets) || 0 },
         () => createSessionSet(
           exercise.weight,
@@ -392,7 +401,8 @@ function renderWorkoutSession() {
 
     menuPanel.append(addButton, removeButton);
     menu.append(summary, menuPanel);
-    titleRow.append(heading, menu);
+    titleRow.append(heading);
+    if (exercise.type !== "cardio") titleRow.append(menu);
 
     const previous = document.createElement("p");
     previous.className = "previous-session-heading";
@@ -402,14 +412,41 @@ function renderWorkoutSession() {
         .toLocaleDateString("en-GB", { day: "numeric", month: "short" });
       const best = previousSessionBest(exercise);
 
-      previous.textContent = best
-        ? `Last: ${Number(best.weight) || 0} kg × ${Number(best.reps) || 0} • ${date}`
-        : `Last completed • ${date}`;
+      previous.textContent = exercise.type === "cardio"
+        ? `Last: ${Number(exercise.previousResult.durationMinutes) || 0} min • ${date}`
+        : best
+          ? `Last: ${Number(best.weight) || 0} kg × ${Number(best.reps) || 0} • ${date}`
+          : `Last completed • ${date}`;
     } else {
       previous.textContent = "No previous session";
     }
 
     card.append(titleRow, previous);
+
+    if (exercise.type === "cardio") {
+      const cardioRow = document.createElement("div");
+      cardioRow.className = "session-cardio-row";
+      const durationLabel = document.createElement("label");
+      durationLabel.textContent = "Time completed";
+      const durationInput = document.createElement("input");
+      durationInput.type = "number";
+      durationInput.inputMode = "numeric";
+      durationInput.min = "0";
+      durationInput.step = "1";
+      durationInput.value = exercise.durationMinutes;
+      durationInput.addEventListener("input", () => {
+        exercise.durationMinutes = durationInput.value === ""
+          ? ""
+          : Number(durationInput.value);
+        updateSessionProgress();
+      });
+      const unit = document.createElement("span");
+      unit.className = "input-unit";
+      unit.textContent = "min";
+      durationLabel.append(durationInput, unit);
+      cardioRow.appendChild(durationLabel);
+      card.appendChild(cardioRow);
+    }
 
     exercise.sets.forEach((set, setIndex) => {
       const row = document.createElement("div");
@@ -478,8 +515,15 @@ function updateSessionProgress() {
     Number.isInteger(Number(set.reps))
   ).length;
 
+  const cardioCompleted = currentSession.exercises.filter(exercise =>
+    exercise.type === "cardio" &&
+    exercise.durationMinutes !== "" &&
+    Number(exercise.durationMinutes) > 0
+  ).length;
+  const total = completed + cardioCompleted;
+
   document.getElementById("sessionProgress").textContent =
-    `${completed} ${completed === 1 ? "set" : "sets"} recorded`;
+    `${total} ${total === 1 ? "result" : "results"} recorded`;
 }
 
 
@@ -510,8 +554,22 @@ document
       set.weight !== "" && set.reps !== ""
     );
 
-    if (completedSets.length === 0) {
-      alert("Enter at least one set before finishing.");
+    const cardioExercises = currentSession.exercises.filter(
+      exercise => exercise.type === "cardio"
+    );
+    const completedCardio = cardioExercises.filter(exercise =>
+      exercise.durationMinutes !== "" &&
+      Number.isFinite(Number(exercise.durationMinutes)) &&
+      Number(exercise.durationMinutes) > 0
+    );
+
+    if (completedSets.length === 0 && completedCardio.length === 0) {
+      alert("Enter at least one result before finishing.");
+      return;
+    }
+
+    if (completedCardio.length !== cardioExercises.length) {
+      alert("Please enter a valid duration for each cardio activity.");
       return;
     }
 
