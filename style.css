@@ -1130,7 +1130,7 @@ summary:focus-visible {
 
 #weightModal {
   width: calc(100% - 28px);
-  max-width: 420px;
+  max-width: 380px;
   max-height: calc(100dvh - 32px);
   padding: 18px;
   overflow-y: auto;
