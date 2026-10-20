@@ -910,6 +910,7 @@ summary:focus-visible {
 .status-label {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 25px;
   padding: 3px 9px;
   border-radius: 999px;
@@ -1189,14 +1190,16 @@ summary:focus-visible {
   -webkit-appearance: none;
 }
 
-/* KEEP PROFILE GOAL DATE INSIDE ITS POP-UP */
+/* KEEP PROFILE GOAL DATE CONSISTENT */
 
 #goalBodyweightDate {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  min-width: 0;
+  inline-size: 100%;
+  min-width: 100%;
   max-width: 100%;
+  min-height: 48px;
   appearance: none;
   -webkit-appearance: none;
 }
