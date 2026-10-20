@@ -1188,3 +1188,15 @@ summary:focus-visible {
   appearance: none;
   -webkit-appearance: none;
 }
+
+/* KEEP PROFILE GOAL DATE INSIDE ITS POP-UP */
+
+#goalBodyweightDate {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
