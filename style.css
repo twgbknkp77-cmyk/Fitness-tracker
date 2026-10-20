@@ -1201,8 +1201,8 @@ summary:focus-visible {
   -webkit-appearance: none;
 }
 
-/* SPACE BELOW BODYWEIGHT GRAPH CONTROLS */
+/* SPACE ABOVE BODYWEIGHT GRAPH */
 
-.weight-chart-actions {
-  margin-bottom: 10px;
+#weightChart {
+  margin-top: 10px;
 }
