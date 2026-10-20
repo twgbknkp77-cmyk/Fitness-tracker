@@ -62,33 +62,7 @@ function getProgrammeExerciseNames() {
 
 // FILL THE EXERCISE SUGGESTION LIST
 function populateExerciseSuggestions() {
-  const list =
-    document.getElementById("exerciseGoalName");
-
-  if (!list) return;
-
-  const selectedValue = list.value;
-  list.innerHTML = "";
-
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "Choose an exercise";
-  list.appendChild(placeholder);
-
-  getProgrammeExerciseNames().forEach(name => {
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    list.appendChild(option);
-  });
-
-  if (
-    [...list.options].some(
-      option => option.value === selectedValue
-    )
-  ) {
-    list.value = selectedValue;
-  }
+  // Exercise goals now use a freely typed name.
 }
 
 
