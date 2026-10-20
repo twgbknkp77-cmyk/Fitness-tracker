@@ -1,129 +1,56 @@
 // FITNESS TRACKER — WORKOUT LIBRARY
 
 
-// CREATE PROGRAMME POP-UP
+// CREATE PROGRAMME
 function createProgramme() {
-  const dialog =
-    document.getElementById("programmeDialog");
+  const name = prompt("Enter your programme name:");
 
-  const form =
-    document.getElementById("programmeForm");
+  if (!name || !name.trim()) return;
 
-  const nameInput =
-    document.getElementById("programmeNameInput");
+  const weeksInput = prompt("How many weeks?", "8");
 
-  const weeksInput =
-    document.getElementById("programmeWeeksInput");
+  if (weeksInput === null) return;
+
+  const durationWeeks = Number(weeksInput);
 
   if (
-    !dialog ||
-    !form ||
-    !nameInput ||
-    !weeksInput
+    !Number.isInteger(durationWeeks) ||
+    durationWeeks < 1
   ) {
+    alert(
+      "Please enter a whole number of weeks (1 or more)."
+    );
+
     return;
   }
 
-  form.reset();
-  weeksInput.value = "8";
+  const programmes = getProgrammes();
 
-  dialog.showModal();
+  const programme = {
+    id: createId(),
+    name: name.trim(),
+    createdAt: new Date().toISOString(),
+    schemaVersion: PROGRAMME_SCHEMA_VERSION,
+    durationWeeks,
+    currentWeek: 1,
 
-  setTimeout(() => {
-    nameInput.focus();
-  }, 0);
+    weeks: Array.from(
+      { length: durationWeeks },
+      (_, index) => createProgrammeWeek(index + 1)
+    ),
+
+    days: []
+  };
+
+  programme.days =
+    programme.weeks[0].trainingDays;
+
+  programmes.push(programme);
+  saveProgrammes(programmes);
+
+  renderLibrary();
 }
 
-
-// CANCEL PROGRAMME CREATION
-document
-  .getElementById("cancelProgrammeDialog")
-  ?.addEventListener("click", () => {
-    document
-      .getElementById("programmeDialog")
-      ?.close();
-  });
-
-
-// SAVE NEW PROGRAMME
-document
-  .getElementById("programmeForm")
-  ?.addEventListener("submit", event => {
-    event.preventDefault();
-
-    const nameInput =
-      document.getElementById(
-        "programmeNameInput"
-      );
-
-    const weeksInput =
-      document.getElementById(
-        "programmeWeeksInput"
-      );
-
-    const name =
-      nameInput.value.trim();
-
-    const durationWeeks =
-      Number(weeksInput.value);
-
-    if (!name) {
-      alert("Please enter a programme name.");
-      nameInput.focus();
-      return;
-    }
-
-    if (
-      !Number.isInteger(durationWeeks) ||
-      durationWeeks < 1 ||
-      durationWeeks > 52
-    ) {
-      alert(
-        "Please enter a whole number between 1 and 52."
-      );
-
-      weeksInput.focus();
-      return;
-    }
-
-    const programmes =
-      getProgrammes();
-
-    const programme = {
-      id: createId(),
-      name,
-      createdAt:
-        new Date().toISOString(),
-
-      schemaVersion:
-        PROGRAMME_SCHEMA_VERSION,
-
-      durationWeeks,
-      currentWeek: 1,
-
-      weeks: Array.from(
-        { length: durationWeeks },
-        (_, index) =>
-          createProgrammeWeek(index + 1)
-      ),
-
-      days: []
-    };
-
-    programme.days =
-      programme.weeks[0].trainingDays;
-
-    programmes.push(programme);
-    saveProgrammes(programmes);
-
-    document
-      .getElementById("programmeDialog")
-      ?.close();
-
-    renderLibrary();
-
-    openProgrammeEditor(programme.id);
-  });
 
 // ACTIVATE PROGRAMME
 function activateProgramme(id) {
@@ -167,7 +94,7 @@ function renderLibraryLegacy() {
 
   if (programmes.length === 0) {
     container.innerHTML =
-      "<p>No programmes saved yet.</p>";
+      "<div class='card empty-state-card'><p>No programmes saved yet.</p></div>";
 
     return;
   }
@@ -1046,7 +973,7 @@ function renderLibrary() {
   container.innerHTML = "";
 
   if (programmes.length === 0) {
-    container.innerHTML = "<div class='card'><p>No programmes saved yet.</p></div>";
+    container.innerHTML = "<div class='card empty-state-card'><p>No programmes saved yet.</p></div>";
     return;
   }
 
@@ -1134,7 +1061,7 @@ function renderActiveWorkout() {
   container.innerHTML = "";
 
   if (!programme) {
-    container.innerHTML = "<div class='card'><p>No active programme. Activate one in your Library.</p></div>";
+    container.innerHTML = "<div class='card empty-state-card'><p>No active programme. Activate one in your Library.</p></div>";
     return;
   }
 
@@ -1259,7 +1186,7 @@ function renderActiveWorkout() {
 
   if (!week || (week.trainingDays || []).length === 0) {
     const empty = document.createElement("div");
-    empty.className = "card";
+    empty.className = "card empty-state-card";
     empty.innerHTML = "<p>This week has no training days yet.</p>";
     container.appendChild(empty);
     return;
@@ -1267,42 +1194,13 @@ function renderActiveWorkout() {
 
   if (remaining.length === 0) {
     const complete = document.createElement("div");
-    complete.className = "card";
+    complete.className = "card empty-state-card";
     complete.innerHTML = "<p>All workouts in this week are complete.</p>";
     container.appendChild(complete);
     return;
   }
 
   remaining.forEach((workout, index) => {
-        if (index === 0) {
-      const nextHeading =
-        document.createElement("h2");
-
-      nextHeading.className =
-        "workout-section-heading";
-
-      nextHeading.textContent =
-        "Next Up";
-
-      container.appendChild(
-        nextHeading
-      );
-    }
-
-    if (index === 1) {
-      const upcomingHeading =
-        document.createElement("h2");
-
-      upcomingHeading.className =
-        "workout-section-heading";
-
-      upcomingHeading.textContent =
-        "Upcoming Workouts";
-
-      container.appendChild(
-        upcomingHeading
-      );
-    }
     const card = document.createElement("div");
     card.className = "card workout-summary-card";
     if (index === 0) card.classList.add("next-workout");
@@ -1340,6 +1238,23 @@ function renderActiveWorkout() {
     });
     container.appendChild(card);
   });
+}
+
+
+// OPEN THE NEXT WORKOUT FROM THE DASHBOARD WITHOUT STARTING IT
+function viewActiveWorkoutDetails(workoutId) {
+  const programme = getProgrammes().find(
+    item => item.id === getActiveProgrammeId()
+  );
+
+  if (!programme || !workoutId) return;
+
+  viewedWorkoutProgrammeId = programme.id;
+  viewedWorkoutWeek = programme.currentWeek || 1;
+  expandedWorkoutId = workoutId;
+
+  showPage("workouts");
+  renderActiveWorkout();
 }
 
 

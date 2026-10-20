@@ -32,7 +32,11 @@ const weightFilterOptions =
 const dashboardStartWorkout =
   document.getElementById("dashboardStartWorkout");
 
+const dashboardViewWorkout =
+  document.getElementById("dashboardViewWorkout");
+
 let dashboardNextWorkoutId = null;
+let dashboardNextDestination = "library";
 
 dashboardStartWorkout?.addEventListener("click", () => {
   if (!dashboardNextWorkoutId) return;
@@ -40,6 +44,18 @@ dashboardStartWorkout?.addEventListener("click", () => {
   if (typeof startWorkout === "function") {
     startWorkout(dashboardNextWorkoutId);
   }
+});
+
+dashboardViewWorkout?.addEventListener("click", () => {
+  if (
+    dashboardNextWorkoutId &&
+    typeof viewActiveWorkoutDetails === "function"
+  ) {
+    viewActiveWorkoutDetails(dashboardNextWorkoutId);
+    return;
+  }
+
+  showPage(dashboardNextDestination);
 });
 
 
@@ -296,19 +312,14 @@ function updateWorkoutSummary() {
       "nextWorkoutName"
     );
 
-  const nextDetails =
-    document.getElementById(
-      "nextWorkoutDetails"
-    );
-
   const progressCount =
     document.getElementById(
       "weeklyProgressCount"
     );
 
-  const progressLabel =
+  const progressPercentage =
     document.getElementById(
-      "weeklyProgressLabel"
+      "weeklyProgressPercentage"
     );
 
   const progressFill =
@@ -318,9 +329,8 @@ function updateWorkoutSummary() {
 
   if (
     !nextName ||
-    !nextDetails ||
     !progressCount ||
-    !progressLabel ||
+    !progressPercentage ||
     !progressFill
   ) {
     return;
@@ -337,16 +347,12 @@ function updateWorkoutSummary() {
     nextName.textContent =
       "No workout scheduled";
 
-    nextDetails.textContent =
-      "Activate a programme in your Library.";
-
-    progressCount.textContent = "0 / 0";
-
-    progressLabel.textContent =
-      "Workouts completed";
+    progressCount.textContent = "0 of 0 workouts";
+    progressPercentage.textContent = "0%";
 
     progressFill.style.width = "0%";
     dashboardNextWorkoutId = null;
+    dashboardNextDestination = "library";
     dashboardStartWorkout.hidden = true;
 
     return;
@@ -409,11 +415,10 @@ function updateWorkoutSummary() {
       : 0;
 
   progressCount.textContent =
-    `${completed} / ${trainingDays.length}`;
+    `${completed} of ${trainingDays.length} workouts`;
 
-  progressLabel.textContent =
-    `Week ${programme.currentWeek} of ` +
-    `${programme.durationWeeks}`;
+  progressPercentage.textContent =
+    `${percentage}%`;
 
   progressFill.style.width =
     `${percentage}%`;
@@ -422,32 +427,24 @@ function updateWorkoutSummary() {
     nextName.textContent =
       remainingWorkouts[0].name;
 
-    nextDetails.textContent =
-      `${programme.name} - ` +
-      `Week ${programme.currentWeek}`;
-
     dashboardNextWorkoutId =
       remainingWorkouts[0].id;
 
+    dashboardNextDestination = "workouts";
     dashboardStartWorkout.hidden = false;
   } else if (trainingDays.length === 0) {
     nextName.textContent =
-      "No workouts added";
-
-    nextDetails.textContent =
-      `${programme.name} - ` +
-      `Week ${programme.currentWeek}`;
+      "Rest";
 
     dashboardNextWorkoutId = null;
+    dashboardNextDestination = "workouts";
     dashboardStartWorkout.hidden = true;
   } else {
     nextName.textContent =
-      "Week complete";
-
-    nextDetails.textContent =
-      `${programme.name} - Great work!`;
+      "Rest";
 
     dashboardNextWorkoutId = null;
+    dashboardNextDestination = "workouts";
     dashboardStartWorkout.hidden = true;
   }
 }
@@ -1189,24 +1186,19 @@ function drawGoalRadarChart() {
       `;
     }).join("");
 
-    container.innerHTML = `
+  container.innerHTML = `
     <svg
       viewBox="0 0 ${width} ${height}"
       role="img"
-      aria-label="Goal progress spider chart"
+      aria-label="Goal progress radar chart"
     >
       ${svg}
     </svg>
 
     <details class="goal-progress-disclosure">
       <summary aria-label="Show goal details">
-        <span class="goal-disclosure-label">
-          Show More
-        </span>
-
-        <span class="disclosure-arrow">
-          ⌄
-        </span>
+        <span class="goal-disclosure-label">Show More</span>
+        <span class="disclosure-arrow">⌄</span>
       </summary>
 
       <div class="goal-progress-content">
@@ -1217,27 +1209,11 @@ function drawGoalRadarChart() {
     </details>
   `;
 
-  const disclosure =
-    container.querySelector(
-      ".goal-progress-disclosure"
-    );
-
-  disclosure?.addEventListener(
-    "toggle",
-    () => {
-      const label =
-        disclosure.querySelector(
-          ".goal-disclosure-label"
-        );
-
-      if (!label) return;
-
-      label.textContent =
-        disclosure.open
-          ? "Show Less"
-          : "Show More";
-    }
-  );
+  const disclosure = container.querySelector(".goal-progress-disclosure");
+  disclosure?.addEventListener("toggle", () => {
+    const label = disclosure.querySelector(".goal-disclosure-label");
+    if (label) label.textContent = disclosure.open ? "Show Less" : "Show More";
+  });
 }
 
 // INITIALISE DASHBOARD
