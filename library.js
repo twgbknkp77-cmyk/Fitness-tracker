@@ -1077,24 +1077,6 @@ function renderActiveWorkout() {
   );
 
   const history = getWorkoutHistory();
-  const currentWeek = programme.weeks?.[programme.currentWeek - 1];
-  const currentDays = currentWeek?.trainingDays || [];
-  const currentRemaining = getRemainingWorkouts(programme, currentWeek, history);
-  const completed = currentDays.length - currentRemaining.length;
-  const percentage = currentDays.length
-    ? Math.round((completed / currentDays.length) * 100)
-    : 0;
-
-  const progress = document.createElement("div");
-  progress.className = "card programme-progress";
-  progress.innerHTML = `
-    <div class="compact-card-header">
-      <div><h2>${programme.name}</h2><p>Week ${programme.currentWeek} of ${programme.durationWeeks}</p></div>
-      <strong>${percentage}%</strong>
-    </div>
-    <div class="progress-track"><div class="progress-fill" style="width:${percentage}%"></div></div>
-  `;
-  container.appendChild(progress);
 
   const navigation = document.createElement("div");
   navigation.className = "card unified-week-card";
