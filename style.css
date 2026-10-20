@@ -1168,3 +1168,23 @@ summary:focus-visible {
     min-height: 48px;
   }
 }
+
+/* KEEP ADD WEIGHT FIELDS INSIDE THE POP-UP */
+
+#weightForm {
+  width: 100%;
+  min-width: 0;
+}
+
+#weightForm input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+#weightDate {
+  appearance: none;
+  -webkit-appearance: none;
+}
