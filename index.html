@@ -4,58 +4,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <meta name="theme-color" content="#121212">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Spot">
 
-  <title>Fitness Tracker</title>
+  <title>Spot</title>
 
-  <link rel="stylesheet" href="style.css?v=22">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+  <!-- MAIN STYLESHEET -->
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 
 <body>
 
   <!-- SHARED OUTLINE ICONS -->
   <svg class="icon-sprite" aria-hidden="true">
-    <symbol id="icon-dashboard" viewBox="0 0 24 24">
-      <rect x="3" y="3" width="7" height="7" rx="2"/>
-      <rect x="14" y="3" width="7" height="7" rx="2"/>
-      <rect x="3" y="14" width="7" height="7" rx="2"/>
-      <rect x="14" y="14" width="7" height="7" rx="2"/>
-    </symbol>
-
-    <symbol id="icon-progress" viewBox="0 0 24 24">
-      <path d="M4 19V13M10 19V9M16 19V5M3 21h18"/>
-    </symbol>
-
-    <symbol id="icon-library" viewBox="0 0 24 24">
-      <path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5z"/>
-      <path d="M5 4.5v17M9 6h7M9 10h7"/>
-    </symbol>
-
-    <symbol id="icon-profile" viewBox="0 0 24 24">
-      <circle cx="12" cy="8" r="4"/>
-      <path d="M4 21a8 8 0 0 1 16 0"/>
-    </symbol>
-
-    <symbol id="icon-filter" viewBox="0 0 24 24">
-      <path d="M3 5h18l-7 8v6l-4 2v-8z"/>
-    </symbol>
-
-    <symbol id="icon-history" viewBox="0 0 24 24">
-      <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
-      <path d="M3 3v5h5M12 7v5l3 2"/>
-    </symbol>
-
-    <symbol id="icon-plus" viewBox="0 0 24 24">
-      <path d="M12 5v14M5 12h14"/>
-    </symbol>
-
-    <symbol id="icon-arrow-right" viewBox="0 0 24 24">
-      <path d="m9 18 6-6-6-6"/>
-    </symbol>
-
-    <symbol id="icon-arrow-left" viewBox="0 0 24 24">
-      <path d="m15 18-6-6 6-6"/>
-    </symbol>
+    <symbol id="icon-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="icon-progress" viewBox="0 0 24 24"><path d="M4 19V13M10 19V9M16 19V5M3 21h18"/></symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5z"/><path d="M5 4.5v17M9 6h7M9 10h7"/></symbol>
+    <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="icon-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
   </svg>
 
   <main>
@@ -63,960 +40,605 @@
     <!-- DASHBOARD PAGE -->
     <section id="dashboard" class="page active">
 
-      <div class="page-header">
-        <h1>Dashboard</h1>
-      </div>
+      <div class="page-header"><h1>Dashboard</h1></div>
 
-      <div class="dashboard-summary-grid">
+      <!-- COMPACT WORKOUT SUMMARY -->
+<div class="dashboard-summary-grid">
 
-        <!-- NEXT WORKOUT -->
-        <div class="card dashboard-summary-card">
-          <h2>Next Up</h2>
+  <!-- NEXT WORKOUT -->
+  <div class="card dashboard-summary-card">
+    <h2>Next Up</h2>
 
-          <h3 id="nextWorkoutName">
-            No workout scheduled
-          </h3>
+    <h3 id="nextWorkoutName">
+      No workout scheduled
+    </h3>
 
-          <p id="nextWorkoutDetails">
-            Activate a programme in your Library.
-          </p>
-
-          <div class="dashboard-card-actions">
-            <button
-              type="button"
-              id="dashboardStartWorkout"
-              class="primary-button"
-              hidden
-            >
-              Start
-            </button>
-
-            <button
-              type="button"
-              class="icon-button"
-              onclick="showPage('workouts')"
-              aria-label="View workouts"
-            >
-              <svg aria-hidden="true">
-                <use href="#icon-arrow-right"></use>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- CURRENT WEEK PROGRESS -->
-        <div class="card dashboard-summary-card">
-          <h2>This Week</h2>
-
-          <h3 id="weeklyProgressCount">
-            0 / 0
-          </h3>
-
-          <p id="weeklyProgressLabel">
-            Workouts completed
-          </p>
-
-          <div class="progress-track">
-            <div
-              id="weeklyProgressFill"
-              class="progress-fill"
-            ></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- BODYWEIGHT -->
-      <div class="card bodyweight-card">
-
-        <div class="bodyweight-header">
-
-          <h2>
-            Bodyweight —
-            <span id="currentWeight">-- kg</span>
-          </h2>
-
-          <div class="bodyweight-actions">
-
-            <div class="weight-filter-control">
-
-              <button
-                type="button"
-                id="toggleWeightFilters"
-                aria-expanded="false"
-                aria-controls="weightFilterOptions"
-              >
-                <svg aria-hidden="true">
-                  <use href="#icon-filter"></use>
-                </svg>
-
-                <span class="sr-only">
-                  Filter weight graph
-                </span>
-              </button>
-
-              <div
-                id="weightFilterOptions"
-                class="weight-filters"
-                hidden
-              >
-                <button type="button" data-days="7">
-                  7 Days
-                </button>
-
-                <button
-                  type="button"
-                  data-days="30"
-                  class="active"
-                >
-                  30 Days
-                </button>
-
-                <button type="button" data-days="90">
-                  3 Months
-                </button>
-
-                <button type="button" data-days="180">
-                  6 Months
-                </button>
-
-                <button type="button" data-days="365">
-                  1 Year
-                </button>
-
-                <button type="button" data-days="all">
-                  All Time
-                </button>
-              </div>
-
-            </div>
-
-            <button
-              type="button"
-              id="openWeightModal"
-              class="icon-button"
-              aria-label="Add weight"
-            >
-              <svg aria-hidden="true">
-                <use href="#icon-plus"></use>
-              </svg>
-            </button>
-
-            <details class="overflow-menu">
-              <summary aria-label="Bodyweight options">
-                ⋯
-              </summary>
-
-              <div class="overflow-menu-panel">
-                <button
-                  type="button"
-                  onclick="renderMeasurements(); showPage('measurements')"
-                >
-                  View measurements
-                </button>
-              </div>
-            </details>
-
-          </div>
-
-        </div>
-
-        <div id="weightChart"></div>
-
-        <p
-          id="weightMessage"
-          aria-live="polite"
-        ></p>
-
-      </div>
-
-      <!-- GOAL PROGRESS -->
-      <div class="card goal-progress-card">
-        <h2>Goal Progress</h2>
-
-        <div id="goalRadarChart"></div>
-      </div>
-
-      <!-- ADD WEIGHT POP-UP -->
-      <dialog
-        id="weightModal"
-        aria-labelledby="weightModalTitle"
-      >
-        <h2 id="weightModalTitle">
-          Add Weight
-        </h2>
-
-        <form id="weightForm">
-
-          <label for="weightDate">
-            Date
-          </label>
-
-          <input
-            type="date"
-            id="weightDate"
-            required
-          >
-
-          <label for="weightInput">
-            Weight (kg)
-          </label>
-
-          <input
-            type="number"
-            id="weightInput"
-            inputmode="decimal"
-            min="20"
-            max="300"
-            step="0.1"
-            placeholder="e.g. 87.5"
-            required
-          >
-
-          <div class="modal-actions">
-            <button
-              type="button"
-              id="cancelWeightModal"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              class="primary-button"
-            >
-              Save Weight
-            </button>
-          </div>
-
-        </form>
-      </dialog>
-
-    </section>
-    <!-- END DASHBOARD PAGE -->
-
-
-    <!-- MEASUREMENTS PAGE -->
-    <section id="measurements" class="page">
-
-      <div class="page-header">
-        <h1>Bodyweight Measurements</h1>
-
-        <button
-          type="button"
-          class="icon-button"
-          onclick="showPage('dashboard')"
-          aria-label="Back to Dashboard"
-        >
-          <svg aria-hidden="true">
-            <use href="#icon-arrow-left"></use>
-          </svg>
-        </button>
-      </div>
-
-      <p>
-        Edit or remove any measurement below.
-      </p>
-
-      <div id="measurementsList"></div>
-
-    </section>
-
-
-    <!-- EDIT MEASUREMENT POP-UP -->
-    <dialog
-      id="editMeasurementModal"
-      aria-labelledby="editMeasurementTitle"
-    >
-      <h2 id="editMeasurementTitle">
-        Edit Measurement
-      </h2>
-
-      <form id="editMeasurementForm">
-
-        <input
-          type="hidden"
-          id="editMeasurementId"
-        >
-
-        <label for="editMeasurementDate">
-          Date
-        </label>
-
-        <input
-          type="date"
-          id="editMeasurementDate"
-          required
-        >
-
-        <label for="editMeasurementWeight">
-          Weight (kg)
-        </label>
-
-        <input
-          type="number"
-          id="editMeasurementWeight"
-          inputmode="decimal"
-          min="20"
-          max="300"
-          step="0.1"
-          required
-        >
-
-        <div class="modal-actions">
-          <button
-            type="button"
-            id="cancelMeasurementEdit"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            class="primary-button"
-          >
-            Save Changes
-          </button>
-        </div>
-
-      </form>
-    </dialog>
-
-
-    <!-- WORKOUTS PAGE -->
-    <section id="workouts" class="page">
-
-      <div class="page-header">
-        <h1>Workouts</h1>
-
-        <button
-          type="button"
-          class="icon-button"
-          onclick="renderWorkoutHistory(); showPage('workoutHistory')"
-          aria-label="View workout history"
-        >
-          <svg aria-hidden="true">
-            <use href="#icon-history"></use>
-          </svg>
-        </button>
-      </div>
-
-      <div id="activeWorkout">
-        <p>No active programme selected.</p>
-      </div>
-
-    </section>
-
-
-    <!-- LIBRARY PAGE -->
-    <section id="library" class="page">
-
-      <div class="page-header">
-        <h1>Library</h1>
-
-        <button
-          type="button"
-          class="icon-button"
-          id="createProgramme"
-          aria-label="Create programme"
-        >
-          <svg aria-hidden="true">
-            <use href="#icon-plus"></use>
-          </svg>
-        </button>
-      </div>
-
-      <h2>My Programmes</h2>
-
-      <div id="programmeLibrary">
-        <!-- Saved programmes appear here -->
-      </div>
-
-    </section>
-
-
-    <!-- PROGRAMME EDITOR PAGE -->
-    <section id="programmeEditor" class="page">
-
-      <div class="page-header editor-page-header">
-        <button
-          type="button"
-          class="icon-button"
-          onclick="showPage('workouts')"
-          aria-label="Back to workouts"
-        >
-          &#8592;
-        </button>
-
-        <h1>Programme Editor</h1>
-      </div>
-
-      <div id="editorProgrammeHeader"></div>
-
-      <div id="editorWorkouts">
-        <!-- Workouts and exercises appear here -->
-      </div>
-
-      <button
-        type="button"
-        id="addWorkout"
-        class="primary-button"
-      >
-        + Add Training Day
-      </button>
-
-    </section>
-
-
-    <!-- WORKOUT SESSION PAGE -->
-    <section id="workoutSession" class="page">
-
-      <div class="session-header">
-        <button
-          type="button"
-          id="cancelWorkout"
-          class="icon-button"
-          aria-label="Exit workout"
-        >
-          ×
-        </button>
-
-        <div>
-          <h1 id="sessionWorkoutName">
-            Workout Session
-          </h1>
-
-          <p id="sessionProgrammeName"></p>
-        </div>
-      </div>
-
-      <div id="sessionExercises">
-        <!-- Exercises and sets appear here -->
-      </div>
-
-      <div class="session-action-bar">
-        <p id="sessionProgress">
-          0 sets recorded
-        </p>
-
-        <button
-          type="button"
-          id="finishWorkout"
-          class="primary-button"
-        >
-          Finish Workout
-        </button>
-      </div>
-
-    </section>
-    <!-- END WORKOUT SESSION -->
-
-
-    <!-- WORKOUT HISTORY PAGE -->
-    <section id="workoutHistory" class="page">
-
-      <div class="page-header history-header">
-        <h1>Workout History</h1>
-
-        <button
-          type="button"
-          class="icon-button"
-          onclick="showPage('library')"
-          aria-label="Back to Library"
-        >
-          <svg aria-hidden="true">
-            <use href="#icon-arrow-left"></use>
-          </svg>
-        </button>
-      </div>
-
-      <div class="card">
-        <h2>Completed Workouts</h2>
-
-        <p>
-          Your previous training sessions are saved here.
-        </p>
-      </div>
-
-      <div id="workoutHistoryList">
-        <!-- Saved workouts appear here -->
-      </div>
-
-    </section>
-
-
-    <!-- PROFILE PAGE -->
-    <section id="profile" class="page">
-
-      <div class="page-header">
-        <h1>Profile</h1>
-      </div>
-
-      <details
-        class="card profile-editor-card"
-        id="bodyweightGoalEditor"
-      >
-        <summary>
-          <span>Bodyweight Goal</span>
-          <span class="summary-action">Edit</span>
-        </summary>
-
-        <label for="goalBodyweight">
-          Target bodyweight (kg)
-        </label>
-
-        <input
-          type="number"
-          id="goalBodyweight"
-          inputmode="decimal"
-          min="20"
-          max="300"
-          step="0.1"
-          placeholder="e.g. 80"
-        >
-
-        <label for="goalBodyweightDate">
-          Target date
-        </label>
-
-        <input
-          type="date"
-          id="goalBodyweightDate"
-        >
-
-        <div class="editor-actions">
-          <button
-            type="button"
-            id="cancelBodyweightGoal"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            id="saveBodyweightGoal"
-            class="primary-button"
-          >
-            Done
-          </button>
-        </div>
-
-        <p
-          id="bodyweightGoalMessage"
-          aria-live="polite"
-        ></p>
-
-      </details>
-
-      <details
-        class="card profile-editor-card"
-        id="exerciseGoalEditor"
-      >
-        <summary>
-          <span>Exercise Goals</span>
-          <span class="summary-action">＋</span>
-        </summary>
-
-        <label for="exerciseGoalName">
-          Exercise
-        </label>
-
-        <input
-          type="text"
-          id="exerciseGoalName"
-          placeholder="e.g. Bench Press"
-          autocomplete="off"
-        >
-
-        <label for="exerciseGoalWeight">
-          Target weight (kg)
-        </label>
-
-        <input
-          type="number"
-          id="exerciseGoalWeight"
-          inputmode="decimal"
-          min="0"
-          step="0.5"
-          placeholder="e.g. 100"
-        >
-
-        <div class="editor-actions">
-          <button
-            type="button"
-            id="cancelExerciseGoal"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            id="addExerciseGoal"
-            class="primary-button"
-          >
-            Done
-          </button>
-        </div>
-
-      </details>
-
-      <div id="exerciseGoalsList">
-        <!-- Saved exercise goals appear here -->
-      </div>
-
-    </section>
-    <!-- END PROFILE PAGE -->
-
-  </main>
-
-
-  <!-- CREATE PROGRAMME POP-UP -->
-  <dialog
-    id="programmeDialog"
-    aria-labelledby="programmeDialogTitle"
-  >
-    <form id="programmeForm">
-
-      <h2 id="programmeDialogTitle">
-        Create Programme
-      </h2>
-
-      <label for="programmeNameInput">
-        Programme name
-      </label>
-
-      <input
-        type="text"
-        id="programmeNameInput"
-        placeholder="e.g. Strength Block"
-        autocomplete="off"
-        required
-      >
-
-      <label for="programmeWeeksInput">
-        Number of weeks
-      </label>
-
-      <input
-        type="number"
-        id="programmeWeeksInput"
-        inputmode="numeric"
-        min="1"
-        max="52"
-        value="8"
-        required
-      >
-
-      <div class="modal-actions">
-        <button
-          type="button"
-          id="cancelProgrammeDialog"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="submit"
-          class="primary-button"
-        >
-          Create Programme
-        </button>
-      </div>
-
-    </form>
-  </dialog>
-
-
-  <!-- ADD OR EDIT EXERCISE POP-UP -->
-  <dialog
-    id="exerciseDialog"
-    aria-labelledby="exerciseDialogTitle"
-  >
-    <form id="exerciseForm">
-
-      <h2 id="exerciseDialogTitle">
-        Add Exercise
-      </h2>
-
-      <input
-        type="hidden"
-        id="exerciseDialogWorkoutId"
-      >
-
-      <input
-        type="hidden"
-        id="exerciseDialogExerciseId"
-      >
-
-      <label for="exerciseNameInput">
-        Exercise name
-      </label>
-
-      <input
-        type="text"
-        id="exerciseNameInput"
-        placeholder="e.g. Bench Press"
-        autocomplete="off"
-        required
-      >
-
-      <div class="exercise-form-grid">
-
-        <div>
-          <label for="exerciseSetsInput">
-            Sets
-          </label>
-
-          <input
-            type="number"
-            id="exerciseSetsInput"
-            inputmode="numeric"
-            min="1"
-            value="3"
-            required
-          >
-        </div>
-
-        <div>
-          <label for="exerciseRepsInput">
-            Reps
-          </label>
-
-          <input
-            type="number"
-            id="exerciseRepsInput"
-            inputmode="numeric"
-            min="1"
-            value="10"
-            required
-          >
-        </div>
-
-      </div>
-
-      <label for="exerciseWeightInput">
-        Target weight (kg, optional)
-      </label>
-
-      <input
-        type="number"
-        id="exerciseWeightInput"
-        inputmode="decimal"
-        min="0"
-        step="0.5"
-        placeholder="e.g. 50"
-      >
-
-      <div class="modal-actions">
-        <button
-          type="button"
-          id="cancelExerciseDialog"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="submit"
-          class="primary-button"
-        >
-          Save Exercise
-        </button>
-      </div>
-
-    </form>
-  </dialog>
-
-
-  <!-- WEEK UPDATE CHOICE -->
-  <dialog
-    id="weekScopeDialog"
-    aria-labelledby="weekScopeTitle"
-  >
-    <h2 id="weekScopeTitle">
-      Where should this change apply?
-    </h2>
-
-    <p>
-      Choose where you want to save this programme change.
+    <p id="nextWorkoutDetails">
+      Activate a programme in your Library.
     </p>
 
-    <div class="week-scope-actions">
+    <div class="dashboard-card-actions">
       <button
         type="button"
-        data-week-scope="current"
-      >
-        This Week Only
-      </button>
-
-      <button
-        type="button"
-        data-week-scope="future"
+        id="dashboardStartWorkout"
         class="primary-button"
+        hidden
       >
-        All Upcoming Weeks
+        Start
+      </button>
+
+      <button type="button" class="icon-button" onclick="showPage('workouts')" aria-label="View workouts">
+        <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CURRENT WEEK PROGRESS -->
+  <div class="card dashboard-summary-card">
+    <h2>This Week</h2>
+
+    <h3 id="weeklyProgressCount">
+      0 / 0
+    </h3>
+
+    <p id="weeklyProgressLabel">
+      Workouts completed
+    </p>
+
+    <div class="progress-track">
+      <div
+        id="weeklyProgressFill"
+        class="progress-fill"
+      ></div>
+    </div>
+  </div>
+
+</div>
+
+      <!-- BODYWEIGHT -->
+<div class="card bodyweight-card">
+
+<!-- BODYWEIGHT HEADING AND FILTER -->
+<div class="bodyweight-header">
+
+  <h2>
+    Bodyweight —
+    <span id="currentWeight">-- kg</span>
+  </h2>
+
+  <div class="bodyweight-actions">
+  <div class="weight-filter-control">
+
+    <button
+      type="button"
+      id="toggleWeightFilters"
+      aria-expanded="false"
+      aria-controls="weightFilterOptions"
+    >
+      <svg aria-hidden="true"><use href="#icon-filter"></use></svg>
+      <span class="sr-only">Filter weight graph</span>
+    </button>
+
+    <div
+      id="weightFilterOptions"
+      class="weight-filters"
+      hidden
+    >
+      <button type="button" data-days="7">
+        7 Days
       </button>
 
       <button
         type="button"
-        data-week-scope="cancel"
+        data-days="30"
+        class="active"
+      >
+        30 Days
+      </button>
+
+      <button type="button" data-days="90">
+        3 Months
+      </button>
+
+      <button type="button" data-days="180">
+        6 Months
+      </button>
+
+      <button type="button" data-days="365">
+        1 Year
+      </button>
+
+      <button type="button" data-days="all">
+        All Time
+      </button>
+    </div>
+
+  </div>
+
+    <button type="button" id="openWeightModal" class="icon-button" aria-label="Add weight">
+      <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
+    </button>
+
+    <details class="overflow-menu">
+      <summary aria-label="Bodyweight options">⋯</summary>
+      <div class="overflow-menu-panel">
+        <button type="button" onclick="renderMeasurements(); showPage('measurements')">View measurements</button>
+      </div>
+    </details>
+  </div>
+
+</div>
+
+  <!-- BODYWEIGHT GRAPH -->
+  <div id="weightChart"></div>
+
+    <p id="weightMessage" aria-live="polite"></p>
+
+</div>
+
+<!-- GOAL PROGRESS -->
+<div class="card goal-progress-card">
+
+  <h2>Goal Progress</h2>
+
+  <div id="goalRadarChart">
+  </div>
+
+</div>
+
+<!-- ADD WEIGHT POP-UP -->
+<dialog id="weightModal" aria-labelledby="weightModalTitle">
+
+  <h2 id="weightModalTitle">Add Weight</h2>
+
+  <form id="weightForm">
+
+    <!-- DATE -->
+    <label for="weightDate">Date</label>
+    <input
+      type="date"
+      id="weightDate"
+      required
+    >
+
+    <!-- WEIGHT SELECTOR -->
+   <label for="weightInput">Weight (kg)</label>
+
+    <input
+        type="number"
+        id="weightInput"
+        inputmode="decimal"
+        min="20"
+        max="300"
+        step="0.1"
+        placeholder="e.g. 87.5"
+        required
+>
+
+    <!-- ACTION BUTTONS -->
+    <div class="modal-actions">
+
+      <button
+        type="button"
+        id="cancelWeightModal"
       >
         Cancel
       </button>
+
+      <button
+        type="submit"
+        class="primary-button"
+      >
+        Save Weight
+      </button>
+
     </div>
-  </dialog>
+
+  </form>
+
+</dialog>
+
+</section>
+<!-- END DASHBOARD PAGE -->
+
+<!-- MEASUREMENTS PAGE -->
+<section id="measurements" class="page">
+  <h1>Bodyweight Measurements</h1>
+
+  <button
+    type="button"
+    onclick="showPage('dashboard')"
+  >
+    ← Back to Dashboard
+  </button>
+
+  <p>Edit or remove any measurement below.</p>
+
+  <div id="measurementsList"></div>
+</section>
+
+<!-- EDIT MEASUREMENT POP-UP -->
+<dialog
+  id="editMeasurementModal"
+  aria-labelledby="editMeasurementTitle"
+>
+  <h2 id="editMeasurementTitle">Edit Measurement</h2>
+
+  <form id="editMeasurementForm">
+    <input type="hidden" id="editMeasurementId">
+
+    <label for="editMeasurementDate">Date</label>
+    <input type="date" id="editMeasurementDate" required>
+
+    <label for="editMeasurementWeight">Weight (kg)</label>
+    <input
+      type="number"
+      id="editMeasurementWeight"
+      inputmode="decimal"
+      min="20"
+      max="300"
+      step="0.1"
+      required
+    >
+
+    <div class="modal-actions">
+      <button type="button" id="cancelMeasurementEdit">
+        Cancel
+      </button>
+
+      <button type="submit" class="primary-button">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</dialog>
 
 
-  <!-- BOTTOM NAVIGATION -->
-  <nav>
+    <!-- WORKOUTS PAGE -->
+<section id="workouts" class="page">
+  <div class="page-header">
+    <h1>Workouts</h1>
+    <button type="button" class="icon-button" onclick="renderWorkoutHistory(); showPage('workoutHistory')" aria-label="View workout history">
+      <svg aria-hidden="true"><use href="#icon-history"></use></svg>
+    </button>
+  </div>
+
+  <div id="activeWorkout">
+    <p>No active programme selected.</p>
+  </div>
+</section>
+
+      <!-- LIBRARY PAGE -->
+<section id="library" class="page">
+
+  <div class="page-header">
+    <h1>Library</h1>
+    <button type="button" class="icon-button" id="createProgramme" aria-label="Create programme">
+      <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
+    </button>
+  </div>
+
+  <h2>My Programmes</h2>
+<div id="programmeLibrary">
+  <!-- Saved programmes will appear here -->
+</div>
+
+</section>
+
+<!-- PROGRAMME EDITOR PAGE -->
+<section id="programmeEditor" class="page">
+  <div class="page-header editor-page-header">
+    <button type="button" class="icon-button" onclick="showPage('workouts')" aria-label="Back to workouts">&#8592;</button>
+    <h1>Programme Editor</h1>
+  </div>
+
+  <div id="editorProgrammeHeader"></div>
+
+  <div id="editorWorkouts">
+    <!-- Workouts and exercises will appear here -->
+  </div>
+
+  <button
+    type="button"
+    id="addWorkout"
+    class="primary-button"
+  >
+    + Add Training Day
+  </button>
+
+</section>
+
+<!-- WORKOUT SESSION PAGE -->
+<section id="workoutSession" class="page">
+  <div class="session-header">
+    <button type="button" id="cancelWorkout" class="icon-button" aria-label="Exit workout">×</button>
+    <div>
+      <h1 id="sessionWorkoutName">Workout Session</h1>
+      <p id="sessionProgrammeName"></p>
+    </div>
+  </div>
+
+  <!-- EXERCISES AND SETS -->
+  <div id="sessionExercises">
+    <!-- Exercises will appear here automatically -->
+  </div>
+
+  <div class="session-action-bar">
+    <p id="sessionProgress">0 sets recorded</p>
+    <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
+  </div>
+
+</section>
+<!-- END WORKOUT SESSION -->
+
+<!-- WORKOUT HISTORY PAGE -->
+<section id="workoutHistory" class="page">
+
+  <div class="page-header history-header">
+    <h1>Workout History</h1>
+    <button type="button" class="icon-button" onclick="showPage('library')" aria-label="Back to Library">
+      <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Completed Workouts</h2>
+    <p>Your previous training sessions are saved here.</p>
+  </div>
+
+  <div id="workoutHistoryList">
+    <!-- Saved workouts will appear here -->
+  </div>
+
+</section>
+
+<!-- PROFILE PAGE -->
+<section id="profile" class="page">
+  <div class="page-header"><h1>Profile</h1></div>
+
+  <details class="card profile-editor-card" id="bodyweightGoalEditor">
+  <summary><span>Bodyweight Goal</span><span class="summary-action">Edit</span></summary>
+
+  <label for="goalBodyweight">
+    Target bodyweight (kg)
+  </label>
+
+  <input
+    type="number"
+    id="goalBodyweight"
+    inputmode="decimal"
+    min="20"
+    max="300"
+    step="0.1"
+    placeholder="e.g. 80"
+  >
+
+  <label for="goalBodyweightDate">
+    Target date
+  </label>
+
+  <input
+    type="date"
+    id="goalBodyweightDate"
+  >
+
+  <div class="editor-actions">
+    <button type="button" id="cancelBodyweightGoal">Cancel</button>
+    <button type="button" id="saveBodyweightGoal" class="primary-button">Done</button>
+  </div>
+
+  <p
+    id="bodyweightGoalMessage"
+    aria-live="polite"
+  ></p>
+</details>
+
+  <details class="card profile-editor-card" id="exerciseGoalEditor">
+  <summary><span>Exercise Goals</span><span class="summary-action">＋</span></summary>
+
+  <label for="exerciseGoalName">
+    Exercise
+  </label>
+
+  <input
+    type="text"
+    id="exerciseGoalName"
+    placeholder="e.g. Bench Press"
+    autocomplete="off"
+  >
+
+  <label for="exerciseGoalWeight">
+    Target weight (kg)
+  </label>
+
+  <input
+    type="number"
+    id="exerciseGoalWeight"
+    inputmode="decimal"
+    min="0"
+    step="0.5"
+    placeholder="e.g. 100"
+  >
+
+  <div class="editor-actions">
+    <button type="button" id="cancelExerciseGoal">Cancel</button>
+    <button type="button" id="addExerciseGoal" class="primary-button">Done</button>
+  </div>
+
+  </details>
+
+<div id="exerciseGoalsList">
+  <!-- Saved exercise goals will appear here -->
+</div>
+
+</section>
+<!-- END PROFILE PAGE -->
+
+<!-- CREATE PROGRAMME POP-UP -->
+<dialog id="programmeDialog" aria-labelledby="programmeDialogTitle">
+  <form id="programmeForm">
+    <h2 id="programmeDialogTitle">Create Programme</h2>
+
+    <label for="programmeNameInput">Programme name</label>
+    <input type="text" id="programmeNameInput" placeholder="e.g. Strength Block" autocomplete="off" required>
+
+    <label for="programmeWeeksInput">Number of weeks</label>
+    <input type="number" id="programmeWeeksInput" inputmode="numeric" min="1" max="52" value="8" required>
+
+    <div class="modal-actions">
+      <button type="button" id="cancelProgrammeDialog">Cancel</button>
+      <button type="submit" class="primary-button">Create Programme</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ADD OR EDIT EXERCISE POP-UP -->
+<dialog id="exerciseDialog" aria-labelledby="exerciseDialogTitle">
+  <form id="exerciseForm">
+    <h2 id="exerciseDialogTitle">Add Exercise</h2>
+    <input type="hidden" id="exerciseDialogWorkoutId">
+    <input type="hidden" id="exerciseDialogExerciseId">
+
+    <label for="exerciseNameInput">Exercise name</label>
+    <input type="text" id="exerciseNameInput" placeholder="e.g. Bench Press" autocomplete="off" required>
+
+    <div class="exercise-form-grid">
+      <div>
+        <label for="exerciseSetsInput">Sets</label>
+        <input type="number" id="exerciseSetsInput" inputmode="numeric" min="1" value="3" required>
+      </div>
+      <div>
+        <label for="exerciseRepsInput">Reps</label>
+        <input type="number" id="exerciseRepsInput" inputmode="numeric" min="1" value="10" required>
+      </div>
+    </div>
+
+    <label for="exerciseWeightInput">Target weight (kg, optional)</label>
+    <input type="number" id="exerciseWeightInput" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 50">
+
+    <div class="modal-actions">
+      <button type="button" id="cancelExerciseDialog">Cancel</button>
+      <button type="submit" class="primary-button">Save Exercise</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- WEEK UPDATE CHOICE -->
+<dialog id="weekScopeDialog" aria-labelledby="weekScopeTitle">
+  <h2 id="weekScopeTitle">Where should this change apply?</h2>
+  <p>Choose where you want to save this programme change.</p>
+  <div class="week-scope-actions">
+    <button type="button" data-week-scope="current">This Week Only</button>
+    <button type="button" data-week-scope="future" class="primary-button">All Upcoming Weeks</button>
+    <button type="button" data-week-scope="cancel">Cancel</button>
+  </div>
+</dialog>
+
+</main>
+
+<!-- BOTTOM NAVIGATION -->
+<nav>
 
     <button
       id="dashboardButton"
       class="active"
-      onclick="showPage('dashboard')"
-    >
-      <svg aria-hidden="true">
-        <use href="#icon-dashboard"></use>
-      </svg>
-
-      <span class="sr-only">
-        Dashboard
-      </span>
+      onclick="showPage('dashboard')">
+      <svg aria-hidden="true"><use href="#icon-dashboard"></use></svg><span class="sr-only">Dashboard</span>
     </button>
 
     <button
       id="workoutsButton"
-      onclick="showPage('workouts')"
-    >
-      <svg aria-hidden="true">
-        <use href="#icon-progress"></use>
-      </svg>
-
-      <span class="sr-only">
-        Workouts
-      </span>
+      onclick="showPage('workouts')">
+      <svg aria-hidden="true"><use href="#icon-progress"></use></svg><span class="sr-only">Workouts</span>
     </button>
 
     <button
       id="libraryButton"
-      onclick="showPage('library')"
-    >
-      <svg aria-hidden="true">
-        <use href="#icon-library"></use>
-      </svg>
-
-      <span class="sr-only">
-        Library
-      </span>
+      onclick="showPage('library')">
+      <svg aria-hidden="true"><use href="#icon-library"></use></svg><span class="sr-only">Library</span>
     </button>
-
     <button
       id="profileButton"
-      onclick="showPage('profile')"
-    >
-      <svg aria-hidden="true">
-        <use href="#icon-profile"></use>
-      </svg>
-
-      <span class="sr-only">
-        Profile
-      </span>
+      onclick="showPage('profile')">
+      <svg aria-hidden="true"><use href="#icon-profile"></use></svg><span class="sr-only">Profile</span>
     </button>
 
-  </nav>
+</nav>
 
 
   <!-- NAVIGATION FUNCTION -->
   <script>
+
     function showPage(pageId) {
-      document
-        .querySelectorAll(".page")
-        .forEach(page => {
-          page.classList.remove("active");
-        });
 
-      document
-        .querySelectorAll("nav button")
-        .forEach(button => {
-          button.classList.remove("active");
-        });
+  // Hide all pages
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
 
-      const selectedPage =
-        document.getElementById(pageId);
+  // Remove navigation highlights
+  document.querySelectorAll("nav button").forEach(button => {
+    button.classList.remove("active");
+  });
 
-      if (selectedPage) {
-        selectedPage.classList.add("active");
-      }
+  // Show selected page
+  const selectedPage = document.getElementById(pageId);
 
-      const navButton =
-        document.getElementById(
-          pageId + "Button"
-        );
+  if (selectedPage) {
+    selectedPage.classList.add("active");
+  }
 
-      if (navButton) {
-        navButton.classList.add("active");
-      }
+  // Highlight navigation button, if one exists
+  const navButton = document.getElementById(pageId + "Button");
 
-      document.body.classList.toggle(
-        "session-active",
-        pageId === "workoutSession"
-      );
+    if (navButton) {
+    navButton.classList.add("active");
+  }
 
-      if (
-        pageId === "dashboard" &&
-        typeof updateDashboard === "function"
-      ) {
-        updateDashboard();
-      }
+  document.body.classList.toggle(
+    "session-active",
+    pageId === "workoutSession"
+  );
 
-      if (
-        pageId === "measurements" &&
-        typeof renderMeasurements === "function"
-      ) {
-        renderMeasurements();
-      }
+  if (
+    pageId === "dashboard" &&
+    typeof updateDashboard === "function"
+  ) {
+    updateDashboard();
+  }
 
-      if (pageId === "profile") {
-        if (
-          typeof renderBodyweightGoal ===
-          "function"
-        ) {
-          renderBodyweightGoal();
-        }
+  if (
+    pageId === "measurements" &&
+    typeof renderMeasurements === "function"
+  ) {
+    renderMeasurements();
+  }
 
-        if (
-          typeof renderExerciseGoals ===
-          "function"
-        ) {
-          renderExerciseGoals();
-        }
-
-        if (
-          typeof populateExerciseSuggestions ===
-          "function"
-        ) {
-          populateExerciseSuggestions();
-        }
-      }
+  if (pageId === "profile") {
+    if (typeof renderBodyweightGoal === "function") {
+      renderBodyweightGoal();
     }
 
-    document.addEventListener(
-      "click",
-      event => {
-        document
-          .querySelectorAll(
-            "details.overflow-menu[open]"
-          )
-          .forEach(menu => {
-            if (!menu.contains(event.target)) {
-              menu.removeAttribute("open");
-            }
-          });
-      }
-    );
+    if (typeof renderExerciseGoals === "function") {
+      renderExerciseGoals();
+    }
+
+    if (typeof populateExerciseSuggestions === "function") {
+      populateExerciseSuggestions();
+    }
+  }
+
+}
+
+  // Close any open ellipsis menu when the user taps elsewhere.
+  document.addEventListener("click", event => {
+    document.querySelectorAll("details.overflow-menu[open]").forEach(menu => {
+      if (!menu.contains(event.target)) menu.removeAttribute("open");
+    });
+  });
+
   </script>
 
-
-  <!-- APP SCRIPTS -->
   <script src="storage.js"></script>
   <script src="dashboard.js?v=12"></script>
   <script src="library.js?v=14"></script>
