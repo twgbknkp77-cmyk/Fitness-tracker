@@ -23,8 +23,8 @@ function renderWorkoutHistory() {
 
   container.innerHTML = "";
 
-  if (history.length === 0) {
-    container.innerHTML = "<p>No completed workouts yet.</p>";
+    if (history.length === 0) {
+    container.innerHTML = "";
     return;
   }
 
