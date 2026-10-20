@@ -317,11 +317,6 @@ function updateWorkoutSummary() {
       "weeklyProgressCount"
     );
 
-  const progressPercentage =
-    document.getElementById(
-      "weeklyProgressPercentage"
-    );
-
   const progressFill =
     document.getElementById(
       "weeklyProgressFill"
@@ -330,7 +325,6 @@ function updateWorkoutSummary() {
   if (
     !nextName ||
     !progressCount ||
-    !progressPercentage ||
     !progressFill
   ) {
     return;
@@ -347,8 +341,7 @@ function updateWorkoutSummary() {
     nextName.textContent =
       "No workout scheduled";
 
-    progressCount.textContent = "0 of 0 workouts";
-    progressPercentage.textContent = "0%";
+    progressCount.textContent = "0/0";
 
     progressFill.style.width = "0%";
     dashboardNextWorkoutId = null;
@@ -415,10 +408,7 @@ function updateWorkoutSummary() {
       : 0;
 
   progressCount.textContent =
-    `${completed} of ${trainingDays.length} workouts`;
-
-  progressPercentage.textContent =
-    `${percentage}%`;
+    `${completed}/${trainingDays.length}`;
 
   progressFill.style.width =
     `${percentage}%`;

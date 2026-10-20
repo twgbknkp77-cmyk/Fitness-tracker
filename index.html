@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=21">
+  <link rel="stylesheet" href="style.css?v=22">
 </head>
 
 <body>
@@ -42,39 +42,37 @@
 
       <div class="page-header"><h1>Dashboard</h1></div>
 
-      <!-- WEEKLY PROGRESS -->
-      <div class="card weekly-progress-card">
+      <!-- WEEKLY PROGRESS AND NEXT WORKOUT -->
+      <div class="card dashboard-status-card">
         <div class="weekly-progress-heading">
           <h2>This Week</h2>
-          <strong id="weeklyProgressCount">0 of 0 workouts</strong>
+          <strong id="weeklyProgressCount">0/0</strong>
         </div>
 
         <div class="progress-track weekly-progress-track">
           <div id="weeklyProgressFill" class="progress-fill"></div>
-          <span id="weeklyProgressPercentage">0%</span>
         </div>
-      </div>
 
-      <!-- NEXT WORKOUT -->
-      <div class="card next-workout-dashboard-card">
-        <button
-          type="button"
-          id="dashboardViewWorkout"
-          class="next-workout-copy"
-          aria-label="View next workout"
-        >
-          <span>Next Up</span>
-          <strong id="nextWorkoutName">No workout scheduled</strong>
-        </button>
+        <div class="dashboard-next-row">
+          <button
+            type="button"
+            id="dashboardViewWorkout"
+            class="next-workout-copy"
+            aria-label="View next workout"
+          >
+            <span>Next Up</span>
+            <strong id="nextWorkoutName">No workout scheduled</strong>
+          </button>
 
-        <button
-          type="button"
-          id="dashboardStartWorkout"
-          class="next-workout-start"
-          hidden
-        >
-          Start
-        </button>
+          <button
+            type="button"
+            id="dashboardStartWorkout"
+            class="next-workout-start"
+            hidden
+          >
+            Start
+          </button>
+        </div>
       </div>
 
       <!-- BODYWEIGHT -->
@@ -622,7 +620,7 @@
   </script>
 
   <script src="storage.js"></script>
-  <script src="dashboard.js?v=13"></script>
+  <script src="dashboard.js?v=14"></script>
   <script src="library.js?v=15"></script>
   <script src="programme-editor.js?v=10"></script>
   <script src="workout-session.js?v=8"></script>
