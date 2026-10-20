@@ -1017,12 +1017,7 @@ function drawGoalRadarChart() {
   });
 
   if (chartGoals.length === 0) {
-    container.innerHTML = `
-      <p>
-        Add goals in your Profile to see
-        your progress.
-      </p>
-    `;
+    container.innerHTML = "";
 
     return;
   }
@@ -1195,17 +1190,26 @@ function drawGoalRadarChart() {
     }).join("");
 
   container.innerHTML = `
-    <svg
-      viewBox="0 0 ${width} ${height}"
-      role="img"
-      aria-label="Goal progress radar chart"
-    >
-      ${svg}
-    </svg>
+    <details class="goal-progress-disclosure">
+      <summary aria-label="Show full goal progress">
+        <span>View goal details</span>
+        <span class="disclosure-arrow">⌄</span>
+      </summary>
 
-    <div class="goal-progress-summary">
-      ${goalSummary}
-    </div>
+      <div class="goal-progress-content">
+        <svg
+          viewBox="0 0 ${width} ${height}"
+          role="img"
+          aria-label="Goal progress radar chart"
+        >
+          ${svg}
+        </svg>
+
+        <div class="goal-progress-summary">
+          ${goalSummary}
+        </div>
+      </div>
+    </details>
   `;
 }
 

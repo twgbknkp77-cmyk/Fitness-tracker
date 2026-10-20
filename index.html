@@ -10,7 +10,7 @@
   <title>Fitness Tracker</title>
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 
 <body>
@@ -191,12 +191,7 @@
 
   <h2>Goal Progress</h2>
 
-  <p>
-    Your progress toward your bodyweight and exercise goals.
-  </p>
-
   <div id="goalRadarChart">
-    <p>Add goals in your Profile to see your progress.</p>
   </div>
 
 </div>
@@ -341,28 +336,12 @@
 
 <!-- PROGRAMME EDITOR PAGE -->
 <section id="programmeEditor" class="page">
-
-  <h1>Programme Editor</h1>
-
-  <div class="card">
-
-    <label for="editorProgrammeName">Programme Name</label>
-
-    <input
-      type="text"
-      id="editorProgrammeName"
-      placeholder="Programme name"
-    >
-
-    <button
-      type="button"
-      id="saveProgrammeName"
-      class="primary-button"
-    >
-      Save Name
-    </button>
-
+  <div class="page-header editor-page-header">
+    <button type="button" class="icon-button" onclick="showPage('workouts')" aria-label="Back to workouts">&#8592;</button>
+    <h1>Programme Editor</h1>
   </div>
+
+  <div id="editorProgrammeHeader"></div>
 
   <div id="editorWorkouts">
     <!-- Workouts and exercises will appear here -->
@@ -374,13 +353,6 @@
     class="primary-button"
   >
     + Add Training Day
-  </button>
-
-  <button
-    type="button"
-    onclick="showPage('workouts')"
-  >
-    ← Back to Workouts
   </button>
 
 </section>
@@ -617,12 +589,12 @@
   </script>
 
   <script src="storage.js"></script>
-  <script src="dashboard.js?v=10"></script>
-  <script src="library.js?v=12"></script>
-  <script src="programme-editor.js?v=8"></script>
+  <script src="dashboard.js?v=11"></script>
+  <script src="library.js?v=13"></script>
+  <script src="programme-editor.js?v=9"></script>
   <script src="workout-session.js?v=8"></script>
   <script src="workout-history.js?v=3"></script>
-  <script src="profile.js?v=6"></script>
+  <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=1"></script>
 
 </body>

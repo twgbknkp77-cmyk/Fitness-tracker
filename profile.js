@@ -521,7 +521,7 @@ function renderExerciseGoals() {
   container.innerHTML = "";
 
   if (exerciseGoals.length === 0) {
-    container.innerHTML = "<div class='card'><p>No exercise goals saved yet.</p></div>";
+    container.innerHTML = "<div class='card empty-state-card'><p>No exercise goals saved yet.</p></div>";
     return;
   }
 

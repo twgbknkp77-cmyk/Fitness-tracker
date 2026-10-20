@@ -1144,7 +1144,9 @@ function renderActiveWorkout() {
     const workout = (week?.trainingDays || []).find(item => item.id === expandedWorkoutId);
     if (workout) {
       const back = document.createElement("button");
-      back.textContent = "← Back to Week";
+      back.className = "icon-button workout-detail-back";
+      back.textContent = "←";
+      back.setAttribute("aria-label", "Back to week");
       back.addEventListener("click", () => {
         expandedWorkoutId = null;
         renderActiveWorkout();
@@ -1212,15 +1214,24 @@ function renderActiveWorkout() {
     const exerciseCount = (workout.exercises || []).length;
     detail.textContent = `${exerciseCount} ${exerciseCount === 1 ? "exercise" : "exercises"}`;
     copy.append(title, detail);
-    if (index === 0) {
-      const badge = document.createElement("span");
-      badge.className = "status-label";
-      badge.textContent = "Next";
-      header.append(copy, badge);
-    } else {
-      header.appendChild(copy);
-    }
-    card.appendChild(header);
+    header.appendChild(copy);
+
+    const startButton = document.createElement("button");
+    startButton.type = "button";
+    startButton.className = "primary-button compact-start-button";
+    startButton.textContent = viewedWorkoutWeek === programme.currentWeek
+      ? "Start Workout"
+      : "Make Current & Start";
+    startButton.addEventListener("click", event => {
+      event.stopPropagation();
+      if (viewedWorkoutWeek !== programme.currentWeek) {
+        if (!confirm(`Make Week ${viewedWorkoutWeek} your current training week?`)) return;
+        changeActiveProgrammeWeek(programme.id, viewedWorkoutWeek);
+      }
+      startWorkout(workout.id);
+    });
+
+    card.append(header, startButton);
     card.addEventListener("click", () => {
       expandedWorkoutId = workout.id;
       renderActiveWorkout();
@@ -1252,10 +1263,6 @@ function openProgrammeEditor(id) {
   if (!programme) return;
 
   window.editingProgrammeId = id;
-
-  document
-    .getElementById("editorProgrammeName")
-    .value = programme.name;
 
   showPage("programmeEditor");
 

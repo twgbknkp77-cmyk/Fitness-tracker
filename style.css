@@ -1209,3 +1209,210 @@ summary:focus-visible {
 #weightChart {
   margin-top: 10px;
 }
+
+/* COMPACT WORKOUT DETAILS */
+
+.workout-detail-back {
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  font-size: 22px;
+}
+
+.compact-start-button {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.workout-summary-card .compact-card-header {
+  align-items: center;
+}
+
+/* PROGRAMME EDITOR */
+
+.editor-page-header {
+  justify-content: flex-start;
+  margin-bottom: 18px;
+}
+
+.editor-page-header .icon-button {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  font-size: 22px;
+}
+
+.editor-name-card {
+  padding: 12px 14px;
+}
+
+.editable-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.editable-name h2 {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.editable-name input,
+.editor-week-card select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.edit-name-button {
+  display: grid;
+  flex: 0 0 40px;
+  place-items: center;
+  font-size: 20px;
+}
+
+.editor-week-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.editor-day-card {
+  padding: 14px;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.editor-day-card.is-dragging {
+  opacity: .58;
+  transform: scale(.985);
+}
+
+.editor-day-header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.drag-handle {
+  width: 40px;
+  min-width: 40px;
+  min-height: 44px;
+  padding: 0;
+  color: var(--grey);
+  font-size: 24px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.editor-exercise-list {
+  display: grid;
+  gap: 8px;
+}
+
+.editor-exercise-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  background: #252525;
+  border: 1px solid #383838;
+  border-radius: 12px;
+}
+
+.editor-exercise-row p {
+  margin: 4px 0 0;
+}
+
+.editor-add-exercise {
+  width: 100%;
+  margin-top: 10px;
+}
+
+#addWorkout {
+  width: 100%;
+}
+
+/* CONSISTENT MENU AND EMPTY-STATE ALIGNMENT */
+
+.programme-card > .compact-card-header {
+  align-items: center;
+}
+
+.programme-card > .compact-card-header > .overflow-menu {
+  align-self: center;
+}
+
+.empty-state-card {
+  display: flex;
+  align-items: center;
+  min-height: 88px;
+}
+
+.empty-state-card p {
+  margin: 0;
+}
+
+/* COLLAPSIBLE DASHBOARD GOAL DETAILS */
+
+.goal-progress-card {
+  padding-bottom: 12px;
+}
+
+.goal-progress-card > h2 {
+  margin-bottom: 0;
+}
+
+.goal-progress-disclosure {
+  display: flex;
+  flex-direction: column;
+}
+
+.goal-progress-disclosure > summary {
+  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-top: 8px;
+  color: var(--grey);
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+}
+
+.goal-progress-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.goal-progress-disclosure .disclosure-arrow {
+  color: var(--orange);
+  font-size: 20px;
+  transition: transform .18s ease;
+}
+
+.goal-progress-disclosure[open] .disclosure-arrow {
+  transform: rotate(180deg);
+}
+
+.goal-progress-content {
+  order: 1;
+}
