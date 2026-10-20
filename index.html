@@ -25,6 +25,7 @@
     <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
   </svg>
 
   <main>
@@ -115,6 +116,7 @@
     <span id="currentWeight">-- kg</span>
   </h2>
 
+  <div class="bodyweight-actions">
   <div class="weight-filter-control">
 
     <button
@@ -163,26 +165,22 @@
 
   </div>
 
+    <button type="button" id="openWeightModal" class="icon-button" aria-label="Add weight">
+      <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
+    </button>
+
+    <details class="overflow-menu">
+      <summary aria-label="Bodyweight options">⋯</summary>
+      <div class="overflow-menu-panel">
+        <button type="button" onclick="renderMeasurements(); showPage('measurements')">View measurements</button>
+      </div>
+    </details>
+  </div>
+
 </div>
 
   <!-- BODYWEIGHT GRAPH -->
   <div id="weightChart"></div>
-
-  <!-- ADD WEIGHT BUTTON -->
-  <button
-    type="button"
-    id="openWeightModal"
-    class="primary-button"
-  >
-    + Add Weight
-  </button>
-
-  <button
-    type="button"
-    onclick="renderMeasurements(); showPage('measurements')"
-  >
-    View Measurements
-  </button>
 
     <p id="weightMessage" aria-live="polite"></p>
 
@@ -413,14 +411,12 @@
 <!-- WORKOUT HISTORY PAGE -->
 <section id="workoutHistory" class="page">
 
-  <h1>Workout History</h1>
-
-  <button
-    type="button"
-    onclick="showPage('library')"
-  >
-    ← Back to Library
-  </button>
+  <div class="page-header history-header">
+    <h1>Workout History</h1>
+    <button type="button" class="icon-button" onclick="showPage('library')" aria-label="Back to Library">
+      <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+    </button>
+  </div>
 
   <div class="card">
     <h2>Completed Workouts</h2>
@@ -608,12 +604,19 @@
 
 }
 
+  // Close any open ellipsis menu when the user taps elsewhere.
+  document.addEventListener("click", event => {
+    document.querySelectorAll("details.overflow-menu[open]").forEach(menu => {
+      if (!menu.contains(event.target)) menu.removeAttribute("open");
+    });
+  });
+
   </script>
 
   <script src="storage.js"></script>
-  <script src="dashboard.js?v=9"></script>
-  <script src="library.js?v=11"></script>
-  <script src="programme-editor.js?v=7"></script>
+  <script src="dashboard.js?v=10"></script>
+  <script src="library.js?v=12"></script>
+  <script src="programme-editor.js?v=8"></script>
   <script src="workout-session.js?v=8"></script>
   <script src="workout-history.js?v=3"></script>
   <script src="profile.js?v=6"></script>

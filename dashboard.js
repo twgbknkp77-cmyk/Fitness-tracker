@@ -584,6 +584,15 @@ function drawWeightChart() {
       entry.chartTime <= now
     );
 
+  // Keep an empty graph from taking up a large blank area on phones.
+  if (weights.length === 0) {
+    container.hidden = true;
+    container.innerHTML = "";
+    return;
+  }
+
+  container.hidden = false;
+
   const values =
     weights.map(entry => entry.weight);
 
@@ -783,15 +792,6 @@ function drawWeightChart() {
       ${svg}
     </svg>
 
-    ${
-      weights.length === 0
-        ? `
-          <p style="text-align:center;font-size:13px;">
-            No measurements in this time period
-          </p>
-        `
-        : ""
-    }
   `;
 }
 

@@ -48,6 +48,28 @@ function saveEditedProgramme(programme) {
 }
 
 
+// COPY WEEK 1'S STRUCTURE WHILE KEEPING EACH WEEK'S RECORDS SEPARATE
+function copyWeekOneAcrossProgramme(programme) {
+  const sourceWeek = programme?.weeks?.find(week => week.number === 1);
+  if (!sourceWeek || sourceWeek.trainingDays.length === 0) return 0;
+
+  programme.weeks
+    .filter(week => week.number !== 1)
+    .forEach(targetWeek => {
+      targetWeek.trainingDays = sourceWeek.trainingDays.map(workout => ({
+        ...workout,
+        id: createId(),
+        exercises: (workout.exercises || []).map(exercise => ({
+          ...exercise,
+          id: createId()
+        }))
+      }));
+    });
+
+  return programme.weeks.length - 1;
+}
+
+
 // SAVE PROGRAMME NAME
 document.getElementById("saveProgrammeName")
   ?.addEventListener("click", function() {
@@ -174,6 +196,36 @@ function renderProgrammeEditor() {
   }
 
   container.appendChild(weekMessage);
+
+
+  // COPY WEEK 1 THROUGH THE REST OF THE PROGRAMME
+  if (week.number === 1 && programme.weeks.length > 1) {
+    const copyWeekButton = document.createElement("button");
+    copyWeekButton.type = "button";
+    copyWeekButton.className = "copy-week-button";
+    copyWeekButton.textContent = "Copy Week 1 to All Weeks";
+    copyWeekButton.disabled = week.trainingDays.length === 0;
+
+    copyWeekButton.addEventListener("click", () => {
+      const populatedFutureWeeks = programme.weeks
+        .slice(1)
+        .some(item => item.trainingDays.length > 0);
+
+      const warning = populatedFutureWeeks
+        ? "This will replace the workouts already saved in Weeks 2 onward. Continue?"
+        : `Copy Week 1 into Weeks 2 to ${programme.durationWeeks}?`;
+
+      if (!confirm(warning)) return;
+
+      copyWeekOneAcrossProgramme(programme);
+
+      saveEditedProgramme(programme);
+      renderProgrammeEditor();
+      alert("Week 1 has been copied across the programme.");
+    });
+
+    container.appendChild(copyWeekButton);
+  }
 
 
   // DISPLAY THE SELECTED WEEK'S TRAINING DAYS
