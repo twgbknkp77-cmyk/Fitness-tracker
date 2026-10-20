@@ -19,12 +19,17 @@ function renderWorkoutHistory() {
 
   if (!container) return;
 
+  const pageBack = document.getElementById("workoutHistoryBack");
+  if (pageBack) {
+    pageBack.setAttribute("aria-label", "Back to Library");
+    pageBack.onclick = () => showPage("library");
+  }
+
   const history = getSavedWorkoutHistory();
 
   container.innerHTML = "";
 
-    if (history.length === 0) {
-    container.innerHTML = "";
+  if (history.length === 0) {
     return;
   }
 
@@ -36,7 +41,7 @@ function renderWorkoutHistory() {
     )
     .forEach(session => {
       const card = document.createElement("div");
-      card.className = "card";
+      card.className = "card history-session-card";
 
       const date = new Date(session.finishedAt)
         .toLocaleDateString("en-GB", {
@@ -70,8 +75,8 @@ function renderWorkoutHistory() {
         ` • ${completedSets} sets completed`;
 
       const button = document.createElement("button");
-      button.className = "primary-button";
-      button.textContent = "View Results →";
+      button.className = "history-view-button";
+      button.textContent = "View";
 
       button.addEventListener("click", () => {
         viewWorkoutHistoryDetails(session);
@@ -91,6 +96,15 @@ function viewWorkoutHistoryDetails(session) {
 
   container.innerHTML = "";
 
+  const pageBack = document.getElementById("workoutHistoryBack");
+  if (pageBack) {
+    pageBack.setAttribute("aria-label", "Back to workout history");
+    pageBack.onclick = renderWorkoutHistory;
+  }
+
+  const summary = document.createElement("div");
+  summary.className = "card history-detail-summary";
+
   const heading = document.createElement("h2");
   heading.textContent = session.workoutName;
 
@@ -101,11 +115,12 @@ function viewWorkoutHistoryDetails(session) {
       ? ` • Week ${session.weekNumber}`
       : "");
 
-  container.append(heading, sessionDetails);
+  summary.append(heading, sessionDetails);
+  container.appendChild(summary);
 
   (session.exercises || []).forEach(exercise => {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "card history-exercise-card";
 
     const title = document.createElement("h3");
     title.textContent = exercise.name;
@@ -114,6 +129,7 @@ function viewWorkoutHistoryDetails(session) {
 
     (exercise.sets || []).forEach((set, index) => {
       const row = document.createElement("p");
+      row.className = "history-set-row";
       const plannedWeight = Number(set.plannedWeight);
       const plannedReps = Number(set.plannedReps);
 
@@ -141,13 +157,4 @@ function viewWorkoutHistoryDetails(session) {
     container.appendChild(card);
   });
 
-  const backButton = document.createElement("button");
-  backButton.textContent = "← Back to History";
-
-  backButton.addEventListener(
-    "click",
-    renderWorkoutHistory
-  );
-
-  container.appendChild(backButton);
 }

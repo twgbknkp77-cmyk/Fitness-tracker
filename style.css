@@ -1772,3 +1772,149 @@ summary,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* WEIGHT FILTER, DATES AND MEASUREMENT HISTORY */
+
+.weight-filter-control .weight-filters button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  text-align: center;
+}
+
+#weightDate,
+#editMeasurementDate,
+#goalBodyweightDate {
+  text-align: left;
+  text-align-last: left;
+}
+
+#weightDate::-webkit-date-and-time-value,
+#editMeasurementDate::-webkit-date-and-time-value,
+#goalBodyweightDate::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+
+.form-message {
+  min-height: 0;
+  margin: 2px 0 0;
+  color: #ffb35c;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.form-message:empty {
+  display: none;
+}
+
+#weightModalTitle:focus {
+  outline: none;
+}
+
+.measurements-header {
+  margin-bottom: 18px;
+}
+
+#measurementsList {
+  display: grid;
+  gap: 14px;
+}
+
+#measurementsList .measurement-card {
+  min-height: 96px;
+  margin: 0;
+  padding: 18px;
+}
+
+.measurement-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.measurement-actions button {
+  min-width: 72px;
+  min-height: 42px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.measurement-edit-button {
+  color: var(--background);
+  background: var(--orange);
+  border: 1px solid var(--orange);
+}
+
+.measurement-delete-button {
+  color: var(--white);
+  background: transparent;
+  border: 1px solid #666;
+}
+
+/* COMPACT WORKOUT HISTORY */
+
+.history-session-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.history-session-card h3 {
+  grid-column: 1;
+  margin: 0;
+}
+
+.history-session-card p {
+  grid-column: 1;
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.history-view-button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  min-width: 72px;
+  min-height: 44px;
+  padding: 10px 14px;
+  color: var(--background);
+  background: var(--orange);
+  border: 0;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.history-detail-summary h2,
+.history-detail-summary p,
+.history-exercise-card h3 {
+  margin-top: 0;
+}
+
+.history-set-row {
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@media (max-width: 430px) {
+  .measurement-card {
+    align-items: stretch;
+  }
+
+  .measurement-actions {
+    width: 100%;
+  }
+
+  .measurement-actions button {
+    width: 100%;
+  }
+}

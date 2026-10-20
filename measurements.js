@@ -70,7 +70,7 @@ function renderMeasurements() {
 
   if (weights.length === 0) {
     container.innerHTML = `
-      <div class="card">
+      <div class="card empty-state-card">
         <p>No bodyweight measurements saved yet.</p>
       </div>
     `;
@@ -87,13 +87,11 @@ function renderMeasurements() {
     weight.textContent = `${entry.weight.toFixed(1)} kg`;
 
     const date = document.createElement("p");
-    date.textContent = new Date(entry.recordedAt)
-      .toLocaleString("en-GB", {
+    date.textContent = new Date(`${entry.date}T12:00:00`)
+      .toLocaleDateString("en-GB", {
         day: "numeric",
         month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
+        year: "numeric"
       });
 
     details.append(weight, date);
@@ -103,12 +101,14 @@ function renderMeasurements() {
 
     const editButton = document.createElement("button");
     editButton.textContent = "Edit";
+    editButton.className = "measurement-edit-button";
     editButton.addEventListener("click", () => {
       openMeasurementEditor(entry.id);
     });
 
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
+    deleteButton.className = "measurement-delete-button";
     deleteButton.addEventListener("click", () => {
       if (!confirm(`Delete the ${entry.weight.toFixed(1)} kg measurement?`)) {
         return;
@@ -170,8 +170,11 @@ document
 
     if (!editingMeasurementId) return;
 
-    const date =
-      document.getElementById("editMeasurementDate").value;
+    const dateInput =
+      document.getElementById("editMeasurementDate");
+
+    const date = dateInput.value;
+    dateInput.setCustomValidity("");
 
     const weight = Number(
       document.getElementById("editMeasurementWeight").value
@@ -189,6 +192,21 @@ document
     }
 
     const weights = normaliseMeasurements();
+
+    const dateAlreadyExists = weights.some(
+      item =>
+        item.id !== editingMeasurementId &&
+        item.date === date
+    );
+
+    if (dateAlreadyExists) {
+      dateInput.setCustomValidity(
+        "A measurement already exists for this date."
+      );
+      dateInput.reportValidity();
+      return;
+    }
+
     const entry = weights.find(
       item => item.id === editingMeasurementId
     );

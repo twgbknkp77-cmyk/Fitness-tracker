@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=25">
+  <link rel="stylesheet" href="style.css?v=26">
 </head>
 
 <body>
@@ -25,8 +25,8 @@
   <!-- SHARED OUTLINE ICONS -->
   <svg class="icon-sprite" aria-hidden="true">
     <symbol id="icon-dashboard" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
-    <symbol id="icon-progress" viewBox="0 0 24 24"><path d="M4 19V13M10 19V9M16 19V5M3 21h18"/></symbol>
-    <symbol id="icon-library" viewBox="0 0 24 24"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H20v17H7.5A2.5 2.5 0 0 0 5 21.5z"/><path d="M5 4.5v17M9 6h7M9 10h7"/></symbol>
+    <symbol id="icon-progress" viewBox="0 0 24 24"><rect x="3" y="14" width="4" height="7" rx="1" fill="currentColor" stroke="none"/><rect x="10" y="9" width="4" height="12" rx="1" fill="currentColor" stroke="none"/><rect x="17" y="4" width="4" height="17" rx="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"/><path d="M9 3v18M3 7h4M3 12h4M3 17h4M12 8h5M12 12h5"/></symbol>
     <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     <symbol id="icon-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
     <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
@@ -169,7 +169,7 @@
 <!-- ADD WEIGHT POP-UP -->
 <dialog id="weightModal" aria-labelledby="weightModalTitle">
 
-  <h2 id="weightModalTitle">Add Weight</h2>
+  <h2 id="weightModalTitle" tabindex="-1" autofocus>Add Weight</h2>
 
   <form id="weightForm">
 
@@ -194,6 +194,8 @@
         placeholder="e.g. 87.5"
         required
 >
+
+    <p id="weightFormMessage" class="form-message" aria-live="polite"></p>
 
     <!-- ACTION BUTTONS -->
     <div class="modal-actions">
@@ -223,16 +225,12 @@
 
 <!-- MEASUREMENTS PAGE -->
 <section id="measurements" class="page">
-  <h1>Bodyweight Measurements</h1>
-
-  <button
-    type="button"
-    onclick="showPage('dashboard')"
-  >
-    ← Back to Dashboard
-  </button>
-
-  <p>Edit or remove any measurement below.</p>
+  <div class="page-header measurements-header">
+    <h1>Measurements</h1>
+    <button type="button" class="icon-button" onclick="showPage('dashboard')" aria-label="Back to dashboard">
+      <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+    </button>
+  </div>
 
   <div id="measurementsList"></div>
 </section>
@@ -366,7 +364,7 @@
 
   <div class="page-header history-header">
     <h1>Workout History</h1>
-    <button type="button" class="icon-button" onclick="showPage('library')" aria-label="Back to Library">
+    <button type="button" class="icon-button" id="workoutHistoryBack" onclick="showPage('library')" aria-label="Back to Library">
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
   </div>
@@ -634,6 +632,19 @@
       if (!menu.contains(event.target)) menu.removeAttribute("open");
     });
 
+    const filterControl = document.querySelector(".weight-filter-control");
+    const filterOptions = document.getElementById("weightFilterOptions");
+    const filterToggle = document.getElementById("toggleWeightFilters");
+
+    if (
+      filterControl &&
+      filterOptions &&
+      !filterControl.contains(event.target)
+    ) {
+      filterOptions.hidden = true;
+      filterToggle?.setAttribute("aria-expanded", "false");
+    }
+
     if (
       event.target.closest("button, summary") &&
       typeof navigator.vibrate === "function"
@@ -645,13 +656,13 @@
   </script>
 
   <script src="storage.js"></script>
-  <script src="dashboard.js?v=15"></script>
+  <script src="dashboard.js?v=16"></script>
   <script src="library.js?v=17"></script>
   <script src="programme-editor.js?v=11"></script>
   <script src="workout-session.js?v=9"></script>
-  <script src="workout-history.js?v=4"></script>
+  <script src="workout-history.js?v=5"></script>
   <script src="profile.js?v=7"></script>
-  <script src="measurements.js?v=1"></script>
+  <script src="measurements.js?v=2"></script>
 
 </body>
 </html>

@@ -17,6 +17,9 @@ const weightModal =
 const weightMessage =
   document.getElementById("weightMessage");
 
+const weightFormMessage =
+  document.getElementById("weightFormMessage");
+
 const openWeightModal =
   document.getElementById("openWeightModal");
 
@@ -163,7 +166,14 @@ openWeightModal?.addEventListener(
         : "";
 
     weightMessage.textContent = "";
+    if (weightFormMessage) weightFormMessage.textContent = "";
     weightModal.showModal();
+
+    requestAnimationFrame(() => {
+      document
+        .getElementById("weightModalTitle")
+        ?.focus({ preventScroll: true });
+    });
   }
 );
 
@@ -204,10 +214,18 @@ weightForm?.addEventListener(
     const weights =
       FitnessStorage.getWeights();
 
-    /*
-     * Append the measurement instead of replacing
-     * another measurement from the same date.
-     */
+    const dateAlreadyExists = weights.some(
+      entry => entry?.date === date
+    );
+
+    if (dateAlreadyExists) {
+      if (weightFormMessage) {
+        weightFormMessage.textContent =
+          "A measurement already exists for this date. Open View Measurements to edit it.";
+      }
+      return;
+    }
+
     weights.push({
       id: createId(),
       date,
