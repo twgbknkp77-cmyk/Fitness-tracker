@@ -612,7 +612,7 @@ function renderActiveWorkoutLegacy() {
     document.createElement("button");
 
   previousActiveButton.textContent =
-    "← Previous Active Week";
+    "‹ Previous Active Week";
 
   previousActiveButton.disabled =
     programme.currentWeek === 1;
@@ -641,7 +641,7 @@ function renderActiveWorkoutLegacy() {
     document.createElement("button");
 
   nextActiveButton.textContent =
-    "Next Active Week →";
+    "Next Active Week ›";
 
   nextActiveButton.disabled =
     programme.currentWeek ===
@@ -712,7 +712,7 @@ function renderActiveWorkoutLegacy() {
     document.createElement("button");
 
   previousWeekButton.textContent =
-    "← Previous";
+    "‹ Previous";
 
   previousWeekButton.disabled =
     viewedWorkoutWeek === 1;
@@ -736,7 +736,7 @@ function renderActiveWorkoutLegacy() {
   const nextWeekButton =
     document.createElement("button");
 
-  nextWeekButton.textContent = "Next →";
+  nextWeekButton.textContent = "Next ›";
 
   nextWeekButton.disabled =
     viewedWorkoutWeek ===
@@ -1130,7 +1130,7 @@ function renderLibrary() {
     activationButton.className = "programme-activation-button";
     activationButton.classList.toggle("is-active", programme.id === activeId);
     activationButton.textContent = programme.id === activeId
-      ? "Active · Tap to Deactivate"
+      ? "Active"
       : "Activate";
     activationButton.setAttribute(
       "aria-pressed",
@@ -1153,7 +1153,7 @@ function renderLibrary() {
 
       const status = document.createElement("span");
       status.className = "status-label";
-      status.textContent = `Active • ${percentage}% complete`;
+      status.textContent = `${percentage}% complete`;
       card.appendChild(status);
     }
 
@@ -1247,8 +1247,9 @@ function renderActiveWorkout() {
     if (workout) {
       const back = document.createElement("button");
       back.className = "icon-button workout-detail-back";
-      back.textContent = "←";
       back.setAttribute("aria-label", "Back to week");
+      back.innerHTML =
+        '<svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>';
       back.addEventListener("click", () => {
         expandedWorkoutId = null;
         renderActiveWorkout();
@@ -1337,7 +1338,12 @@ function renderActiveWorkout() {
     const exerciseCount = (workout.exercises || []).length;
     detail.textContent = `${exerciseCount} ${exerciseCount === 1 ? "exercise" : "exercises"}`;
     copy.append(title, detail);
-    header.appendChild(copy);
+    const chevron = document.createElement("span");
+    chevron.className = "workout-card-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.innerHTML =
+      '<svg><use href="#icon-arrow-right"></use></svg>';
+    header.append(copy, chevron);
 
     const startButton = document.createElement("button");
     startButton.type = "button";

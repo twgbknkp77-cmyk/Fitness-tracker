@@ -1866,6 +1866,13 @@ summary,
   box-shadow: 0 6px 18px rgba(255, 140, 0, 0.18);
 }
 
+.programme-card .programme-activation-button + .status-label {
+  display: flex;
+  width: fit-content;
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
 #activationDialog {
   box-sizing: border-box;
   width: min(calc(100% - 28px), 430px);
@@ -1895,6 +1902,63 @@ summary,
 
 .activation-dialog-actions button[hidden] {
   display: none;
+}
+
+/* CONSISTENT BACK CONTROLS AND TAPPABLE WORKOUTS */
+
+.measurements-header,
+.history-header,
+.editor-page-header {
+  justify-content: flex-start;
+}
+
+.workout-detail-back {
+  width: 44px;
+  height: 44px;
+}
+
+.workout-detail-back svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workout-summary-card .compact-card-header {
+  width: 100%;
+}
+
+.workout-card-chevron {
+  display: grid;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 44px;
+  place-items: center;
+  color: var(--grey);
+  border-radius: 10px;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.workout-card-chevron svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workout-summary-card:hover .workout-card-chevron,
+.workout-summary-card:focus-within .workout-card-chevron {
+  color: var(--orange);
+}
+
+.workout-summary-card:active .workout-card-chevron {
+  transform: translateX(3px);
 }
 
 /* PROFILE — DATA BACKUP */
