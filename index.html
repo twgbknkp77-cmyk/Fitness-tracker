@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=32">
+  <link rel="stylesheet" href="style.css?v=33">
 </head>
 
 <body>
@@ -618,6 +618,23 @@
   </div>
 </dialog>
 
+<!-- PROGRAMME ACTIVATION CHOICE -->
+<dialog id="activationDialog" aria-labelledby="activationDialogTitle">
+  <h2 id="activationDialogTitle">Activate programme?</h2>
+  <p id="activationDialogMessage">Choose how you want to begin.</p>
+  <div class="activation-dialog-actions">
+    <button type="button" id="activateFromStart" class="primary-button">
+      Start from Week 1
+    </button>
+    <button type="button" id="activateContinue">
+      Continue
+    </button>
+    <button type="button" id="cancelActivation">
+      Cancel
+    </button>
+  </div>
+</dialog>
+
 </main>
 
 <!-- BOTTOM NAVIGATION -->
@@ -846,7 +863,7 @@
 
   <script src="storage.js"></script>
   <script src="dashboard.js?v=16"></script>
-  <script src="library.js?v=19"></script>
+  <script src="library.js?v=20"></script>
   <script src="programme-editor.js?v=12"></script>
   <script src="workout-session.js?v=10"></script>
   <script src="workout-history.js?v=7"></script>

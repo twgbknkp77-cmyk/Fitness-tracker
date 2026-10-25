@@ -33,12 +33,115 @@ function createProgramme() {
 }
 
 
-// ACTIVATE PROGRAMME
-function activateProgramme(id) {
-  localStorage.setItem(ACTIVE_KEY, id);
+// ACTIVATE OR DEACTIVATE A PROGRAMME
+let pendingActivationProgrammeId = null;
 
+function refreshProgrammeViews() {
   renderLibrary();
   renderActiveWorkout();
+  if (typeof updateDashboard === "function") updateDashboard();
+}
+
+function setActiveProgramme(id) {
+  localStorage.setItem(ACTIVE_KEY, id);
+  viewedWorkoutProgrammeId = id;
+  viewedWorkoutWeek = null;
+  expandedWorkoutId = null;
+  refreshProgrammeViews();
+}
+
+function deactivateProgramme(id) {
+  if (getActiveProgrammeId() !== id) return;
+  localStorage.removeItem(ACTIVE_KEY);
+  viewedWorkoutProgrammeId = null;
+  viewedWorkoutWeek = null;
+  expandedWorkoutId = null;
+  refreshProgrammeViews();
+}
+
+function restartProgramme(id) {
+  const programmes = getProgrammes();
+  const programme = programmes.find(item => item.id === id);
+  if (!programme) return;
+
+  programme.currentWeek = 1;
+  programme.weeks = (programme.weeks || []).map((week, weekIndex) => ({
+    ...week,
+    id: createId(),
+    number: weekIndex + 1,
+    trainingDays: (week.trainingDays || []).map(workout => ({
+      ...workout,
+      id: createId(),
+      exercises: (workout.exercises || []).map(exercise => ({
+        ...exercise,
+        id: createId()
+      }))
+    }))
+  }));
+  programme.days = programme.weeks[0]?.trainingDays || [];
+  saveProgrammes(programmes);
+  setActiveProgramme(id);
+}
+
+function requestProgrammeActivation(id) {
+  if (getActiveProgrammeId() === id) {
+    deactivateProgramme(id);
+    return;
+  }
+
+  const programme = getProgrammes().find(item => item.id === id);
+  if (!programme) return;
+
+  const hasProgress = programme.currentWeek > 1 || getWorkoutHistory().some(
+    session => session.programmeId === id
+  );
+
+  if (!hasProgress && !getActiveProgrammeId()) {
+    setActiveProgramme(id);
+    return;
+  }
+
+  pendingActivationProgrammeId = id;
+  const continueButton = document.getElementById("activateContinue");
+  const message = document.getElementById("activationDialogMessage");
+
+  if (continueButton) {
+    continueButton.hidden = !hasProgress;
+    continueButton.textContent = `Continue from Week ${programme.currentWeek}`;
+  }
+  if (message) {
+    message.textContent = hasProgress
+      ? "Start a fresh run or continue from where you left off."
+      : "Activating this will pause your current programme without deleting its progress.";
+  }
+
+  document.getElementById("activationDialog")?.showModal();
+}
+
+function closeActivationDialog() {
+  pendingActivationProgrammeId = null;
+  document.getElementById("activationDialog")?.close();
+}
+
+document.getElementById("activateFromStart")?.addEventListener("click", () => {
+  const id = pendingActivationProgrammeId;
+  closeActivationDialog();
+  if (id) restartProgramme(id);
+});
+
+document.getElementById("activateContinue")?.addEventListener("click", () => {
+  const id = pendingActivationProgrammeId;
+  closeActivationDialog();
+  if (id) setActiveProgramme(id);
+});
+
+document.getElementById("cancelActivation")?.addEventListener(
+  "click",
+  closeActivationDialog
+);
+
+function activateProgramme(id) {
+  requestProgrammeActivation(id);
 }
 
 
@@ -1012,20 +1115,32 @@ function renderLibrary() {
     edit.textContent = "Edit programme";
     edit.addEventListener("click", () => openProgrammeEditor(programme.id));
 
-    const activate = document.createElement("button");
-    activate.textContent = programme.id === activeId ? "Active programme" : "Activate programme";
-    activate.disabled = programme.id === activeId;
-    activate.addEventListener("click", () => activateProgramme(programme.id));
-
     const remove = document.createElement("button");
     remove.textContent = "Delete programme";
     remove.className = "danger-action";
     remove.addEventListener("click", () => deleteProgramme(programme.id));
 
-    panel.append(edit, activate, remove);
+    panel.append(edit, remove);
     menu.append(summary, panel);
     header.append(copy, menu);
     card.appendChild(header);
+
+    const activationButton = document.createElement("button");
+    activationButton.type = "button";
+    activationButton.className = "programme-activation-button";
+    activationButton.classList.toggle("is-active", programme.id === activeId);
+    activationButton.textContent = programme.id === activeId
+      ? "Active · Tap to Deactivate"
+      : "Activate";
+    activationButton.setAttribute(
+      "aria-pressed",
+      programme.id === activeId ? "true" : "false"
+    );
+    activationButton.addEventListener("click", event => {
+      event.stopPropagation();
+      requestProgrammeActivation(programme.id);
+    });
+    card.appendChild(activationButton);
 
     if (programme.id === activeId) {
       const week = programme.weeks?.[programme.currentWeek - 1];
@@ -1239,7 +1354,10 @@ function renderActiveWorkout() {
       startWorkout(workout.id);
     });
 
-    card.append(header, startButton);
+    card.appendChild(header);
+    if (isCurrentWeek && index === 0) {
+      card.appendChild(startButton);
+    }
     card.addEventListener("click", () => {
       expandedWorkoutId = workout.id;
       renderActiveWorkout();

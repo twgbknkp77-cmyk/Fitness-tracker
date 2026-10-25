@@ -1845,6 +1845,58 @@ summary,
   }
 }
 
+/* PROGRAMME ACTIVATION */
+
+.programme-activation-button {
+  width: 100%;
+  min-height: 46px;
+  margin: 2px 0 0;
+  color: var(--grey);
+  background: #292929;
+  border: 1px solid #474747;
+  border-radius: 11px;
+  font-weight: 800;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.programme-activation-button.is-active {
+  color: #121212;
+  background: var(--orange);
+  border-color: var(--orange);
+  box-shadow: 0 6px 18px rgba(255, 140, 0, 0.18);
+}
+
+#activationDialog {
+  box-sizing: border-box;
+  width: min(calc(100% - 28px), 430px);
+}
+
+#activationDialog h2,
+#activationDialog p {
+  margin-top: 0;
+}
+
+#activationDialog p {
+  color: var(--grey);
+  line-height: 1.45;
+}
+
+.activation-dialog-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.activation-dialog-actions button {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+}
+
+.activation-dialog-actions button[hidden] {
+  display: none;
+}
+
 /* PROFILE — DATA BACKUP */
 
 .data-backup-card {
