@@ -6,7 +6,8 @@ const FITNESS_BACKUP_KEYS = [
   "fitness_active_programme",
   "fitness_workout_history",
   "fitnessWeights",
-  "fitness_profile_goals"
+  "fitness_profile_goals",
+  "spot_onboarding_complete_v1"
 ];
 
 const PRE_RESTORE_BACKUP_KEY =

@@ -17,10 +17,74 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=31">
+  <link rel="stylesheet" href="style.css?v=32">
 </head>
 
 <body>
+
+  <!-- APP LOADING SCREEN -->
+  <div id="splashScreen" class="splash-screen" aria-label="Spot is loading">
+    <img src="icons/spot-icon-192.png" alt="" width="96" height="96">
+    <strong>Spot</strong>
+    <span class="splash-loader" aria-hidden="true"></span>
+  </div>
+
+  <!-- FIRST-USE APP GUIDE -->
+  <div id="onboardingOverlay" class="onboarding-overlay" hidden>
+    <section
+      class="onboarding-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboardingTitle"
+    >
+      <button type="button" id="skipOnboarding" class="onboarding-skip">
+        Skip
+      </button>
+
+      <div class="onboarding-slides">
+        <article class="onboarding-slide active" data-onboarding-slide="0">
+          <img src="icons/spot-icon-192.png" alt="" width="88" height="88">
+          <p class="onboarding-eyebrow">Welcome</p>
+          <h1 id="onboardingTitle">Meet Spot</h1>
+          <p>Build your training plan, record every session and see your progress in one place.</p>
+        </article>
+
+        <article class="onboarding-slide" data-onboarding-slide="1" hidden>
+          <span class="onboarding-symbol" aria-hidden="true">
+            <svg><use href="#icon-library"></use></svg>
+          </span>
+          <p class="onboarding-eyebrow">Plan</p>
+          <h1>Create your programme</h1>
+          <p>Use Library to create flexible training weeks, add strength or cardio exercises and arrange your days.</p>
+        </article>
+
+        <article class="onboarding-slide" data-onboarding-slide="2" hidden>
+          <span class="onboarding-symbol" aria-hidden="true">
+            <svg><use href="#icon-progress"></use></svg>
+          </span>
+          <p class="onboarding-eyebrow">Train</p>
+          <h1>Follow what is next</h1>
+          <p>Start the next workout, enter each result and finish it to move it into your history.</p>
+        </article>
+
+        <article class="onboarding-slide" data-onboarding-slide="3" hidden>
+          <span class="onboarding-symbol" aria-hidden="true">
+            <svg><use href="#icon-profile"></use></svg>
+          </span>
+          <p class="onboarding-eyebrow">Progress</p>
+          <h1>Make Spot yours</h1>
+          <p>Set bodyweight and exercise goals, track progress and save a backup from your Profile.</p>
+        </article>
+      </div>
+
+      <div id="onboardingDots" class="onboarding-dots" aria-hidden="true"></div>
+
+      <div class="onboarding-actions">
+        <button type="button" id="onboardingBack">Back</button>
+        <button type="button" id="onboardingNext" class="primary-button">Next</button>
+      </div>
+    </section>
+  </div>
 
   <!-- SHARED OUTLINE ICONS -->
   <svg class="icon-sprite" aria-hidden="true">
@@ -492,6 +556,10 @@
   <p id="backupMessage" aria-live="polite"></p>
 </div>
 
+<button type="button" id="openOnboardingGuide" class="profile-guide-button">
+  View App Guide
+</button>
+
 </section>
 <!-- END PROFILE PAGE -->
 
@@ -785,6 +853,7 @@
   <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=2"></script>
   <script src="data-management.js?v=2"></script>
+  <script src="onboarding.js?v=1"></script>
 
 </body>
 </html>

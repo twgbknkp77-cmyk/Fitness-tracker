@@ -2057,6 +2057,265 @@ summary,
   }
 }
 
+/* SPOT SPLASH SCREEN */
+
+.splash-screen {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  color: var(--white);
+  background: var(--background);
+  opacity: 1;
+  transition: opacity 280ms ease, visibility 280ms ease;
+}
+
+.splash-screen.is-hiding {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.splash-screen img {
+  width: 92px;
+  height: 92px;
+  border-radius: 22px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
+  animation: splash-pop 500ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+.splash-screen strong {
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+.splash-loader {
+  width: 30px;
+  height: 3px;
+  overflow: hidden;
+  background: #333;
+  border-radius: 999px;
+}
+
+.splash-loader::after {
+  content: "";
+  display: block;
+  width: 55%;
+  height: 100%;
+  background: var(--orange);
+  border-radius: inherit;
+  animation: splash-loading 700ms ease-in-out infinite alternate;
+}
+
+@keyframes splash-pop {
+  from { opacity: 0; transform: scale(0.82); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes splash-loading {
+  from { transform: translateX(-20%); }
+  to { transform: translateX(100%); }
+}
+
+/* FIRST-USE ONBOARDING */
+
+body.onboarding-open {
+  overflow: hidden;
+}
+
+.onboarding-overlay {
+  position: fixed;
+  z-index: 4900;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding:
+    max(18px, env(safe-area-inset-top))
+    18px
+    max(18px, env(safe-area-inset-bottom));
+  background: rgba(8, 8, 8, 0.88);
+  backdrop-filter: blur(14px);
+  animation: onboarding-fade-in 220ms ease both;
+}
+
+.onboarding-overlay[hidden],
+.onboarding-slide[hidden] {
+  display: none;
+}
+
+.onboarding-panel {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 18px;
+  box-sizing: border-box;
+  width: min(100%, 440px);
+  min-height: min(620px, calc(100dvh - 36px));
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  padding: 56px 24px 24px;
+  background: #1e1e1e;
+  border: 1px solid rgba(255, 140, 0, 0.32);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5);
+}
+
+.onboarding-skip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  min-height: 38px;
+  padding: 7px 12px;
+  color: var(--grey);
+  background: transparent;
+  border: 0;
+}
+
+.onboarding-slides {
+  display: grid;
+  align-items: center;
+}
+
+.onboarding-slide {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  text-align: center;
+  animation: onboarding-slide-in 230ms ease both;
+}
+
+.onboarding-slide > img {
+  width: 88px;
+  height: 88px;
+  margin-bottom: 8px;
+  border-radius: 21px;
+}
+
+.onboarding-symbol {
+  display: grid;
+  width: 82px;
+  height: 82px;
+  margin-bottom: 8px;
+  place-items: center;
+  color: var(--orange);
+  background: rgba(255, 140, 0, 0.1);
+  border: 1px solid rgba(255, 140, 0, 0.26);
+  border-radius: 24px;
+}
+
+.onboarding-symbol svg {
+  width: 42px;
+  height: 42px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.onboarding-slide h1,
+.onboarding-slide p {
+  margin: 0;
+}
+
+.onboarding-slide h1 {
+  font-size: clamp(28px, 8vw, 38px);
+}
+
+.onboarding-slide > p:last-child {
+  max-width: 330px;
+  color: var(--grey);
+  line-height: 1.55;
+}
+
+.onboarding-eyebrow {
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.onboarding-dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.onboarding-dots span {
+  width: 7px;
+  height: 7px;
+  background: #4a4a4a;
+  border-radius: 999px;
+  transition: width 180ms ease, background 180ms ease;
+}
+
+.onboarding-dots span.active {
+  width: 22px;
+  background: var(--orange);
+}
+
+.onboarding-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.onboarding-actions button {
+  width: 100%;
+  min-height: 50px;
+  margin: 0;
+}
+
+.onboarding-actions #onboardingBack[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+.profile-guide-button {
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  color: var(--grey);
+  background: transparent;
+  border: 1px solid #3b3b3b;
+}
+
+@keyframes onboarding-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes onboarding-slide-in {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-height: 680px) {
+  .onboarding-panel {
+    min-height: calc(100dvh - 28px);
+    padding-top: 46px;
+  }
+
+  .onboarding-symbol,
+  .onboarding-slide > img {
+    width: 68px;
+    height: 68px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-screen img,
+  .splash-loader::after,
+  .onboarding-overlay,
+  .onboarding-slide {
+    animation: none !important;
+  }
+}
+
 #activeWorkout.week-enter-from-right {
   animation: blur-slide-from-right 240ms cubic-bezier(0.22, 0.72, 0.24, 1) both;
 }
