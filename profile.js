@@ -575,8 +575,12 @@ function renderExerciseGoals() {
     const remove = document.createElement("button");
     remove.textContent = "Remove goal";
     remove.className = "danger-action";
-    remove.addEventListener("click", () => {
-      if (!confirm(`Remove the ${goal.exerciseName} goal?`)) return;
+    remove.addEventListener("click", async () => {
+      if (!await showSpotConfirm(
+        `Remove ${goal.exerciseName}?`,
+        "This exercise goal will be removed from your profile and dashboard.",
+        { confirmText: "Remove Goal", danger: true }
+      )) return;
       const updated = getProfileGoals();
       updated.exerciseGoals = (updated.exerciseGoals || [])
         .filter(item => item.id !== goal.id);

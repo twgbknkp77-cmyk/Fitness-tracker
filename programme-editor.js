@@ -35,6 +35,10 @@ function cloneTrainingDays(trainingDays) {
 let weekScopeResolver = null;
 
 function chooseWeekScope(programme, week) {
+  if (programme?.isDraft) {
+    return Promise.resolve("future");
+  }
+
   if (week.number >= programme.durationWeeks) {
     return Promise.resolve("current");
   }
@@ -266,8 +270,7 @@ function renderProgrammeEditor() {
   programme.weeks.forEach(optionWeek => {
     const option = document.createElement("option");
     option.value = optionWeek.number;
-    option.textContent = `Week ${optionWeek.number}` +
-      (optionWeek.number === programme.currentWeek ? " — Current" : "");
+    option.textContent = `Week ${optionWeek.number}`;
     option.selected = optionWeek.number === editingWeekNumber;
     weekSelect.appendChild(option);
   });
@@ -385,12 +388,31 @@ function updateExerciseTypeFields() {
   const setsInput = document.getElementById("exerciseSetsInput");
   const repsInput = document.getElementById("exerciseRepsInput");
   const durationInput = document.getElementById("exerciseDurationInput");
+  const nameLabel = document.getElementById("exerciseNameLabel");
+  const nameInput = document.getElementById("exerciseNameInput");
+  const noteInput = document.getElementById("exerciseNoteInput");
+  const dialogTitle = document.getElementById("exerciseDialogTitle");
+  const isEditing = Boolean(
+    document.getElementById("exerciseDialogExerciseId")?.value
+  );
 
   if (strengthFields) strengthFields.hidden = type !== "strength";
   if (cardioFields) cardioFields.hidden = type !== "cardio";
   if (setsInput) setsInput.required = type === "strength";
   if (repsInput) repsInput.required = type === "strength";
   if (durationInput) durationInput.required = type === "cardio";
+  if (nameLabel) nameLabel.textContent = type === "cardio"
+    ? "Activity name"
+    : "Exercise name";
+  if (nameInput) nameInput.placeholder = type === "cardio"
+    ? "e.g. Treadmill"
+    : "e.g. Bench Press";
+  if (noteInput) noteInput.placeholder = type === "cardio"
+    ? "e.g. 6% incline, steady pace"
+    : "e.g. Slow lowering and keep elbows tucked";
+  if (dialogTitle) dialogTitle.textContent = type === "cardio"
+    ? `${isEditing ? "Edit" : "Add"} Cardio Activity`
+    : `${isEditing ? "Edit" : "Add"} Exercise`;
 }
 
 document.getElementById("exerciseTypeInput")?.addEventListener(
@@ -414,8 +436,6 @@ function openExerciseDialog(programme, week, workout, exercise = null) {
   document.getElementById("exerciseRepsInput").value =
     getExerciseRepTarget(exercise || { reps: 10 }).value;
   document.getElementById("exerciseWeightInput").value = exercise?.weight || "";
-  document.getElementById("exerciseWeightUnitInput").value =
-    getExerciseWeightUnit(exercise);
   document.getElementById("exerciseDurationInput").value =
     exercise?.durationMinutes || "";
   document.getElementById("exerciseNoteInput").value = exercise?.note || "";
@@ -451,7 +471,6 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   );
   const weightText = document.getElementById("exerciseWeightInput").value.trim();
   const weight = weightText === "" ? "" : Number(weightText);
-  const weightUnit = document.getElementById("exerciseWeightUnitInput").value;
   const note = document.getElementById("exerciseNoteInput").value.trim();
   const durationMinutes = Number(
     document.getElementById("exerciseDurationInput").value
@@ -496,7 +515,6 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
         reps: repsTarget.min,
         repsTarget: repsTarget.value,
         weight: weightText === "" ? "" : weight,
-        weightUnit,
         note
       };
   if (exerciseDialogContext.exercise) {

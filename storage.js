@@ -60,26 +60,7 @@ function formatExercisePrescription(exercise) {
 
   return `${exercise?.sets || 0} sets × ` +
     `${getExerciseRepTarget(exercise).label} reps` +
-    (exercise?.weight ? ` • ${exercise.weight} ${getExerciseWeightUnit(exercise)}` : "");
-}
-
-function getExerciseWeightUnit(exercise) {
-  return exercise?.weightUnit === "lb" ? "lb" : "kg";
-}
-
-function convertExerciseWeight(value, fromUnit) {
-  const weight = Number(value);
-  if (!Number.isFinite(weight)) return null;
-
-  return fromUnit === "lb"
-    ? { value: weight / 2.2046226218, unit: "kg" }
-    : { value: weight * 2.2046226218, unit: "lb" };
-}
-
-function formatConvertedExerciseWeight(value, fromUnit) {
-  const converted = convertExerciseWeight(value, fromUnit);
-  if (!converted) return "";
-  return `${converted.value.toFixed(1)} ${converted.unit}`;
+    (exercise?.weight ? ` • ${exercise.weight} kg` : "");
 }
 
 let spotDialogResolver = null;

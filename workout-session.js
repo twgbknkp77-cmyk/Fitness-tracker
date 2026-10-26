@@ -67,7 +67,6 @@ function getPreviousExerciseResult(exercise, beforeTime) {
       return {
         finishedAt: session.finishedAt,
         note: previousExercise.sessionNote || "",
-        weightUnit: getExerciseWeightUnit(previousExercise),
         durationMinutes: previousExercise.durationMinutes,
         sets: Array.isArray(previousExercise.sets)
           ? previousExercise.sets.filter(set => set.completed)
@@ -113,9 +112,9 @@ function createSessionSet(plannedWeight, plannedReps, plannedRepTarget = "") {
     plannedWeight: weight,
     plannedReps: reps,
     plannedRepTarget: plannedRepTarget || String(reps),
-    weight,
-    reps,
-    completed: true
+    weight: "",
+    reps: "",
+    completed: false
   };
 }
 
@@ -161,7 +160,6 @@ function startWorkout(workoutId) {
       type: exercise.type || "strength",
       note: exercise.note || "",
       sessionNote: "",
-      weightUnit: getExerciseWeightUnit(exercise),
       completed: false,
       collapsed: false,
       targetSets: Number(exercise.sets) || 0,
@@ -174,7 +172,7 @@ function startWorkout(workoutId) {
         ? Number(exercise.durationMinutes) || 0
         : undefined,
       durationMinutes: exercise.type === "cardio"
-        ? Number(exercise.durationMinutes) || 0
+        ? ""
         : undefined,
 
       sets: exercise.type === "cardio" ? [] : Array.from(
@@ -240,7 +238,7 @@ function renderWorkoutSessionLegacy() {
     const completeButton = document.createElement("button");
     completeButton.type = "button";
     completeButton.className = "exercise-complete-button";
-    completeButton.textContent = "✓";
+    completeButton.textContent = exercise.completed ? "Done ✓" : "Done";
     completeButton.setAttribute(
       "aria-label",
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
@@ -428,7 +426,7 @@ function renderWorkoutSession() {
     const completeButton = document.createElement("button");
     completeButton.type = "button";
     completeButton.className = "exercise-complete-button";
-    completeButton.textContent = "✓";
+    completeButton.textContent = exercise.completed ? "Done ✓" : "Done";
     completeButton.setAttribute(
       "aria-label",
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
@@ -441,14 +439,14 @@ function renderWorkoutSession() {
     });
 
     const menu = document.createElement("details");
-    menu.className = "overflow-menu";
+    menu.className = "session-edit-menu";
 
     const summary = document.createElement("summary");
-    summary.textContent = "⋯";
+    summary.textContent = "Edit";
     summary.setAttribute("aria-label", `${exercise.name} options`);
 
     const menuPanel = document.createElement("div");
-    menuPanel.className = "overflow-menu-panel";
+    menuPanel.className = "session-edit-panel";
 
     const addButton = document.createElement("button");
     addButton.type = "button";
@@ -480,16 +478,24 @@ function renderWorkoutSession() {
     menuPanel.append(addButton, removeButton);
     menu.append(summary, menuPanel);
     titleRow.append(heading);
-    if (exercise.type !== "cardio") titleRow.append(menu);
-    titleRow.append(completeButton);
 
     card.appendChild(titleRow);
 
+    const actionRow = document.createElement("div");
+    actionRow.className = "session-exercise-actions";
+
     if (exercise.collapsed) {
-      const collapsedSummary = document.createElement("p");
-      collapsedSummary.className = "collapsed-exercise-summary";
-      collapsedSummary.textContent = "Completed — tap the tick to reopen";
-      card.appendChild(collapsedSummary);
+      const editCompleted = document.createElement("button");
+      editCompleted.type = "button";
+      editCompleted.textContent = "Edit";
+      editCompleted.addEventListener("click", () => {
+        exercise.completed = false;
+        exercise.collapsed = false;
+        saveActiveWorkoutSession();
+        renderWorkoutSession();
+      });
+      actionRow.append(completeButton, editCompleted);
+      card.appendChild(actionRow);
       container.appendChild(card);
       return;
     }
@@ -505,7 +511,7 @@ function renderWorkoutSession() {
       previous.textContent = exercise.type === "cardio"
         ? `Last: ${Number(exercise.previousResult.durationMinutes) || 0} min • ${date}`
         : best
-          ? `Last: ${Number(best.weight) || 0} ${exercise.previousResult.weightUnit} × ${Number(best.reps) || 0} • ${date}`
+          ? `Last: ${Number(best.weight) || 0} kg × ${Number(best.reps) || 0} • ${date}`
           : `Last completed • ${date}`;
     } else {
       previous.textContent = "No previous session";
@@ -517,7 +523,7 @@ function renderWorkoutSession() {
       target.textContent =
         `Target: ${exercise.targetSets} sets × ${exercise.targetRepLabel} reps` +
         (exercise.targetWeight
-          ? ` • ${exercise.targetWeight} ${exercise.weightUnit}`
+          ? ` • ${exercise.targetWeight} kg`
           : "");
       card.appendChild(target);
     }
@@ -580,23 +586,12 @@ function renderWorkoutSession() {
       weightInput.setAttribute("aria-label", `${exercise.name} set ${setIndex + 1} weight`);
       weightInput.addEventListener("input", () => {
         set.weight = weightInput.value === "" ? "" : Number(weightInput.value);
-        updateConversion();
         updateSessionProgress();
       });
       const weightUnit = document.createElement("span");
       weightUnit.className = "input-unit";
-      weightUnit.textContent = exercise.weightUnit;
+      weightUnit.textContent = "kg";
       weightLabel.append(weightInput, weightUnit);
-
-      const conversion = document.createElement("small");
-      conversion.className = "weight-conversion";
-      const updateConversion = () => {
-        conversion.textContent = weightInput.value === ""
-          ? ""
-          : `≈ ${formatConvertedExerciseWeight(weightInput.value, exercise.weightUnit)}`;
-      };
-      updateConversion();
-      weightLabel.appendChild(conversion);
 
       const repsLabel = document.createElement("label");
       const repsInput = document.createElement("input");
@@ -633,6 +628,11 @@ function renderWorkoutSession() {
     });
     sessionNoteLabel.appendChild(sessionNoteInput);
     card.appendChild(sessionNoteLabel);
+
+    actionRow.appendChild(completeButton);
+    if (exercise.type !== "cardio") actionRow.appendChild(menu);
+    else actionRow.classList.add("single-action");
+    card.appendChild(actionRow);
 
     container.appendChild(card);
   });

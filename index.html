@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=37">
+  <link rel="stylesheet" href="style.css?v=38">
 </head>
 
 <body>
@@ -589,7 +589,7 @@
       <option value="cardio">Cardio</option>
     </select>
 
-    <label for="exerciseNameInput">Exercise name</label>
+    <label for="exerciseNameInput" id="exerciseNameLabel">Exercise name</label>
     <input type="text" id="exerciseNameInput" placeholder="e.g. Bench Press" autocomplete="off" required>
 
     <div id="strengthExerciseFields" class="exercise-type-fields">
@@ -614,13 +614,7 @@
     </div>
 
     <label for="exerciseWeightInput">Target weight</label>
-    <div class="weight-unit-control">
-      <input type="number" id="exerciseWeightInput" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 50">
-      <select id="exerciseWeightUnitInput" aria-label="Weight unit">
-        <option value="kg">kg</option>
-        <option value="lb">lb</option>
-      </select>
-    </div>
+    <input type="number" id="exerciseWeightInput" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 50 kg">
     </div>
 
     <div id="cardioExerciseFields" class="exercise-type-fields" hidden>
@@ -628,7 +622,7 @@
       <input type="number" id="exerciseDurationInput" inputmode="numeric" min="1" step="1" placeholder="e.g. 30">
     </div>
 
-    <label for="exerciseNoteInput">Notes</label>
+    <label for="exerciseNoteInput" id="exerciseNoteLabel">Notes</label>
     <textarea
       id="exerciseNoteInput"
       rows="3"
@@ -916,13 +910,13 @@
 
   </script>
 
-  <script src="storage.js?v=3"></script>
+  <script src="storage.js?v=4"></script>
   <script src="dashboard.js?v=16"></script>
   <script src="library.js?v=23"></script>
-  <script src="programme-editor.js?v=16"></script>
-  <script src="workout-session.js?v=13"></script>
-  <script src="workout-history.js?v=9"></script>
-  <script src="profile.js?v=7"></script>
+  <script src="programme-editor.js?v=17"></script>
+  <script src="workout-session.js?v=14"></script>
+  <script src="workout-history.js?v=10"></script>
+  <script src="profile.js?v=8"></script>
   <script src="measurements.js?v=3"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

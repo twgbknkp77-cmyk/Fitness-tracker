@@ -169,7 +169,7 @@ function viewWorkoutHistoryDetails(session) {
       const plannedRepTarget =
         parseExerciseRepTarget(set.plannedRepTarget ?? plannedReps)
           ?.label || String(plannedReps);
-      const weightUnit = getExerciseWeightUnit(exercise);
+      const weightUnit = "kg";
 
       let text =
         `Set ${index + 1}: ` +
