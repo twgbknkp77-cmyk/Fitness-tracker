@@ -416,12 +416,29 @@ function renderWorkoutSession() {
   currentSession.exercises.forEach(exercise => {
     const card = document.createElement("div");
     card.className = "card session-exercise-card";
+    card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
+    card.classList.toggle("exercise-is-collapsed", Boolean(exercise.collapsed));
 
     const titleRow = document.createElement("div");
     titleRow.className = "session-exercise-title";
 
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
+
+    const completeButton = document.createElement("button");
+    completeButton.type = "button";
+    completeButton.className = "exercise-complete-button";
+    completeButton.textContent = "✓";
+    completeButton.setAttribute(
+      "aria-label",
+      exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
+    );
+    completeButton.addEventListener("click", () => {
+      exercise.completed = !exercise.completed;
+      exercise.collapsed = exercise.completed;
+      saveActiveWorkoutSession();
+      renderWorkoutSession();
+    });
 
     const menu = document.createElement("details");
     menu.className = "overflow-menu";

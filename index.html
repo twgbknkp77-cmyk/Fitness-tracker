@@ -600,22 +600,16 @@
       </div>
       <div>
         <label for="exerciseRepsInput">Reps</label>
-        <div class="reps-target-control">
-          <input
-            type="text"
-            id="exerciseRepsInput"
-            inputmode="none"
-            value="10"
-            placeholder="8-10 or 10"
-            autocomplete="off"
-            readonly
-            required
-          >
-          <svg class="rep-keypad-field-icon" aria-hidden="true" viewBox="0 0 24 24">
-            <rect x="4" y="3" width="16" height="18" rx="3"></rect>
-            <path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"></path>
-          </svg>
-        </div>
+        <input
+          type="text"
+          id="exerciseRepsInput"
+          value="10"
+          placeholder="8-10 or 10"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          required
+        >
       </div>
     </div>
 
@@ -647,42 +641,6 @@
       <button type="submit" class="primary-button">Save Exercise</button>
     </div>
   </form>
-</dialog>
-
-<!-- CUSTOM REPS KEYPAD -->
-<dialog id="repKeypadDialog" class="rep-keypad-dialog" aria-labelledby="repKeypadTitle">
-  <div class="rep-keypad-heading">
-    <div>
-      <p>Target reps</p>
-      <h2 id="repKeypadTitle">Enter reps or a range</h2>
-    </div>
-    <div class="rep-keypad-display-row">
-      <output id="repKeypadDisplay" aria-live="polite">10</output>
-      <button type="button" data-rep-key="backspace" class="rep-keypad-delete" aria-label="Delete last digit">⌫</button>
-    </div>
-  </div>
-
-  <p id="repKeypadMessage" class="rep-keypad-message" aria-live="polite"></p>
-
-  <div class="rep-keypad-grid" aria-label="Repetition keypad">
-    <button type="button" data-rep-key="1">1</button>
-    <button type="button" data-rep-key="2">2</button>
-    <button type="button" data-rep-key="3">3</button>
-    <button type="button" data-rep-key="4">4</button>
-    <button type="button" data-rep-key="5">5</button>
-    <button type="button" data-rep-key="6">6</button>
-    <button type="button" data-rep-key="7">7</button>
-    <button type="button" data-rep-key="8">8</button>
-    <button type="button" data-rep-key="9">9</button>
-    <button type="button" data-rep-key="dash" class="rep-keypad-dash" aria-label="Range dash">–</button>
-    <button type="button" data-rep-key="0">0</button>
-    <button type="button" data-rep-key="dot" class="rep-keypad-dot" aria-label="Decimal point" disabled>.</button>
-  </div>
-
-  <div class="rep-keypad-actions">
-    <button type="button" id="cancelRepKeypad">Cancel</button>
-    <button type="button" id="confirmRepKeypad" class="primary-button">Done</button>
-  </div>
 </dialog>
 
 <dialog id="programmeExitDialog" class="decision-dialog" aria-labelledby="programmeExitTitle">
@@ -961,8 +919,8 @@
   <script src="storage.js?v=3"></script>
   <script src="dashboard.js?v=16"></script>
   <script src="library.js?v=23"></script>
-  <script src="programme-editor.js?v=15"></script>
-  <script src="workout-session.js?v=12"></script>
+  <script src="programme-editor.js?v=16"></script>
+  <script src="workout-session.js?v=13"></script>
   <script src="workout-history.js?v=9"></script>
   <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=3"></script>
