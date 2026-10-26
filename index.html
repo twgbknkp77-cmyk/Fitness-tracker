@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="style.css?v=36">
 </head>
 
 <body>
@@ -591,13 +591,17 @@
           <input
             type="text"
             id="exerciseRepsInput"
-            inputmode="numeric"
+            inputmode="none"
             value="10"
             placeholder="8-10 or 10"
             autocomplete="off"
+            readonly
             required
           >
-          <button type="button" id="insertRepDash" aria-label="Add range dash">–</button>
+          <svg class="rep-keypad-field-icon" aria-hidden="true" viewBox="0 0 24 24">
+            <rect x="4" y="3" width="16" height="18" rx="3"></rect>
+            <path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"></path>
+          </svg>
         </div>
       </div>
     </div>
@@ -611,7 +615,7 @@
       <input type="number" id="exerciseDurationInput" inputmode="numeric" min="1" step="1" placeholder="e.g. 30">
     </div>
 
-    <label for="exerciseNoteInput">Notes (optional)</label>
+    <label for="exerciseNoteInput">Notes</label>
     <textarea
       id="exerciseNoteInput"
       rows="3"
@@ -624,6 +628,39 @@
       <button type="submit" class="primary-button">Save Exercise</button>
     </div>
   </form>
+</dialog>
+
+<!-- CUSTOM REPS KEYPAD -->
+<dialog id="repKeypadDialog" class="rep-keypad-dialog" aria-labelledby="repKeypadTitle">
+  <div class="rep-keypad-heading">
+    <div>
+      <p>Target reps</p>
+      <h2 id="repKeypadTitle">Enter reps or a range</h2>
+    </div>
+    <output id="repKeypadDisplay" aria-live="polite">10</output>
+  </div>
+
+  <p id="repKeypadMessage" class="rep-keypad-message" aria-live="polite"></p>
+
+  <div class="rep-keypad-grid" aria-label="Repetition keypad">
+    <button type="button" data-rep-key="1">1</button>
+    <button type="button" data-rep-key="2">2</button>
+    <button type="button" data-rep-key="3">3</button>
+    <button type="button" data-rep-key="4">4</button>
+    <button type="button" data-rep-key="5">5</button>
+    <button type="button" data-rep-key="6">6</button>
+    <button type="button" data-rep-key="7">7</button>
+    <button type="button" data-rep-key="8">8</button>
+    <button type="button" data-rep-key="9">9</button>
+    <button type="button" data-rep-key="dash" class="rep-keypad-dash" aria-label="Range dash">–</button>
+    <button type="button" data-rep-key="0">0</button>
+    <button type="button" data-rep-key="backspace" aria-label="Backspace">⌫</button>
+  </div>
+
+  <div class="rep-keypad-actions">
+    <button type="button" id="cancelRepKeypad">Cancel</button>
+    <button type="button" id="confirmRepKeypad" class="primary-button">Done</button>
+  </div>
 </dialog>
 
 <!-- WEEK UPDATE CHOICE -->
@@ -883,7 +920,7 @@
   <script src="storage.js?v=2"></script>
   <script src="dashboard.js?v=16"></script>
   <script src="library.js?v=22"></script>
-  <script src="programme-editor.js?v=13"></script>
+  <script src="programme-editor.js?v=14"></script>
   <script src="workout-session.js?v=11"></script>
   <script src="workout-history.js?v=8"></script>
   <script src="profile.js?v=7"></script>

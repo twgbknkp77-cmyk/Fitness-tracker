@@ -381,17 +381,112 @@ document.getElementById("exerciseTypeInput")?.addEventListener(
   updateExerciseTypeFields
 );
 
-document.getElementById("insertRepDash")?.addEventListener("click", () => {
+let repKeypadDraft = "";
+let repKeypadOriginalValue = "";
+let repKeypadFresh = true;
+
+function renderRepKeypad() {
+  const display = document.getElementById("repKeypadDisplay");
+  const message = document.getElementById("repKeypadMessage");
+  if (display) display.textContent = repKeypadDraft.replace("-", "–") || "—";
+  if (message) message.textContent = "";
+}
+
+function openRepKeypad() {
   const input = document.getElementById("exerciseRepsInput");
-  if (!input) return;
+  const dialog = document.getElementById("repKeypadDialog");
+  if (!input || !dialog) return;
 
-  input.focus();
-  if (/[-–—]/.test(input.value)) return;
+  repKeypadOriginalValue = input.value;
+  repKeypadDraft = input.value;
+  repKeypadFresh = true;
+  renderRepKeypad();
+  dialog.showModal();
+}
 
-  const start = input.selectionStart ?? input.value.length;
-  const end = input.selectionEnd ?? start;
-  input.setRangeText("-", start, end, "end");
-  input.dispatchEvent(new Event("input", { bubbles: true }));
+function cancelRepKeypad() {
+  const input = document.getElementById("exerciseRepsInput");
+  if (input) input.value = repKeypadOriginalValue;
+  document.getElementById("repKeypadDialog")?.close();
+}
+
+function confirmRepKeypad() {
+  const input = document.getElementById("exerciseRepsInput");
+  const message = document.getElementById("repKeypadMessage");
+  const target = parseExerciseRepTarget(repKeypadDraft);
+
+  if (!target) {
+    if (message) {
+      message.textContent = "Enter one number or a valid range such as 8–10.";
+    }
+    return;
+  }
+
+  if (input) input.value = target.value;
+  document.getElementById("repKeypadDialog")?.close();
+}
+
+function pressRepKey(key) {
+  if (/^\d$/.test(key)) {
+    if (repKeypadFresh) {
+      repKeypadDraft = key;
+      repKeypadFresh = false;
+      renderRepKeypad();
+      return;
+    }
+    const currentPart = repKeypadDraft.split("-").at(-1) || "";
+    if (currentPart.length < 3) repKeypadDraft += key;
+  } else if (key === "dash") {
+    repKeypadFresh = false;
+    if (repKeypadDraft && !repKeypadDraft.includes("-")) {
+      repKeypadDraft += "-";
+    }
+  } else if (key === "backspace") {
+    repKeypadFresh = false;
+    repKeypadDraft = repKeypadDraft.slice(0, -1);
+  }
+
+  renderRepKeypad();
+}
+
+document.getElementById("exerciseRepsInput")?.addEventListener(
+  "click",
+  openRepKeypad
+);
+
+document.querySelectorAll("[data-rep-key]").forEach(button => {
+  button.addEventListener("click", () => pressRepKey(button.dataset.repKey));
+});
+
+document.getElementById("cancelRepKeypad")?.addEventListener(
+  "click",
+  cancelRepKeypad
+);
+
+document.getElementById("confirmRepKeypad")?.addEventListener(
+  "click",
+  confirmRepKeypad
+);
+
+document.getElementById("repKeypadDialog")?.addEventListener("cancel", event => {
+  event.preventDefault();
+  cancelRepKeypad();
+});
+
+document.getElementById("repKeypadDialog")?.addEventListener("keydown", event => {
+  if (/^\d$/.test(event.key)) {
+    event.preventDefault();
+    pressRepKey(event.key);
+  } else if (event.key === "-" || event.key === "–") {
+    event.preventDefault();
+    pressRepKey("dash");
+  } else if (event.key === "Backspace") {
+    event.preventDefault();
+    pressRepKey("backspace");
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    confirmRepKeypad();
+  }
 });
 
 function openExerciseDialog(programme, week, workout, exercise = null) {

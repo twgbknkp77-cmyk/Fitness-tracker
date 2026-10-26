@@ -2076,26 +2076,130 @@ summary,
 }
 
 .reps-target-control {
+  position: relative;
+}
+
+#exerciseDialog .reps-target-control input {
+  padding-right: 46px;
+  cursor: pointer;
+}
+
+.rep-keypad-field-icon {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* CUSTOM REPS KEYPAD */
+
+.rep-keypad-dialog {
+  box-sizing: border-box;
+  position: fixed;
+  inset: auto auto max(10px, env(safe-area-inset-bottom)) 50%;
+  width: min(calc(100% - 24px), 420px);
+  max-height: calc(100dvh - 28px);
+  margin: 0;
+  padding: 20px;
+  overflow-y: auto;
+  transform: translateX(-50%);
+  border-radius: 22px;
+}
+
+.rep-keypad-dialog[open] {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 48px;
-  gap: 8px;
+  gap: 14px;
+  animation: rep-keypad-rise 200ms cubic-bezier(0.2, 0.78, 0.24, 1) both;
 }
 
-#exerciseDialog .reps-target-control input,
-#exerciseDialog .reps-target-control button {
-  min-height: 48px;
-  margin: 0 0 6px;
+.rep-keypad-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
 }
 
-#exerciseDialog .reps-target-control button {
-  width: 48px;
-  padding: 0;
-  color: var(--background);
-  background: var(--orange);
-  border: 1px solid var(--orange);
-  border-radius: 12px;
-  font-size: 25px;
+.rep-keypad-heading p,
+.rep-keypad-heading h2,
+.rep-keypad-message {
+  margin: 0;
+}
+
+.rep-keypad-heading p {
+  color: var(--orange);
+  font-size: 12px;
   font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rep-keypad-heading h2 {
+  margin-top: 4px;
+}
+
+#repKeypadDisplay {
+  min-width: 88px;
+  padding: 10px 12px;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid rgba(255, 140, 0, 0.5);
+  border-radius: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.rep-keypad-message {
+  min-height: 20px;
+  color: #ff8989;
+  font-size: 13px;
+}
+
+.rep-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.rep-keypad-grid button {
+  min-height: 56px;
+  margin: 0;
+  padding: 8px;
+  color: var(--white);
+  background: #292929;
+  border: 1px solid #454545;
+  border-radius: 13px;
+  font-size: 22px;
+  font-weight: 750;
+}
+
+.rep-keypad-grid .rep-keypad-dash {
+  color: var(--orange);
+  font-size: 26px;
+}
+
+.rep-keypad-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rep-keypad-actions button {
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+}
+
+@keyframes rep-keypad-rise {
+  from { opacity: 0; transform: translate(-50%, 26px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .exercise-type-fields {
