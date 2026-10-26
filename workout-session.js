@@ -78,13 +78,14 @@ function getPreviousExerciseResult(exercise, beforeTime) {
 
 
 // CREATE ONE SET FOR A NEW SESSION
-function createSessionSet(plannedWeight, plannedReps) {
+function createSessionSet(plannedWeight, plannedReps, plannedRepTarget = "") {
   const weight = Number(plannedWeight) || 0;
   const reps = Number(plannedReps) || 0;
 
   return {
     plannedWeight: weight,
     plannedReps: reps,
+    plannedRepTarget: plannedRepTarget || String(reps),
     weight,
     reps,
     completed: true
@@ -131,6 +132,10 @@ function startWorkout(workoutId) {
       id: exercise.id,
       name: exercise.name,
       type: exercise.type || "strength",
+      note: exercise.note || "",
+      targetSets: Number(exercise.sets) || 0,
+      targetWeight: exercise.weight,
+      targetRepLabel: getExerciseRepTarget(exercise).label,
       previousResult:
         getPreviousExerciseResult(exercise, startedTime),
 
@@ -145,7 +150,8 @@ function startWorkout(workoutId) {
         { length: Number(exercise.sets) || 0 },
         () => createSessionSet(
           exercise.weight,
-          exercise.reps
+          getExerciseRepTarget(exercise).min,
+          getExerciseRepTarget(exercise).value
         )
       )
     }))
@@ -384,7 +390,13 @@ function renderWorkoutSession() {
     addButton.addEventListener("click", () => {
       const last = exercise.sets.at(-1);
       exercise.sets.push(
-        createSessionSet(last?.weight || 0, last?.reps || 0)
+        createSessionSet(
+          last?.plannedWeight ?? last?.weight ?? 0,
+          parseExerciseRepTarget(
+            last?.plannedRepTarget ?? last?.plannedReps ?? last?.reps ?? 1
+          )?.min || 1,
+          last?.plannedRepTarget || String(last?.plannedReps ?? last?.reps ?? 1)
+        )
       );
       renderWorkoutSession();
     });
@@ -421,7 +433,25 @@ function renderWorkoutSession() {
       previous.textContent = "No previous session";
     }
 
-    card.append(titleRow, previous);
+    card.appendChild(titleRow);
+
+    if (exercise.type !== "cardio") {
+      const target = document.createElement("p");
+      target.className = "session-exercise-target";
+      target.textContent =
+        `Target: ${exercise.targetSets} sets × ${exercise.targetRepLabel} reps` +
+        (exercise.targetWeight ? ` • ${exercise.targetWeight} kg` : "");
+      card.appendChild(target);
+    }
+
+    if (exercise.note) {
+      const note = document.createElement("p");
+      note.className = "exercise-note session-exercise-note";
+      note.textContent = exercise.note;
+      card.appendChild(note);
+    }
+
+    card.appendChild(previous);
 
     if (exercise.type === "cardio") {
       const cardioRow = document.createElement("div");

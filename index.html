@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=34">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 
 <body>
@@ -587,7 +587,18 @@
       </div>
       <div>
         <label for="exerciseRepsInput">Reps</label>
-        <input type="number" id="exerciseRepsInput" inputmode="numeric" min="1" value="10" required>
+        <div class="reps-target-control">
+          <input
+            type="text"
+            id="exerciseRepsInput"
+            inputmode="numeric"
+            value="10"
+            placeholder="8-10 or 10"
+            autocomplete="off"
+            required
+          >
+          <button type="button" id="insertRepDash" aria-label="Add range dash">–</button>
+        </div>
       </div>
     </div>
 
@@ -599,6 +610,14 @@
       <label for="exerciseDurationInput">Target time (minutes)</label>
       <input type="number" id="exerciseDurationInput" inputmode="numeric" min="1" step="1" placeholder="e.g. 30">
     </div>
+
+    <label for="exerciseNoteInput">Notes (optional)</label>
+    <textarea
+      id="exerciseNoteInput"
+      rows="3"
+      maxlength="500"
+      placeholder="e.g. Slow lowering and keep elbows tucked"
+    ></textarea>
 
     <div class="modal-actions">
       <button type="button" id="cancelExerciseDialog">Cancel</button>
@@ -861,12 +880,12 @@
 
   </script>
 
-  <script src="storage.js"></script>
+  <script src="storage.js?v=2"></script>
   <script src="dashboard.js?v=16"></script>
-  <script src="library.js?v=21"></script>
-  <script src="programme-editor.js?v=12"></script>
-  <script src="workout-session.js?v=10"></script>
-  <script src="workout-history.js?v=7"></script>
+  <script src="library.js?v=22"></script>
+  <script src="programme-editor.js?v=13"></script>
+  <script src="workout-session.js?v=11"></script>
+  <script src="workout-history.js?v=8"></script>
   <script src="profile.js?v=7"></script>
   <script src="measurements.js?v=2"></script>
   <script src="data-management.js?v=2"></script>

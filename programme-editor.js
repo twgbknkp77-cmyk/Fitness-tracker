@@ -317,11 +317,14 @@ function renderProgrammeEditor() {
       const exerciseName = document.createElement("strong");
       exerciseName.textContent = exercise.name;
       const prescription = document.createElement("p");
-      prescription.textContent = exercise.type === "cardio"
-        ? `${exercise.durationMinutes || 0} min target`
-        : `${exercise.sets} × ${exercise.reps}` +
-          (exercise.weight ? ` @ ${exercise.weight} kg` : "");
+      prescription.textContent = formatExercisePrescription(exercise);
       copy.append(exerciseName, prescription);
+      if (exercise.note) {
+        const note = document.createElement("p");
+        note.className = "exercise-note";
+        note.textContent = exercise.note;
+        copy.appendChild(note);
+      }
       const menu = createOverflowMenu(`${exercise.name} options`, [
         {
           label: "Edit exercise",
@@ -378,6 +381,19 @@ document.getElementById("exerciseTypeInput")?.addEventListener(
   updateExerciseTypeFields
 );
 
+document.getElementById("insertRepDash")?.addEventListener("click", () => {
+  const input = document.getElementById("exerciseRepsInput");
+  if (!input) return;
+
+  input.focus();
+  if (/[-–—]/.test(input.value)) return;
+
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? start;
+  input.setRangeText("-", start, end, "end");
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+});
+
 function openExerciseDialog(programme, week, workout, exercise = null) {
   const dialog = document.getElementById("exerciseDialog");
   const form = document.getElementById("exerciseForm");
@@ -391,10 +407,12 @@ function openExerciseDialog(programme, week, workout, exercise = null) {
   document.getElementById("exerciseTypeInput").value = exercise?.type || "strength";
   document.getElementById("exerciseNameInput").value = exercise?.name || "";
   document.getElementById("exerciseSetsInput").value = exercise?.sets || 3;
-  document.getElementById("exerciseRepsInput").value = exercise?.reps || 10;
+  document.getElementById("exerciseRepsInput").value =
+    getExerciseRepTarget(exercise || { reps: 10 }).value;
   document.getElementById("exerciseWeightInput").value = exercise?.weight || "";
   document.getElementById("exerciseDurationInput").value =
     exercise?.durationMinutes || "";
+  document.getElementById("exerciseNoteInput").value = exercise?.note || "";
   updateExerciseTypeFields();
 
   exerciseDialogContext = { programme, week, workout, exercise };
@@ -422,16 +440,19 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   const name = document.getElementById("exerciseNameInput").value.trim();
   const type = document.getElementById("exerciseTypeInput").value;
   const sets = Number(document.getElementById("exerciseSetsInput").value);
-  const reps = Number(document.getElementById("exerciseRepsInput").value);
+  const repsTarget = parseExerciseRepTarget(
+    document.getElementById("exerciseRepsInput").value
+  );
   const weightText = document.getElementById("exerciseWeightInput").value.trim();
   const weight = weightText === "" ? "" : Number(weightText);
+  const note = document.getElementById("exerciseNoteInput").value.trim();
   const durationMinutes = Number(
     document.getElementById("exerciseDurationInput").value
   );
 
   const invalidStrength = type === "strength" && (
     !Number.isInteger(sets) || sets < 1 ||
-    !Number.isInteger(reps) || reps < 1 ||
+    !repsTarget ||
     (weightText !== "" && (!Number.isFinite(weight) || weight < 0))
   );
   const invalidCardio = type === "cardio" && (
@@ -441,7 +462,7 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   if (!name || invalidStrength || invalidCardio) {
     alert(type === "cardio"
       ? "Please enter an activity name and valid target time."
-      : "Please enter a valid exercise, sets, reps and weight.");
+      : "Please enter valid sets, reps such as 10 or 8-10, and weight.");
     return;
   }
 
@@ -457,8 +478,16 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   }
 
   const values = type === "cardio"
-    ? { name, type, durationMinutes }
-    : { name, type, sets, reps, weight: weightText === "" ? "" : weight };
+    ? { name, type, durationMinutes, note }
+    : {
+        name,
+        type,
+        sets,
+        reps: repsTarget.min,
+        repsTarget: repsTarget.value,
+        weight: weightText === "" ? "" : weight,
+        note
+      };
   if (exerciseDialogContext.exercise) {
     Object.assign(exerciseDialogContext.exercise, values);
   } else {

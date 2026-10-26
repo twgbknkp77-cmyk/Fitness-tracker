@@ -959,16 +959,21 @@ function renderActiveWorkoutLegacy() {
             const exerciseDetails =
               document.createElement("p");
 
-            exerciseDetails.textContent = exercise.type === "cardio"
-              ? `${exercise.durationMinutes || 0} min target`
-              : `${exercise.sets} sets × ` +
-                `${exercise.reps} reps` +
-                (exercise.weight ? ` • ${exercise.weight} kg` : "");
+            exerciseDetails.textContent =
+              formatExercisePrescription(exercise);
 
             exerciseRow.append(
               exerciseName,
               exerciseDetails
             );
+
+            if (exercise.note) {
+              const note = document.createElement("p");
+              note.className = "exercise-note";
+              note.textContent = exercise.note;
+              exerciseRow.appendChild(note);
+            }
+
 
             workoutCard.appendChild(
               exerciseRow
@@ -1265,9 +1270,17 @@ function renderActiveWorkout() {
       (workout.exercises || []).forEach(exercise => {
         const row = document.createElement("div");
         row.className = "exercise-row";
-        row.innerHTML = exercise.type === "cardio"
-          ? `<strong>${exercise.name}</strong><p>${exercise.durationMinutes || 0} min target</p>`
-          : `<strong>${exercise.name}</strong><p>${exercise.sets} sets × ${exercise.reps} reps${exercise.weight ? ` • ${exercise.weight} kg` : ""}</p>`;
+        const exerciseName = document.createElement("strong");
+        exerciseName.textContent = exercise.name;
+        const prescription = document.createElement("p");
+        prescription.textContent = formatExercisePrescription(exercise);
+        row.append(exerciseName, prescription);
+        if (exercise.note) {
+          const note = document.createElement("p");
+          note.className = "exercise-note";
+          note.textContent = exercise.note;
+          row.appendChild(note);
+        }
         detail.appendChild(row);
       });
 

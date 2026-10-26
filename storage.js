@@ -22,6 +22,47 @@ function createProgrammeWeek(number, trainingDays = []) {
   };
 }
 
+function parseExerciseRepTarget(value, fallback = 10) {
+  const raw = String(value ?? fallback)
+    .trim()
+    .replace(/[–—]/g, "-");
+  const match = raw.match(/^(\d+)(?:\s*-\s*(\d+))?$/);
+
+  if (!match) return null;
+
+  const min = Number(match[1]);
+  const max = match[2] ? Number(match[2]) : min;
+
+  if (!Number.isInteger(min) || min < 1 ||
+      !Number.isInteger(max) || max < min) {
+    return null;
+  }
+
+  return {
+    min,
+    max,
+    value: min === max ? `${min}` : `${min}-${max}`,
+    label: min === max ? `${min}` : `${min}–${max}`
+  };
+}
+
+function getExerciseRepTarget(exercise) {
+  return parseExerciseRepTarget(
+    exercise?.repsTarget ?? exercise?.reps,
+    exercise?.reps ?? 10
+  ) || parseExerciseRepTarget(exercise?.reps ?? 10, 10);
+}
+
+function formatExercisePrescription(exercise) {
+  if (exercise?.type === "cardio") {
+    return `${exercise.durationMinutes || 0} min target`;
+  }
+
+  return `${exercise?.sets || 0} sets × ` +
+    `${getExerciseRepTarget(exercise).label} reps` +
+    (exercise?.weight ? ` • ${exercise.weight} kg` : "");
+}
+
 // Converts the original flat `days` format into eight weekly blocks.
 // Workout and exercise objects are reused, so their IDs continue to match
 // completed sessions already stored in fitness_workout_history.

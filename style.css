@@ -2044,7 +2044,8 @@ summary,
 }
 
 #exerciseDialog input,
-#exerciseDialog select {
+#exerciseDialog select,
+#exerciseDialog textarea {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
@@ -2062,9 +2063,39 @@ summary,
 }
 
 #exerciseDialog input:focus,
-#exerciseDialog select:focus {
+#exerciseDialog select:focus,
+#exerciseDialog textarea:focus {
   border-color: var(--orange);
   box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.16);
+}
+
+#exerciseDialog textarea {
+  min-height: 88px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.reps-target-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 8px;
+}
+
+#exerciseDialog .reps-target-control input,
+#exerciseDialog .reps-target-control button {
+  min-height: 48px;
+  margin: 0 0 6px;
+}
+
+#exerciseDialog .reps-target-control button {
+  width: 48px;
+  padding: 0;
+  color: var(--background);
+  background: var(--orange);
+  border: 1px solid var(--orange);
+  border-radius: 12px;
+  font-size: 25px;
+  font-weight: 800;
 }
 
 .exercise-type-fields {
@@ -2080,6 +2111,30 @@ summary,
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.exercise-note {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  color: #d0d0d0;
+  background: rgba(255, 140, 0, 0.07);
+  border-left: 3px solid rgba(255, 140, 0, 0.72);
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.session-exercise-target {
+  margin: -4px 0 0;
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.session-exercise-note {
+  margin-top: 0;
 }
 
 #exerciseDialog .modal-actions {
@@ -2146,6 +2201,7 @@ summary,
   .week-scope-actions [data-week-scope="cancel"] {
     grid-column: auto;
   }
+
 }
 
 /* MENU DIRECTION AND SINGLE-PAGE SLIDE/BLUR */
