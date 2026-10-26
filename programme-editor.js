@@ -97,7 +97,7 @@ function createEditableName(value, label, onSave) {
   const edit = document.createElement("button");
   edit.type = "button";
   edit.className = "icon-button edit-name-button";
-  edit.textContent = "✎";
+  edit.innerHTML = '<svg aria-hidden="true"><use href="#icon-edit"></use></svg>';
   edit.setAttribute("aria-label", label);
   edit.addEventListener("click", () => {
     const input = document.createElement("input");
@@ -139,7 +139,7 @@ document.getElementById("addWorkout")?.addEventListener("click", async () => {
   finishWeekChange(programme, week, scope);
 });
 
-function changeProgrammeDuration(programme, change) {
+async function changeProgrammeDuration(programme, change) {
   const nextDuration = programme.durationWeeks + change;
 
   if (nextDuration < 1 || nextDuration > 52) return;
@@ -150,7 +150,11 @@ function changeProgrammeDuration(programme, change) {
 
     if (
       hasTrainingDays &&
-      !confirm(`Remove Week ${finalWeek.number} and its training days?`)
+      !await showSpotConfirm(
+        `Remove Week ${finalWeek.number}?`,
+        "Its training days and exercises will also be removed.",
+        { confirmText: "Remove Week", danger: true }
+      )
     ) {
       return;
     }
@@ -184,6 +188,11 @@ function renderProgrammeEditor() {
   if (!getEditingWeek(programme)) editingWeekNumber = programme.currentWeek || 1;
   const week = getEditingWeek(programme);
   if (!week) return;
+
+  const saveProgrammeButton = document.getElementById("saveProgramme");
+  if (saveProgrammeButton) {
+    saveProgrammeButton.textContent = programme.isDraft ? "Save Programme" : "Done";
+  }
 
   header.innerHTML = "";
   container.innerHTML = "";
@@ -298,7 +307,11 @@ function renderProgrammeEditor() {
       label: "Delete day",
       danger: true,
       run: async () => {
-        if (!confirm(`Delete ${workout.name} and all its exercises?`)) return;
+        if (!await showSpotConfirm(
+          `Delete ${workout.name}?`,
+          "All exercises in this training day will also be removed.",
+          { confirmText: "Delete Day", danger: true }
+        )) return;
         const scope = await chooseWeekScope(programme, week);
         if (scope === "cancel") return;
         week.trainingDays.splice(workoutIndex, 1);
@@ -334,7 +347,11 @@ function renderProgrammeEditor() {
           label: "Remove exercise",
           danger: true,
           run: async () => {
-            if (!confirm(`Remove ${exercise.name}?`)) return;
+            if (!await showSpotConfirm(
+              `Remove ${exercise.name}?`,
+              "This exercise will be removed from the selected weeks.",
+              { confirmText: "Remove", danger: true }
+            )) return;
             const scope = await chooseWeekScope(programme, week);
             if (scope === "cancel") return;
             workout.exercises.splice(exerciseIndex, 1);
@@ -505,6 +522,8 @@ function openExerciseDialog(programme, week, workout, exercise = null) {
   document.getElementById("exerciseRepsInput").value =
     getExerciseRepTarget(exercise || { reps: 10 }).value;
   document.getElementById("exerciseWeightInput").value = exercise?.weight || "";
+  document.getElementById("exerciseWeightUnitInput").value =
+    getExerciseWeightUnit(exercise);
   document.getElementById("exerciseDurationInput").value =
     exercise?.durationMinutes || "";
   document.getElementById("exerciseNoteInput").value = exercise?.note || "";
@@ -540,6 +559,7 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   );
   const weightText = document.getElementById("exerciseWeightInput").value.trim();
   const weight = weightText === "" ? "" : Number(weightText);
+  const weightUnit = document.getElementById("exerciseWeightUnitInput").value;
   const note = document.getElementById("exerciseNoteInput").value.trim();
   const durationMinutes = Number(
     document.getElementById("exerciseDurationInput").value
@@ -555,9 +575,12 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   );
 
   if (!name || invalidStrength || invalidCardio) {
-    alert(type === "cardio"
-      ? "Please enter an activity name and valid target time."
-      : "Please enter valid sets, reps such as 10 or 8-10, and weight.");
+    await showSpotMessage(
+      "Check the exercise",
+      type === "cardio"
+        ? "Please enter an activity name and valid target time."
+        : "Please enter valid sets, reps such as 10 or 8-10, and weight."
+    );
     return;
   }
 
@@ -581,6 +604,7 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
         reps: repsTarget.min,
         repsTarget: repsTarget.value,
         weight: weightText === "" ? "" : weight,
+        weightUnit,
         note
       };
   if (exerciseDialogContext.exercise) {
@@ -593,6 +617,49 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   exerciseDialogContext = null;
   document.getElementById("exerciseDialog")?.close();
   finishWeekChange(programme, week, scope);
+});
+
+function leaveProgrammeEditor() {
+  const programme = getEditingProgramme();
+  if (!programme?.isDraft) {
+    showPage("library");
+    return;
+  }
+  document.getElementById("programmeExitDialog")?.showModal();
+}
+
+document.getElementById("programmeEditorBack")?.addEventListener(
+  "click",
+  leaveProgrammeEditor
+);
+
+document.getElementById("saveProgramme")?.addEventListener("click", () => {
+  const programme = getEditingProgramme();
+  if (!programme) return;
+  programme.isDraft = false;
+  saveEditedProgramme(programme);
+  showPage("library");
+});
+
+document.getElementById("cancelProgrammeExit")?.addEventListener("click", () => {
+  document.getElementById("programmeExitDialog")?.close();
+});
+
+document.getElementById("saveProgrammeDraft")?.addEventListener("click", () => {
+  document.getElementById("programmeExitDialog")?.close();
+  showPage("library");
+});
+
+document.getElementById("discardProgrammeDraft")?.addEventListener("click", () => {
+  const programme = getEditingProgramme();
+  document.getElementById("programmeExitDialog")?.close();
+  if (programme) {
+    const programmes = getProgrammes().filter(item => item.id !== programme.id);
+    saveProgrammes(programmes);
+  }
+  window.editingProgrammeId = null;
+  renderLibrary();
+  showPage("library");
 });
 
 function addDayDragEvents(card, handle, programme, week, workout) {

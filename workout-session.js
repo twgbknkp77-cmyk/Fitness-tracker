@@ -1,6 +1,7 @@
 // FITNESS TRACKER — WORKOUT SESSION
 
 const SESSION_HISTORY_KEY = "fitness_workout_history";
+const ACTIVE_SESSION_KEY = "spot_active_workout_session_v1";
 
 let currentSession = null;
 
@@ -65,6 +66,8 @@ function getPreviousExerciseResult(exercise, beforeTime) {
     if (previousExercise) {
       return {
         finishedAt: session.finishedAt,
+        note: previousExercise.sessionNote || "",
+        weightUnit: getExerciseWeightUnit(previousExercise),
         durationMinutes: previousExercise.durationMinutes,
         sets: Array.isArray(previousExercise.sets)
           ? previousExercise.sets.filter(set => set.completed)
@@ -74,6 +77,30 @@ function getPreviousExerciseResult(exercise, beforeTime) {
   }
 
   return null;
+}
+
+function saveActiveWorkoutSession() {
+  if (!currentSession) return;
+
+  try {
+    currentSession.savedAt = new Date().toISOString();
+    localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(currentSession));
+  } catch {
+    // The live session remains usable if device storage is temporarily full.
+  }
+}
+
+function clearActiveWorkoutSession() {
+  localStorage.removeItem(ACTIVE_SESSION_KEY);
+}
+
+function getSavedWorkoutSession() {
+  try {
+    const session = JSON.parse(localStorage.getItem(ACTIVE_SESSION_KEY));
+    return session?.id && Array.isArray(session.exercises) ? session : null;
+  } catch {
+    return null;
+  }
 }
 
 
@@ -133,6 +160,10 @@ function startWorkout(workoutId) {
       name: exercise.name,
       type: exercise.type || "strength",
       note: exercise.note || "",
+      sessionNote: "",
+      weightUnit: getExerciseWeightUnit(exercise),
+      completed: false,
+      collapsed: false,
       targetSets: Number(exercise.sets) || 0,
       targetWeight: exercise.weight,
       targetRepLabel: getExerciseRepTarget(exercise).label,
@@ -157,6 +188,7 @@ function startWorkout(workoutId) {
     }))
   };
 
+  saveActiveWorkoutSession();
   renderWorkoutSession();
   showPage("workoutSession");
 }
@@ -199,9 +231,26 @@ function renderWorkoutSessionLegacy() {
   currentSession.exercises.forEach(exercise => {
     const card = document.createElement("div");
     card.className = "card session-exercise-card";
+    card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
+    card.classList.toggle("exercise-is-collapsed", Boolean(exercise.collapsed));
 
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
+
+    const completeButton = document.createElement("button");
+    completeButton.type = "button";
+    completeButton.className = "exercise-complete-button";
+    completeButton.textContent = "✓";
+    completeButton.setAttribute(
+      "aria-label",
+      exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
+    );
+    completeButton.addEventListener("click", () => {
+      exercise.completed = !exercise.completed;
+      exercise.collapsed = exercise.completed;
+      saveActiveWorkoutSession();
+      renderWorkoutSession();
+    });
 
     const previousHeading = document.createElement("p");
     previousHeading.className = "previous-session-heading";
@@ -415,6 +464,18 @@ function renderWorkoutSession() {
     menu.append(summary, menuPanel);
     titleRow.append(heading);
     if (exercise.type !== "cardio") titleRow.append(menu);
+    titleRow.append(completeButton);
+
+    card.appendChild(titleRow);
+
+    if (exercise.collapsed) {
+      const collapsedSummary = document.createElement("p");
+      collapsedSummary.className = "collapsed-exercise-summary";
+      collapsedSummary.textContent = "Completed — tap the tick to reopen";
+      card.appendChild(collapsedSummary);
+      container.appendChild(card);
+      return;
+    }
 
     const previous = document.createElement("p");
     previous.className = "previous-session-heading";
@@ -427,20 +488,20 @@ function renderWorkoutSession() {
       previous.textContent = exercise.type === "cardio"
         ? `Last: ${Number(exercise.previousResult.durationMinutes) || 0} min • ${date}`
         : best
-          ? `Last: ${Number(best.weight) || 0} kg × ${Number(best.reps) || 0} • ${date}`
+          ? `Last: ${Number(best.weight) || 0} ${exercise.previousResult.weightUnit} × ${Number(best.reps) || 0} • ${date}`
           : `Last completed • ${date}`;
     } else {
       previous.textContent = "No previous session";
     }
-
-    card.appendChild(titleRow);
 
     if (exercise.type !== "cardio") {
       const target = document.createElement("p");
       target.className = "session-exercise-target";
       target.textContent =
         `Target: ${exercise.targetSets} sets × ${exercise.targetRepLabel} reps` +
-        (exercise.targetWeight ? ` • ${exercise.targetWeight} kg` : "");
+        (exercise.targetWeight
+          ? ` • ${exercise.targetWeight} ${exercise.weightUnit}`
+          : "");
       card.appendChild(target);
     }
 
@@ -452,6 +513,13 @@ function renderWorkoutSession() {
     }
 
     card.appendChild(previous);
+
+    if (exercise.previousResult?.note) {
+      const lastNote = document.createElement("p");
+      lastNote.className = "previous-session-note";
+      lastNote.textContent = `Last session note: ${exercise.previousResult.note}`;
+      card.appendChild(lastNote);
+    }
 
     if (exercise.type === "cardio") {
       const cardioRow = document.createElement("div");
@@ -495,12 +563,23 @@ function renderWorkoutSession() {
       weightInput.setAttribute("aria-label", `${exercise.name} set ${setIndex + 1} weight`);
       weightInput.addEventListener("input", () => {
         set.weight = weightInput.value === "" ? "" : Number(weightInput.value);
+        updateConversion();
         updateSessionProgress();
       });
       const weightUnit = document.createElement("span");
       weightUnit.className = "input-unit";
-      weightUnit.textContent = "kg";
+      weightUnit.textContent = exercise.weightUnit;
       weightLabel.append(weightInput, weightUnit);
+
+      const conversion = document.createElement("small");
+      conversion.className = "weight-conversion";
+      const updateConversion = () => {
+        conversion.textContent = weightInput.value === ""
+          ? ""
+          : `≈ ${formatConvertedExerciseWeight(weightInput.value, exercise.weightUnit)}`;
+      };
+      updateConversion();
+      weightLabel.appendChild(conversion);
 
       const repsLabel = document.createElement("label");
       const repsInput = document.createElement("input");
@@ -522,6 +601,21 @@ function renderWorkoutSession() {
       row.append(number, weightLabel, repsLabel);
       card.appendChild(row);
     });
+
+    const sessionNoteLabel = document.createElement("label");
+    sessionNoteLabel.className = "session-note-field";
+    sessionNoteLabel.textContent = "Notes";
+    const sessionNoteInput = document.createElement("textarea");
+    sessionNoteInput.rows = 2;
+    sessionNoteInput.maxLength = 500;
+    sessionNoteInput.placeholder = "Add a note for your next session";
+    sessionNoteInput.value = exercise.sessionNote || "";
+    sessionNoteInput.addEventListener("input", () => {
+      exercise.sessionNote = sessionNoteInput.value;
+      saveActiveWorkoutSession();
+    });
+    sessionNoteLabel.appendChild(sessionNoteInput);
+    card.appendChild(sessionNoteLabel);
 
     container.appendChild(card);
   });
@@ -554,13 +648,14 @@ function updateSessionProgress() {
 
   document.getElementById("sessionProgress").textContent =
     `${total} ${total === 1 ? "result" : "results"} recorded`;
+  saveActiveWorkoutSession();
 }
 
 
 // SAVE FINISHED WORKOUT
 document
   .getElementById("finishWorkout")
-  ?.addEventListener("click", () => {
+  ?.addEventListener("click", async () => {
     if (!currentSession) return;
 
     document.activeElement?.blur();
@@ -576,7 +671,7 @@ document
     });
 
     if (partialSets.length > 0) {
-      alert("Complete both weight and reps for each entered set, or clear both fields.");
+      await showSpotMessage("Check your sets", "Complete both weight and reps for each entered set, or clear both fields.");
       return;
     }
 
@@ -594,12 +689,12 @@ document
     );
 
     if (completedSets.length === 0 && completedCardio.length === 0) {
-      alert("Enter at least one result before finishing.");
+      await showSpotMessage("Nothing recorded yet", "Enter at least one result before finishing.");
       return;
     }
 
     if (completedCardio.length !== cardioExercises.length) {
-      alert("Please enter a valid duration for each cardio activity.");
+      await showSpotMessage("Check cardio time", "Please enter a valid duration for each cardio activity.");
       return;
     }
 
@@ -611,11 +706,15 @@ document
     );
 
     if (invalidCompletedSet) {
-      alert("Please enter a valid weight and number of reps for every completed set.");
+      await showSpotMessage("Check your results", "Please enter a valid weight and number of reps for every completed set.");
       return;
     }
 
-    if (!confirm("Finish and save this workout?")) return;
+    if (!await showSpotConfirm(
+      "Finish this workout?",
+      "Your results and notes will be saved to workout history.",
+      { confirmText: "Finish Workout" }
+    )) return;
 
     allSets.forEach(set => {
       set.completed =
@@ -641,7 +740,7 @@ document
         JSON.stringify(history)
       );
     } catch {
-      alert("Unable to save workout. Please try again.");
+      await showSpotMessage("Workout not saved", "Unable to save workout. Please try again.");
       return;
     }
 
@@ -655,6 +754,7 @@ document
         : { advanced: false };
 
     currentSession = null;
+    clearActiveWorkoutSession();
 
     if (typeof renderActiveWorkout === "function") {
       renderActiveWorkout();
@@ -664,16 +764,15 @@ document
       updateDashboard();
     }
 
-        if (progression.advanced) {
-      alert(
-        `Workout saved! Week complete — moving to Week ${progression.newWeek}.`
+    if (progression.advanced) {
+      await showSpotMessage(
+        "Workout saved",
+        `Week complete — moving to Week ${progression.newWeek}.`
       );
     } else if (progression.programmeComplete) {
-      alert(
-        "Workout saved! You have completed the entire programme."
-      );
+      await showSpotMessage("Programme complete", "You have completed the entire programme.");
     } else {
-      alert("Workout saved successfully!");
+      await showSpotMessage("Workout saved", "Your results and notes are safely stored.");
     }
 
     showPage("workouts");
@@ -707,5 +806,28 @@ document
       ?.close();
 
     currentSession = null;
+    clearActiveWorkoutSession();
     showPage("workouts");
   });
+
+document.getElementById("resumeSavedWorkout")?.addEventListener("click", () => {
+  const saved = getSavedWorkoutSession();
+  document.getElementById("resumeWorkoutDialog")?.close();
+  if (!saved) return;
+  currentSession = saved;
+  renderWorkoutSession();
+  showPage("workoutSession");
+});
+
+document.getElementById("discardSavedWorkout")?.addEventListener("click", () => {
+  clearActiveWorkoutSession();
+  document.getElementById("resumeWorkoutDialog")?.close();
+});
+
+window.addEventListener("beforeunload", saveActiveWorkoutSession);
+
+setTimeout(() => {
+  if (getSavedWorkoutSession() && !currentSession) {
+    document.getElementById("resumeWorkoutDialog")?.showModal();
+  }
+}, 450);

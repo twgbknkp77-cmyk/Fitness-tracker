@@ -7,6 +7,7 @@ const FITNESS_BACKUP_KEYS = [
   "fitness_workout_history",
   "fitnessWeights",
   "fitness_profile_goals",
+  "spot_active_workout_session_v1",
   "spot_onboarding_complete_v1"
 ];
 
@@ -110,7 +111,11 @@ document
       return;
     }
 
-    if (!confirm("Restore this backup? Your current app data will be replaced.")) {
+    if (!await showSpotConfirm(
+      "Restore this backup?",
+      "Your current Spot data will be replaced. A safety copy will be kept on this device.",
+      { confirmText: "Restore Backup" }
+    )) {
       input.value = "";
       return;
     }
@@ -157,6 +162,9 @@ document
       return;
     }
 
-    alert("Backup restored successfully. The app will now reload.");
+    await showSpotMessage(
+      "Backup restored",
+      "Your Spot data has been restored. The app will now reload."
+    );
     location.reload();
   });

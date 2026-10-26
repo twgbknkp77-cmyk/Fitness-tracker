@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=36">
+  <link rel="stylesheet" href="style.css?v=37">
 </head>
 
 <body>
@@ -374,7 +374,7 @@
 <!-- PROGRAMME EDITOR PAGE -->
 <section id="programmeEditor" class="page">
   <div class="page-header editor-page-header">
-    <button type="button" class="icon-button" onclick="showPage('library')" aria-label="Back to library">
+    <button type="button" class="icon-button" id="programmeEditorBack" aria-label="Back to library">
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
     <h1>Programme Editor</h1>
@@ -392,6 +392,10 @@
     class="primary-button"
   >
     + Add Training Day
+  </button>
+
+  <button type="button" id="saveProgramme" class="primary-button editor-save-programme">
+    Save Programme
   </button>
 
 </section>
@@ -424,6 +428,15 @@
   <div class="decision-dialog-actions">
     <button type="button" id="keepWorkoutSession">No</button>
     <button type="button" id="confirmDiscardWorkout" class="danger-button">Yes</button>
+  </div>
+</dialog>
+
+<dialog id="resumeWorkoutDialog" class="decision-dialog" aria-labelledby="resumeWorkoutTitle">
+  <h2 id="resumeWorkoutTitle">Resume your workout?</h2>
+  <p>A workout in progress was saved on this device.</p>
+  <div class="decision-dialog-actions stacked-dialog-actions">
+    <button type="button" id="discardSavedWorkout" class="danger-button">Discard</button>
+    <button type="button" id="resumeSavedWorkout" class="primary-button">Resume Workout</button>
   </div>
 </dialog>
 
@@ -606,8 +619,14 @@
       </div>
     </div>
 
-    <label for="exerciseWeightInput">Target weight (kg, optional)</label>
-    <input type="number" id="exerciseWeightInput" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 50">
+    <label for="exerciseWeightInput">Target weight</label>
+    <div class="weight-unit-control">
+      <input type="number" id="exerciseWeightInput" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 50">
+      <select id="exerciseWeightUnitInput" aria-label="Weight unit">
+        <option value="kg">kg</option>
+        <option value="lb">lb</option>
+      </select>
+    </div>
     </div>
 
     <div id="cardioExerciseFields" class="exercise-type-fields" hidden>
@@ -637,7 +656,10 @@
       <p>Target reps</p>
       <h2 id="repKeypadTitle">Enter reps or a range</h2>
     </div>
-    <output id="repKeypadDisplay" aria-live="polite">10</output>
+    <div class="rep-keypad-display-row">
+      <output id="repKeypadDisplay" aria-live="polite">10</output>
+      <button type="button" data-rep-key="backspace" class="rep-keypad-delete" aria-label="Delete last digit">⌫</button>
+    </div>
   </div>
 
   <p id="repKeypadMessage" class="rep-keypad-message" aria-live="polite"></p>
@@ -654,12 +676,31 @@
     <button type="button" data-rep-key="9">9</button>
     <button type="button" data-rep-key="dash" class="rep-keypad-dash" aria-label="Range dash">–</button>
     <button type="button" data-rep-key="0">0</button>
-    <button type="button" data-rep-key="backspace" aria-label="Backspace">⌫</button>
+    <button type="button" data-rep-key="dot" class="rep-keypad-dot" aria-label="Decimal point" disabled>.</button>
   </div>
 
   <div class="rep-keypad-actions">
     <button type="button" id="cancelRepKeypad">Cancel</button>
     <button type="button" id="confirmRepKeypad" class="primary-button">Done</button>
+  </div>
+</dialog>
+
+<dialog id="programmeExitDialog" class="decision-dialog" aria-labelledby="programmeExitTitle">
+  <h2 id="programmeExitTitle">Leave this new programme?</h2>
+  <p>You can save it as a draft and finish it later, or discard it.</p>
+  <div class="programme-exit-actions">
+    <button type="button" id="cancelProgrammeExit">Cancel</button>
+    <button type="button" id="discardProgrammeDraft" class="danger-button">Discard</button>
+    <button type="button" id="saveProgrammeDraft" class="primary-button">Save Draft</button>
+  </div>
+</dialog>
+
+<dialog id="spotDialog" class="decision-dialog" aria-labelledby="spotDialogTitle">
+  <h2 id="spotDialogTitle">Are you sure?</h2>
+  <p id="spotDialogMessage"></p>
+  <div class="decision-dialog-actions">
+    <button type="button" id="spotDialogCancel">Cancel</button>
+    <button type="button" id="spotDialogConfirm" class="primary-button">OK</button>
   </div>
 </dialog>
 
@@ -917,15 +958,15 @@
 
   </script>
 
-  <script src="storage.js?v=2"></script>
+  <script src="storage.js?v=3"></script>
   <script src="dashboard.js?v=16"></script>
-  <script src="library.js?v=22"></script>
-  <script src="programme-editor.js?v=14"></script>
-  <script src="workout-session.js?v=11"></script>
-  <script src="workout-history.js?v=8"></script>
+  <script src="library.js?v=23"></script>
+  <script src="programme-editor.js?v=15"></script>
+  <script src="workout-session.js?v=12"></script>
+  <script src="workout-history.js?v=9"></script>
   <script src="profile.js?v=7"></script>
-  <script src="measurements.js?v=2"></script>
-  <script src="data-management.js?v=2"></script>
+  <script src="measurements.js?v=3"></script>
+  <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>
 
 </body>

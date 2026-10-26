@@ -14,6 +14,7 @@ function createProgramme() {
     schemaVersion: PROGRAMME_SCHEMA_VERSION,
     durationWeeks,
     currentWeek: 1,
+    isDraft: true,
 
     weeks: Array.from(
       { length: durationWeeks },
@@ -146,8 +147,13 @@ function activateProgramme(id) {
 
 
 // DELETE PROGRAMME
-function deleteProgramme(id) {
-  if (!confirm("Delete this programme?")) return;
+async function deleteProgramme(id) {
+  const programme = getProgrammes().find(item => item.id === id);
+  if (!await showSpotConfirm(
+    "Delete this programme?",
+    programme ? `${programme.name} and its planned workouts will be removed.` : "This cannot be undone.",
+    { confirmText: "Delete", danger: true }
+  )) return;
 
   const programmes = getProgrammes().filter(
     programme => programme.id !== id
@@ -1105,7 +1111,9 @@ function renderLibrary() {
 
     const details = document.createElement("p");
     details.textContent =
-      `${programme.durationWeeks} weeks • Week ${programme.currentWeek}`;
+      programme.isDraft
+        ? `Draft • ${programme.durationWeeks} weeks`
+        : `${programme.durationWeeks} weeks • Week ${programme.currentWeek}`;
     copy.append(title, details);
 
     const menu = document.createElement("details");
@@ -1134,15 +1142,19 @@ function renderLibrary() {
     activationButton.type = "button";
     activationButton.className = "programme-activation-button";
     activationButton.classList.toggle("is-active", programme.id === activeId);
-    activationButton.textContent = programme.id === activeId
-      ? "Active"
-      : "Activate";
+    activationButton.textContent = programme.isDraft
+      ? "Draft"
+      : programme.id === activeId
+        ? "Active"
+        : "Activate";
+    activationButton.disabled = Boolean(programme.isDraft);
     activationButton.setAttribute(
       "aria-pressed",
       programme.id === activeId ? "true" : "false"
     );
     activationButton.addEventListener("click", event => {
       event.stopPropagation();
+      if (programme.isDraft) return;
       requestProgrammeActivation(programme.id);
     });
     card.appendChild(activationButton);
@@ -1289,9 +1301,13 @@ function renderActiveWorkout() {
       start.textContent = viewedWorkoutWeek === programme.currentWeek
         ? "Start Workout"
         : `Make Week ${viewedWorkoutWeek} Current & Start`;
-      start.addEventListener("click", () => {
+      start.addEventListener("click", async () => {
         if (viewedWorkoutWeek !== programme.currentWeek) {
-          if (!confirm(`Make Week ${viewedWorkoutWeek} your current training week?`)) return;
+          if (!await showSpotConfirm(
+            `Make Week ${viewedWorkoutWeek} current?`,
+            "This workout will then become available to start.",
+            { confirmText: "Make Current" }
+          )) return;
           changeActiveProgrammeWeek(programme.id, viewedWorkoutWeek);
         }
         startWorkout(workout.id);
@@ -1364,10 +1380,14 @@ function renderActiveWorkout() {
     startButton.textContent = viewedWorkoutWeek === programme.currentWeek
       ? "Start Workout"
       : "Make Current & Start";
-    startButton.addEventListener("click", event => {
+    startButton.addEventListener("click", async event => {
       event.stopPropagation();
       if (viewedWorkoutWeek !== programme.currentWeek) {
-        if (!confirm(`Make Week ${viewedWorkoutWeek} your current training week?`)) return;
+        if (!await showSpotConfirm(
+          `Make Week ${viewedWorkoutWeek} current?`,
+          "This workout will then become available to start.",
+          { confirmText: "Make Current" }
+        )) return;
         changeActiveProgrammeWeek(programme.id, viewedWorkoutWeek);
       }
       startWorkout(workout.id);

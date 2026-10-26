@@ -145,6 +145,13 @@ function viewWorkoutHistoryDetails(session) {
       card.appendChild(note);
     }
 
+    if (exercise.sessionNote) {
+      const sessionNote = document.createElement("p");
+      sessionNote.className = "previous-session-note";
+      sessionNote.textContent = `Session note: ${exercise.sessionNote}`;
+      card.appendChild(sessionNote);
+    }
+
     if (exercise.type === "cardio") {
       const row = document.createElement("p");
       row.className = "history-set-row";
@@ -162,10 +169,11 @@ function viewWorkoutHistoryDetails(session) {
       const plannedRepTarget =
         parseExerciseRepTarget(set.plannedRepTarget ?? plannedReps)
           ?.label || String(plannedReps);
+      const weightUnit = getExerciseWeightUnit(exercise);
 
       let text =
         `Set ${index + 1}: ` +
-        `${Number(set.weight) || 0} kg × ` +
+        `${Number(set.weight) || 0} ${weightUnit} × ` +
         `${Number(set.reps) || 0} reps`;
 
       if (
@@ -173,7 +181,7 @@ function viewWorkoutHistoryDetails(session) {
         Number.isFinite(plannedReps)
       ) {
         text +=
-          ` (planned ${plannedWeight} kg × ` +
+          ` (planned ${plannedWeight} ${weightUnit} × ` +
           `${plannedRepTarget} reps)`;
       }
 

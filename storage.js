@@ -60,8 +60,94 @@ function formatExercisePrescription(exercise) {
 
   return `${exercise?.sets || 0} sets × ` +
     `${getExerciseRepTarget(exercise).label} reps` +
-    (exercise?.weight ? ` • ${exercise.weight} kg` : "");
+    (exercise?.weight ? ` • ${exercise.weight} ${getExerciseWeightUnit(exercise)}` : "");
 }
+
+function getExerciseWeightUnit(exercise) {
+  return exercise?.weightUnit === "lb" ? "lb" : "kg";
+}
+
+function convertExerciseWeight(value, fromUnit) {
+  const weight = Number(value);
+  if (!Number.isFinite(weight)) return null;
+
+  return fromUnit === "lb"
+    ? { value: weight / 2.2046226218, unit: "kg" }
+    : { value: weight * 2.2046226218, unit: "lb" };
+}
+
+function formatConvertedExerciseWeight(value, fromUnit) {
+  const converted = convertExerciseWeight(value, fromUnit);
+  if (!converted) return "";
+  return `${converted.value.toFixed(1)} ${converted.unit}`;
+}
+
+let spotDialogResolver = null;
+
+function closeSpotDialog(value) {
+  document.getElementById("spotDialog")?.close();
+  const resolve = spotDialogResolver;
+  spotDialogResolver = null;
+  resolve?.(value);
+}
+
+function showSpotDialog({
+  title,
+  message = "",
+  confirmText = "OK",
+  cancelText = "Cancel",
+  danger = false,
+  hideCancel = false
+}) {
+  const dialog = document.getElementById("spotDialog");
+  if (!dialog) return Promise.resolve(false);
+
+  document.getElementById("spotDialogTitle").textContent = title;
+  document.getElementById("spotDialogMessage").textContent = message;
+
+  const confirmButton = document.getElementById("spotDialogConfirm");
+  const cancelButton = document.getElementById("spotDialogCancel");
+  confirmButton.textContent = confirmText;
+  confirmButton.classList.toggle("danger-button", danger);
+  confirmButton.classList.toggle("primary-button", !danger);
+  cancelButton.textContent = cancelText;
+  cancelButton.hidden = hideCancel;
+
+  if (spotDialogResolver) closeSpotDialog(false);
+
+  return new Promise(resolve => {
+    spotDialogResolver = resolve;
+    dialog.showModal();
+  });
+}
+
+function showSpotConfirm(title, message = "", options = {}) {
+  return showSpotDialog({ title, message, ...options });
+}
+
+function showSpotMessage(title, message = "") {
+  return showSpotDialog({
+    title,
+    message,
+    confirmText: "Done",
+    hideCancel: true
+  });
+}
+
+document.getElementById("spotDialogConfirm")?.addEventListener(
+  "click",
+  () => closeSpotDialog(true)
+);
+
+document.getElementById("spotDialogCancel")?.addEventListener(
+  "click",
+  () => closeSpotDialog(false)
+);
+
+document.getElementById("spotDialog")?.addEventListener("cancel", event => {
+  event.preventDefault();
+  closeSpotDialog(false);
+});
 
 // Converts the original flat `days` format into eight weekly blocks.
 // Workout and exercise objects are reused, so their IDs continue to match

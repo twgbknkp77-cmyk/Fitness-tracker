@@ -109,8 +109,12 @@ function renderMeasurements() {
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.className = "measurement-delete-button";
-    deleteButton.addEventListener("click", () => {
-      if (!confirm(`Delete the ${entry.weight.toFixed(1)} kg measurement?`)) {
+    deleteButton.addEventListener("click", async () => {
+      if (!await showSpotConfirm(
+        "Delete this measurement?",
+        `${entry.weight.toFixed(1)} kg will be removed from your graph.`,
+        { confirmText: "Delete", danger: true }
+      )) {
         return;
       }
 
@@ -165,7 +169,7 @@ document
 // SAVE AN EDITED MEASUREMENT
 document
   .getElementById("editMeasurementForm")
-  ?.addEventListener("submit", event => {
+  ?.addEventListener("submit", async event => {
     event.preventDefault();
 
     if (!editingMeasurementId) return;
@@ -187,7 +191,7 @@ document
       weight < 20 ||
       weight > 300
     ) {
-      alert("Please enter a valid date and weight.");
+      await showSpotMessage("Check the measurement", "Please enter a valid date and weight.");
       return;
     }
 
