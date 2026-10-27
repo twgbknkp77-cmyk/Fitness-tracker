@@ -1107,7 +1107,11 @@ function renderLibrary() {
     return;
   }
 
-  programmes.forEach(programme => {
+  programmes.sort((a, b) => {
+    if (a.id === activeId) return -1;
+    if (b.id === activeId) return 1;
+    return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
+  }).forEach(programme => {
     const card = document.createElement("div");
     card.className = "card programme-card";
 

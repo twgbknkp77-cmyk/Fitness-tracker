@@ -620,14 +620,19 @@ function drawExerciseProgressChart() {
     const yTicks=[0,.25,.5,.75,1].map(f=>{const value=maxValue*f,py=y(value);return `<line class="progress-grid" x1="${left}" y1="${py}" x2="${width-right}" y2="${py}"></line><text text-anchor="end" x="${left-7}" y="${py+4}">${metric==="weight"?value.toFixed(maxValue<20?1:0):Math.round(value)}</text>`}).join("");
     const lines=series.map(item=>{if(!item.points.length)return"";const coords=item.points.map(p=>`${x(new Date(p.date).getTime())},${y(p.value)}`).join(" ");const dots=item.points.map(p=>`<circle style="fill:${item.colour}" cx="${x(new Date(p.date).getTime())}" cy="${y(p.value)}" r="4"></circle>`).join("");return `<polyline style="stroke:${item.colour}" points="${coords}"></polyline>${dots}`}).join("");
     const first=new Date(minDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),last=new Date(maxDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
-    const unit=metric==="weight"?"kg":metric==="effort"?"Effort":"reps";
-    container.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${unit} progress over time"><g>${yTicks}</g><line class="progress-axis" x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"></line><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><g class="progress-series">${lines}</g><text class="axis-label" x="${left}" y="${height-9}">${first}</text><text class="axis-label" text-anchor="end" x="${width-right}" y="${height-9}">${last}</text><text class="axis-title" x="8" y="12">${unit}</text></svg>`;
+    const unit=metric==="weight"?"KG":metric==="effort"?"EFFORT":"REPS";
+    const axisCentre=top+(height-top-bottom)/2;
+    container.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${unit} progress over time"><g>${yTicks}</g><line class="progress-axis" x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"></line><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><g class="progress-series">${lines}</g><text class="axis-label" x="${left}" y="${height-9}">${first}</text><text class="axis-label" text-anchor="end" x="${width-right}" y="${height-9}">${last}</text><text class="axis-title" text-anchor="middle" transform="rotate(-90 11 ${axisCentre})" x="11" y="${axisCentre}">${unit}</text></svg>`;
   }
   legend.innerHTML="";
   names.forEach((name,index)=>{const button=document.createElement("button");button.type="button";button.className="progress-legend-item";button.classList.toggle("is-hidden",progressHiddenExercises.has(normaliseProgressName(name)));button.innerHTML=`<span style="background:${progressLineColours[index%progressLineColours.length]}"></span>${name}`;button.onclick=()=>{const key=normaliseProgressName(name);progressHiddenExercises.has(key)?progressHiddenExercises.delete(key):progressHiddenExercises.add(key);drawExerciseProgressChart()};legend.appendChild(button)});
 }
 
-document.getElementById("openProgressFilters")?.addEventListener("click",()=>document.getElementById("progressFilterDialog")?.showModal());
+document.getElementById("openProgressFilters")?.addEventListener("click",()=>{
+  const dialog=document.getElementById("progressFilterDialog");
+  dialog?.showModal();
+  document.getElementById("progressFilterTitle")?.focus({preventScroll:true});
+});
 document.getElementById("closeProgressFilters")?.addEventListener("click",()=>document.getElementById("progressFilterDialog")?.close());
 ["progressMetricFilter","progressScopeFilter"].forEach(id=>document.getElementById(id)?.addEventListener("change",drawExerciseProgressChart));
 

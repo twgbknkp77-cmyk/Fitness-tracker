@@ -1928,10 +1928,10 @@ summary,
 .bodyweight-card #weightMessage:empty { display:none; }
 .workout-summary-card:not(.next-workout) .compact-card-header { min-height:70px; align-items:center; }
 .workout-summary-card:not(.next-workout) .workout-card-chevron { align-self:center; }
-.outlined-icon-button { border:1px solid rgba(255,140,0,.72) !important; }
+.outlined-icon-button { border:1px solid rgba(255,140,0,.32) !important; }
 
 /* Facebook-inspired floating navigation shape, retaining Spot colours */
-nav { bottom:calc(12px + env(safe-area-inset-bottom)); width:min(calc(100% - 28px),680px); padding:7px 10px; border-radius:34px; }
+nav { left:50%; bottom:calc(12px + env(safe-area-inset-bottom)); width:min(calc(100% - 28px),680px); transform:translateX(-50%); padding:7px 10px; border-radius:34px; }
 nav button { min-height:52px; border-radius:25px; }
 
 /* Editable history */
@@ -1940,7 +1940,9 @@ nav button { min-height:52px; border-radius:25px; }
 .history-edit-card input,.history-edit-card textarea,.history-edit-card select { width:100%; color:var(--white); background:#111; border:1px solid #444; border-radius:10px; padding:11px; }
 .history-edit-set { display:grid; grid-template-columns:28px 1fr 1fr; align-items:center; gap:8px; margin-top:10px; }
 .history-edit-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
-.history-edit-actions button { min-height:50px; }
+.history-edit-actions button { align-self:stretch; min-height:50px; height:50px; margin:0; }
+.history-cancel-button { color:var(--white); background:#292929; border:1px solid #444; border-radius:10px; font-weight:700; }
+#closeProgressFilters { display:block; width:auto; min-width:110px; margin:4px 0 0 auto; }
 
 /* SESSION RECOVERY, COMPLETION AND EXERCISE UNITS */
 
