@@ -365,13 +365,19 @@ function renderProgrammeEditor() {
       const star = document.createElement("button");
       star.type = "button";
       star.className = "exercise-star-button";
-      star.textContent = exercise.starred ? "★" : "☆";
+      star.classList.toggle("is-starred", Boolean(exercise.starred));
+      star.innerHTML = '<svg aria-hidden="true"><use href="#icon-star-round"></use></svg>';
       star.setAttribute("aria-label", exercise.starred ? `Unstar ${exercise.name}` : `Star ${exercise.name}`);
-      star.addEventListener("click", async () => {
-        const scope = await chooseWeekScope(programme, week);
-        if (scope === "cancel") return;
-        exercise.starred = !exercise.starred;
-        finishWeekChange(programme, week, scope);
+      star.addEventListener("click", () => {
+        const nextValue = !exercise.starred;
+        const exerciseName = String(exercise.name || "").trim().toLowerCase();
+        programme.weeks.filter(item => item.number >= week.number).forEach(item => {
+          (item.trainingDays || []).forEach(day => (day.exercises || []).forEach(candidate => {
+            if (String(candidate.name || "").trim().toLowerCase() === exerciseName) candidate.starred = nextValue;
+          }));
+        });
+        saveEditedProgramme(programme);
+        renderProgrammeEditor();
       });
       const actions = document.createElement("div");
       actions.className = "editor-exercise-actions";

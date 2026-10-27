@@ -167,6 +167,7 @@ function startWorkout(workoutId) {
     exercises: (workout.exercises || []).map(exercise => ({
       id: exercise.id,
       name: exercise.name,
+      starred: Boolean(exercise.starred),
       type: exercise.type || "strength",
       note: exercise.note || "",
       sessionNote: "",
@@ -238,6 +239,18 @@ function renderWorkoutSessionLegacy() {
   container.innerHTML = "";
 
   currentSession.exercises.forEach(exercise => {
+    if (!exercise.starred) {
+      const wantedName = String(exercise.name || "").trim().toLowerCase();
+      exercise.starred = getProgrammes().some(programme =>
+        (programme.weeks || []).some(week =>
+          (week.trainingDays || []).some(day =>
+            (day.exercises || []).some(item =>
+              item.starred && String(item.name || "").trim().toLowerCase() === wantedName
+            )
+          )
+        )
+      );
+    }
     const card = document.createElement("div");
     card.className = "card session-exercise-card";
     card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
@@ -245,6 +258,15 @@ function renderWorkoutSessionLegacy() {
 
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
+    if (exercise.starred) {
+      const star = document.createElement("svg");
+      star.classList.add("display-star");
+      star.setAttribute("aria-label", "Starred exercise");
+      star.innerHTML = '<use href="#icon-star-round"></use>';
+      titleRow.append(heading, star);
+    } else {
+      titleRow.appendChild(heading);
+    }
 
     const completeButton = document.createElement("button");
     completeButton.type = "button";
@@ -488,8 +510,6 @@ function renderWorkoutSession() {
 
     menuPanel.append(addButton, removeButton);
     menu.append(summary, menuPanel);
-    titleRow.append(heading);
-
     card.appendChild(titleRow);
 
     const actionRow = document.createElement("div");

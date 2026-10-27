@@ -544,84 +544,92 @@ function updateDashboard() {
   drawExerciseProgressChart();
 }
 
+const progressLineColours = ["#3b82f6", "#557fdc", "#7378c1", "#9272a5", "#ad6d8d", "#c66b72", "#dc7057", "#ec7940", "#f48325", "#ff8c00"];
+const progressHiddenExercises = new Set();
+const normaliseProgressName = value => String(value || "").trim().toLowerCase();
+
 function getStarredExerciseNames() {
-  const normalise = value => String(value || "").trim().toLowerCase();
   const names = new Map();
   getProgrammes().forEach(programme => (programme.weeks || []).forEach(week =>
     (week.trainingDays || []).forEach(day => (day.exercises || []).forEach(exercise => {
-      if (exercise.starred && exercise.name) names.set(normalise(exercise.name), exercise.name);
+      if (exercise.starred && exercise.name) names.set(normaliseProgressName(exercise.name), exercise.name);
     }))
   ));
-  return [...names.values()];
+  return [...names.values()].sort((a, b) => a.localeCompare(b)).slice(0, 10);
+}
+
+function progressValue(exercise, metric) {
+  if (metric === "effort") return Number(exercise.effort) || 0;
+  const sets = (exercise.sets || []).filter(set => set.completed || (set.weight !== "" && set.reps !== ""));
+  return sets.length ? Math.max(...sets.map(set => Number(set[metric]) || 0)) : 0;
+}
+
+function refreshProgressExerciseChoices(names) {
+  const choices = document.getElementById("progressExerciseChoices");
+  if (!choices) return;
+  choices.innerHTML = "";
+  names.forEach(name => {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = !progressHiddenExercises.has(normaliseProgressName(name));
+    checkbox.addEventListener("change", () => {
+      const key = normaliseProgressName(name);
+      checkbox.checked ? progressHiddenExercises.delete(key) : progressHiddenExercises.add(key);
+      drawExerciseProgressChart();
+    });
+    label.append(checkbox, document.createTextNode(name));
+    choices.appendChild(label);
+  });
 }
 
 function drawExerciseProgressChart() {
-  const normalise = value => String(value || "").trim().toLowerCase();
   const container = document.getElementById("exerciseProgressChart");
-  const exerciseFilter = document.getElementById("progressExerciseFilter");
-  const metricFilter = document.getElementById("progressMetricFilter");
-  const scopeFilter = document.getElementById("progressScopeFilter");
-  if (!container || !exerciseFilter || !metricFilter || !scopeFilter) return;
-
+  const legend = document.getElementById("exerciseProgressLegend");
+  const metric = document.getElementById("progressMetricFilter")?.value || "weight";
+  const scope = document.getElementById("progressScopeFilter")?.value || "current";
+  if (!container || !legend) return;
   const names = getStarredExerciseNames();
-  const selected = exerciseFilter.value;
-  exerciseFilter.innerHTML = "";
-  names.forEach(name => {
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    exerciseFilter.appendChild(option);
-  });
-  if (names.includes(selected)) exerciseFilter.value = selected;
-  if (!names.length) {
-    container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>';
-    return;
-  }
+  refreshProgressExerciseChoices(names);
+  const visibleNames = names.filter(name => !progressHiddenExercises.has(normaliseProgressName(name)));
+  if (!names.length) { container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>'; legend.innerHTML = ""; return; }
 
-  const wantedName = normalise(exerciseFilter.value || names[0]);
-  const active = getProgrammes().find(item => item.id === getActiveProgrammeId());
-  const metric = metricFilter.value;
-  let progressHistory = [];
-  try { progressHistory = JSON.parse(localStorage.getItem("fitness_workout_history") || "[]"); } catch {}
-  const points = (Array.isArray(progressHistory) ? progressHistory : [])
-    .filter(session => scopeFilter.value === "all" ||
-      (active && (session.programmeRunId || session.programmeId) === (active.activeRunId || active.id)))
-    .sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt))
-    .flatMap(session => {
-      const exercise = (session.exercises || []).find(item => normalise(item.name) === wantedName);
-      if (!exercise) return [];
-      let value;
-      if (metric === "effort") value = Number(exercise.effort);
-      else {
-        const sets = (exercise.sets || []).filter(set => set.completed);
-        value = sets.length ? Math.max(...sets.map(set => Number(set[metric]) || 0)) : 0;
-      }
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem("fitness_workout_history") || "[]"); } catch {}
+  const activeId = getActiveProgrammeId();
+  const sessions = (Array.isArray(history) ? history : [])
+    .filter(session => scope === "all" || !activeId || session.programmeId === activeId)
+    .filter(session => session.finishedAt)
+    .sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
+  const series = visibleNames.map((name, colourIndex) => ({
+    name, colour: progressLineColours[names.indexOf(name) % progressLineColours.length],
+    points: sessions.flatMap(session => {
+      const exercise = (session.exercises || []).find(item => normaliseProgressName(item.name) === normaliseProgressName(name));
+      const value = exercise ? progressValue(exercise, metric) : 0;
       return value > 0 ? [{ value, date: session.finishedAt }] : [];
-    });
-
-  if (!points.length) {
-    container.innerHTML = '<p class="chart-empty-state">Complete this exercise to see progress.</p>';
-    return;
-  }
-  const width = 340, height = 190, left = 38, right = 16, top = 18, bottom = 34;
-  const max = metric === "effort" ? 5 : Math.max(...points.map(point => point.value), 1);
-  const min = metric === "effort" ? 1 : Math.min(...points.map(point => point.value), 0);
-  const range = Math.max(max - min, 1);
-  const coords = points.map((point, index) => ({
-    ...point,
-    x: points.length === 1 ? width / 2 : left + index * ((width - left - right) / (points.length - 1)),
-    y: top + (max - point.value) / range * (height - top - bottom)
+    })
   }));
-  const line = coords.map(point => `${point.x},${point.y}`).join(" ");
-  const dots = coords.map(point => `<circle cx="${point.x}" cy="${point.y}" r="5"></circle>`).join("");
-  const firstDate = new Date(points[0].date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-  const lastDate = new Date(points.at(-1).date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Exercise progress"><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><polyline class="progress-line" points="${line}"></polyline><g class="progress-points">${dots}</g><text x="${left}" y="${height-8}">${firstDate}</text><text text-anchor="end" x="${width-right}" y="${height-8}">${lastDate}</text></svg>`;
+  const allPoints = series.flatMap(item => item.points);
+  if (!allPoints.length) { container.innerHTML = '<p class="chart-empty-state">No recorded results for this view.</p>'; }
+  else {
+    const width=340,height=220,left=48,right=14,top=14,bottom=38;
+    const dates=allPoints.map(p=>new Date(p.date).getTime()), minDate=Math.min(...dates), maxDate=Math.max(...dates);
+    const maxValue=metric==="effort"?5:Math.max(...allPoints.map(p=>p.value),1), minValue=0;
+    const x=t=>maxDate===minDate?(left+width-right)/2:left+(t-minDate)/(maxDate-minDate)*(width-left-right);
+    const y=v=>top+(maxValue-v)/(maxValue-minValue||1)*(height-top-bottom);
+    const yTicks=[0,.25,.5,.75,1].map(f=>{const value=maxValue*f,py=y(value);return `<line class="progress-grid" x1="${left}" y1="${py}" x2="${width-right}" y2="${py}"></line><text text-anchor="end" x="${left-7}" y="${py+4}">${metric==="weight"?value.toFixed(maxValue<20?1:0):Math.round(value)}</text>`}).join("");
+    const lines=series.map(item=>{if(!item.points.length)return"";const coords=item.points.map(p=>`${x(new Date(p.date).getTime())},${y(p.value)}`).join(" ");const dots=item.points.map(p=>`<circle style="fill:${item.colour}" cx="${x(new Date(p.date).getTime())}" cy="${y(p.value)}" r="4"></circle>`).join("");return `<polyline style="stroke:${item.colour}" points="${coords}"></polyline>${dots}`}).join("");
+    const first=new Date(minDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),last=new Date(maxDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+    const unit=metric==="weight"?"kg":metric==="effort"?"Effort":"reps";
+    container.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${unit} progress over time"><g>${yTicks}</g><line class="progress-axis" x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"></line><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><g class="progress-series">${lines}</g><text class="axis-label" x="${left}" y="${height-9}">${first}</text><text class="axis-label" text-anchor="end" x="${width-right}" y="${height-9}">${last}</text><text class="axis-title" x="8" y="12">${unit}</text></svg>`;
+  }
+  legend.innerHTML="";
+  names.forEach((name,index)=>{const button=document.createElement("button");button.type="button";button.className="progress-legend-item";button.classList.toggle("is-hidden",progressHiddenExercises.has(normaliseProgressName(name)));button.innerHTML=`<span style="background:${progressLineColours[index%progressLineColours.length]}"></span>${name}`;button.onclick=()=>{const key=normaliseProgressName(name);progressHiddenExercises.has(key)?progressHiddenExercises.delete(key):progressHiddenExercises.add(key);drawExerciseProgressChart()};legend.appendChild(button)});
 }
 
-["progressExerciseFilter", "progressMetricFilter", "progressScopeFilter"].forEach(id =>
-  document.getElementById(id)?.addEventListener("change", drawExerciseProgressChart)
-);
+document.getElementById("openProgressFilters")?.addEventListener("click",()=>document.getElementById("progressFilterDialog")?.showModal());
+document.getElementById("closeProgressFilters")?.addEventListener("click",()=>document.getElementById("progressFilterDialog")?.close());
+["progressMetricFilter","progressScopeFilter"].forEach(id=>document.getElementById(id)?.addEventListener("change",drawExerciseProgressChart));
 
 
 // FORMAT A GRAPH DATE

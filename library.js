@@ -44,6 +44,13 @@ function refreshProgrammeViews() {
 }
 
 function setActiveProgramme(id) {
+  const programmes = getProgrammes();
+  const programme = programmes.find(item => item.id === id);
+  if (programme && !programme.activeRunId) {
+    programme.activeRunId = createId();
+    programme.activeRunStartedAt = new Date().toISOString();
+    saveProgrammes(programmes);
+  }
   localStorage.setItem(ACTIVE_KEY, id);
   viewedWorkoutProgrammeId = id;
   viewedWorkoutWeek = null;
@@ -66,6 +73,8 @@ function restartProgramme(id) {
   if (!programme) return;
 
   programme.currentWeek = 1;
+  programme.activeRunId = createId();
+  programme.activeRunStartedAt = new Date().toISOString();
   programme.weeks = (programme.weeks || []).map((week, weekIndex) => ({
     ...week,
     id: createId(),
@@ -189,7 +198,11 @@ function renderLibraryLegacy() {
     return;
   }
 
-  programmes.forEach(programme => {
+  programmes.sort((a, b) => {
+    if (a.id === activeId) return -1;
+    if (b.id === activeId) return 1;
+    return String(a.name || "").localeCompare(String(b.name || ""));
+  }).forEach(programme => {
     const card = document.createElement("div");
     card.className = "card";
 
@@ -1284,9 +1297,18 @@ function renderActiveWorkout() {
         row.className = "exercise-row";
         const exerciseName = document.createElement("strong");
         exerciseName.textContent = exercise.name;
+        if (exercise.starred) {
+          const star = document.createElement("svg");
+          star.classList.add("display-star");
+          star.setAttribute("aria-label", "Starred exercise");
+          star.innerHTML = '<use href="#icon-star-round"></use>';
+          row.append(exerciseName, star);
+        } else {
+          row.appendChild(exerciseName);
+        }
         const prescription = document.createElement("p");
         prescription.textContent = formatExercisePrescription(exercise);
-        row.append(exerciseName, prescription);
+        row.appendChild(prescription);
         if (exercise.note) {
           const note = document.createElement("p");
           note.className = "exercise-note";

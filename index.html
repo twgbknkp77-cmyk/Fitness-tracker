@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=39">
+  <link rel="stylesheet" href="style.css?v=40">
 </head>
 
 <body>
@@ -98,6 +98,7 @@
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
     <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="icon-star-round" viewBox="0 0 24 24"><path d="M12 3.8 14.45 8.8l5.5.8-3.98 3.88.94 5.47L12 16.37l-4.91 2.58.94-5.47L4.05 9.6l5.5-.8Z"/></symbol>
   </svg>
 
   <main>
@@ -226,14 +227,23 @@
 
 <!-- EXERCISE PROGRESS -->
 <div class="card goal-progress-card">
-  <h2>Exercise Progress</h2>
-  <div class="progress-chart-filters">
-    <select id="progressExerciseFilter" aria-label="Exercise"></select>
-    <select id="progressMetricFilter" aria-label="Metric"><option value="weight">Weight</option><option value="reps">Reps</option><option value="effort">Effort</option></select>
-    <select id="progressScopeFilter" aria-label="Scope"><option value="current">Current Block</option><option value="all">All Time</option></select>
+  <div class="progress-chart-header">
+    <h2>Exercise Progress</h2>
+    <button type="button" id="openProgressFilters" class="icon-button" aria-label="Filter exercise progress"><svg aria-hidden="true"><use href="#icon-filter"></use></svg></button>
   </div>
   <div id="exerciseProgressChart"></div>
+  <div id="exerciseProgressLegend" class="exercise-progress-legend"></div>
 </div>
+
+<dialog id="progressFilterDialog" class="decision-dialog" aria-labelledby="progressFilterTitle">
+  <h2 id="progressFilterTitle">Progress Filters</h2>
+  <label for="progressMetricFilter">Metric</label>
+  <select id="progressMetricFilter"><option value="weight">Weight</option><option value="reps">Reps</option><option value="effort">Effort</option></select>
+  <label for="progressScopeFilter">Scope</label>
+  <select id="progressScopeFilter"><option value="current">Current Block</option><option value="all">All Time</option></select>
+  <fieldset class="progress-exercise-choices"><legend>Exercises</legend><div id="progressExerciseChoices"></div></fieldset>
+  <button type="button" id="closeProgressFilters" class="primary-button">Done</button>
+</dialog>
 
 <!-- ADD WEIGHT POP-UP -->
 <dialog id="weightModal" aria-labelledby="weightModalTitle">
@@ -345,7 +355,7 @@
 <section id="workouts" class="page">
   <div class="page-header">
     <h1>Workouts</h1>
-    <button type="button" class="icon-button" onclick="renderWorkoutHistory(); showPage('workoutHistory')" aria-label="View workout history">
+    <button type="button" class="icon-button outlined-icon-button" onclick="renderWorkoutHistory(); showPage('workoutHistory')" aria-label="View workout history">
       <svg aria-hidden="true"><use href="#icon-history"></use></svg>
     </button>
   </div>
@@ -360,7 +370,7 @@
 
   <div class="page-header">
     <h1>Library</h1>
-    <button type="button" class="icon-button" id="createProgramme" aria-label="Create programme">
+    <button type="button" class="icon-button outlined-icon-button" id="createProgramme" aria-label="Create programme">
       <svg aria-hidden="true"><use href="#icon-plus"></use></svg>
     </button>
   </div>
@@ -506,47 +516,6 @@
 
 </details>
 
-  <details class="card profile-editor-card" id="exerciseGoalEditor">
-  <summary>
-    <span>Exercise Goals</span>
-    <svg class="summary-action-icon" aria-hidden="true"><use href="#icon-edit"></use></svg>
-  </summary>
-
-  <label for="exerciseGoalName">
-    Exercise
-  </label>
-
-  <input
-    type="text"
-    id="exerciseGoalName"
-    placeholder="e.g. Bench Press"
-    autocomplete="off"
-  >
-
-  <label for="exerciseGoalWeight">
-    Target weight (kg)
-  </label>
-
-  <input
-    type="number"
-    id="exerciseGoalWeight"
-    inputmode="decimal"
-    min="0"
-    step="0.5"
-    placeholder="e.g. 100"
-  >
-
-  <div class="editor-actions">
-    <button type="button" id="cancelExerciseGoal">Cancel</button>
-    <button type="button" id="addExerciseGoal" class="primary-button">Done</button>
-  </div>
-
-  </details>
-
-<div id="exerciseGoalsList">
-  <!-- Saved exercise goals will appear here -->
-</div>
-
 <div class="card data-backup-card">
   <div>
     <h2>Backup &amp; Restore</h2>
@@ -643,9 +612,9 @@
   <h2 id="programmeExitTitle">Leave this new programme?</h2>
   <p>You can save it as a draft and finish it later, or discard it.</p>
   <div class="programme-exit-actions">
-    <button type="button" id="cancelProgrammeExit">Cancel</button>
-    <button type="button" id="discardProgrammeDraft" class="danger-button">Discard</button>
     <button type="button" id="saveProgrammeDraft" class="primary-button">Save Draft</button>
+    <button type="button" id="discardProgrammeDraft" class="danger-button">Discard</button>
+    <button type="button" id="cancelProgrammeExit">Cancel</button>
   </div>
 </dialog>
 
@@ -913,11 +882,11 @@
   </script>
 
   <script src="storage.js?v=4"></script>
-  <script src="dashboard.js?v=17"></script>
-  <script src="library.js?v=24"></script>
-  <script src="programme-editor.js?v=18"></script>
-  <script src="workout-session.js?v=15"></script>
-  <script src="workout-history.js?v=11"></script>
+  <script src="dashboard.js?v=18"></script>
+  <script src="library.js?v=25"></script>
+  <script src="programme-editor.js?v=19"></script>
+  <script src="workout-session.js?v=16"></script>
+  <script src="workout-history.js?v=12"></script>
   <script src="profile.js?v=8"></script>
   <script src="measurements.js?v=3"></script>
   <script src="data-management.js?v=3"></script>
