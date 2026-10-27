@@ -362,7 +362,21 @@ function renderProgrammeEditor() {
           }
         }
       ]);
-      row.append(copy, menu);
+      const star = document.createElement("button");
+      star.type = "button";
+      star.className = "exercise-star-button";
+      star.textContent = exercise.starred ? "★" : "☆";
+      star.setAttribute("aria-label", exercise.starred ? `Unstar ${exercise.name}` : `Star ${exercise.name}`);
+      star.addEventListener("click", async () => {
+        const scope = await chooseWeekScope(programme, week);
+        if (scope === "cancel") return;
+        exercise.starred = !exercise.starred;
+        finishWeekChange(programme, week, scope);
+      });
+      const actions = document.createElement("div");
+      actions.className = "editor-exercise-actions";
+      actions.append(star, menu);
+      row.append(copy, actions);
       exerciseList.appendChild(row);
     });
     card.appendChild(exerciseList);

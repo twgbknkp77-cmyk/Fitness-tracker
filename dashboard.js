@@ -541,8 +541,87 @@ function updateDashboard() {
   }
 
   drawWeightChart();
-  drawGoalRadarChart();
+  drawExerciseProgressChart();
 }
+
+function getStarredExerciseNames() {
+  const normalise = value => String(value || "").trim().toLowerCase();
+  const names = new Map();
+  getProgrammes().forEach(programme => (programme.weeks || []).forEach(week =>
+    (week.trainingDays || []).forEach(day => (day.exercises || []).forEach(exercise => {
+      if (exercise.starred && exercise.name) names.set(normalise(exercise.name), exercise.name);
+    }))
+  ));
+  return [...names.values()];
+}
+
+function drawExerciseProgressChart() {
+  const normalise = value => String(value || "").trim().toLowerCase();
+  const container = document.getElementById("exerciseProgressChart");
+  const exerciseFilter = document.getElementById("progressExerciseFilter");
+  const metricFilter = document.getElementById("progressMetricFilter");
+  const scopeFilter = document.getElementById("progressScopeFilter");
+  if (!container || !exerciseFilter || !metricFilter || !scopeFilter) return;
+
+  const names = getStarredExerciseNames();
+  const selected = exerciseFilter.value;
+  exerciseFilter.innerHTML = "";
+  names.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    exerciseFilter.appendChild(option);
+  });
+  if (names.includes(selected)) exerciseFilter.value = selected;
+  if (!names.length) {
+    container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>';
+    return;
+  }
+
+  const wantedName = normalise(exerciseFilter.value || names[0]);
+  const active = getProgrammes().find(item => item.id === getActiveProgrammeId());
+  const metric = metricFilter.value;
+  let progressHistory = [];
+  try { progressHistory = JSON.parse(localStorage.getItem("fitness_workout_history") || "[]"); } catch {}
+  const points = (Array.isArray(progressHistory) ? progressHistory : [])
+    .filter(session => scopeFilter.value === "all" ||
+      (active && (session.programmeRunId || session.programmeId) === (active.activeRunId || active.id)))
+    .sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt))
+    .flatMap(session => {
+      const exercise = (session.exercises || []).find(item => normalise(item.name) === wantedName);
+      if (!exercise) return [];
+      let value;
+      if (metric === "effort") value = Number(exercise.effort);
+      else {
+        const sets = (exercise.sets || []).filter(set => set.completed);
+        value = sets.length ? Math.max(...sets.map(set => Number(set[metric]) || 0)) : 0;
+      }
+      return value > 0 ? [{ value, date: session.finishedAt }] : [];
+    });
+
+  if (!points.length) {
+    container.innerHTML = '<p class="chart-empty-state">Complete this exercise to see progress.</p>';
+    return;
+  }
+  const width = 340, height = 190, left = 38, right = 16, top = 18, bottom = 34;
+  const max = metric === "effort" ? 5 : Math.max(...points.map(point => point.value), 1);
+  const min = metric === "effort" ? 1 : Math.min(...points.map(point => point.value), 0);
+  const range = Math.max(max - min, 1);
+  const coords = points.map((point, index) => ({
+    ...point,
+    x: points.length === 1 ? width / 2 : left + index * ((width - left - right) / (points.length - 1)),
+    y: top + (max - point.value) / range * (height - top - bottom)
+  }));
+  const line = coords.map(point => `${point.x},${point.y}`).join(" ");
+  const dots = coords.map(point => `<circle cx="${point.x}" cy="${point.y}" r="5"></circle>`).join("");
+  const firstDate = new Date(points[0].date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const lastDate = new Date(points.at(-1).date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Exercise progress"><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><polyline class="progress-line" points="${line}"></polyline><g class="progress-points">${dots}</g><text x="${left}" y="${height-8}">${firstDate}</text><text text-anchor="end" x="${width-right}" y="${height-8}">${lastDate}</text></svg>`;
+}
+
+["progressExerciseFilter", "progressMetricFilter", "progressScopeFilter"].forEach(id =>
+  document.getElementById(id)?.addEventListener("change", drawExerciseProgressChart)
+);
 
 
 // FORMAT A GRAPH DATE

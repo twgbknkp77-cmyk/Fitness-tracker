@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=38">
+  <link rel="stylesheet" href="style.css?v=39">
 </head>
 
 <body>
@@ -224,14 +224,15 @@
 
 </div>
 
-<!-- GOAL PROGRESS -->
+<!-- EXERCISE PROGRESS -->
 <div class="card goal-progress-card">
-
-  <h2>Goal Progress</h2>
-
-  <div id="goalRadarChart">
+  <h2>Exercise Progress</h2>
+  <div class="progress-chart-filters">
+    <select id="progressExerciseFilter" aria-label="Exercise"></select>
+    <select id="progressMetricFilter" aria-label="Metric"><option value="weight">Weight</option><option value="reps">Reps</option><option value="effort">Effort</option></select>
+    <select id="progressScopeFilter" aria-label="Scope"><option value="current">Current Block</option><option value="all">All Time</option></select>
   </div>
-
+  <div id="exerciseProgressChart"></div>
 </div>
 
 <!-- ADD WEIGHT POP-UP -->
@@ -403,7 +404,7 @@
 <!-- WORKOUT SESSION PAGE -->
 <section id="workoutSession" class="page">
   <div class="session-header">
-    <button type="button" id="cancelWorkout" class="icon-button" aria-label="Exit workout">×</button>
+    <button type="button" id="cancelWorkout" class="icon-button" aria-label="Back"><svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg></button>
     <div>
       <h1 id="sessionWorkoutName">Workout Session</h1>
       <p id="sessionProgrammeName"></p>
@@ -416,7 +417,7 @@
   </div>
 
   <div class="session-action-bar">
-    <p id="sessionProgress">0 sets recorded</p>
+    <p id="sessionProgress" hidden>0 results recorded</p>
     <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
   </div>
 
@@ -424,10 +425,11 @@
 <!-- END WORKOUT SESSION -->
 
 <dialog id="discardWorkoutDialog" class="decision-dialog" aria-labelledby="discardWorkoutTitle">
-  <h2 id="discardWorkoutTitle">Discard this workout session?</h2>
-  <div class="decision-dialog-actions">
-    <button type="button" id="keepWorkoutSession">No</button>
-    <button type="button" id="confirmDiscardWorkout" class="danger-button">Yes</button>
+  <h2 id="discardWorkoutTitle">Leave this workout?</h2>
+  <div class="decision-dialog-actions stacked-dialog-actions workout-exit-actions">
+    <button type="button" id="saveAndExitWorkout" class="primary-button">Save &amp; Exit</button>
+    <button type="button" id="keepWorkoutSession">Continue</button>
+    <button type="button" id="confirmDiscardWorkout" class="danger-button">Discard</button>
   </div>
 </dialog>
 
@@ -911,11 +913,11 @@
   </script>
 
   <script src="storage.js?v=4"></script>
-  <script src="dashboard.js?v=16"></script>
-  <script src="library.js?v=23"></script>
-  <script src="programme-editor.js?v=17"></script>
-  <script src="workout-session.js?v=14"></script>
-  <script src="workout-history.js?v=10"></script>
+  <script src="dashboard.js?v=17"></script>
+  <script src="library.js?v=24"></script>
+  <script src="programme-editor.js?v=18"></script>
+  <script src="workout-session.js?v=15"></script>
+  <script src="workout-history.js?v=11"></script>
   <script src="profile.js?v=8"></script>
   <script src="measurements.js?v=3"></script>
   <script src="data-management.js?v=3"></script>

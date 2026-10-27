@@ -67,6 +67,7 @@ function getPreviousExerciseResult(exercise, beforeTime) {
       return {
         finishedAt: session.finishedAt,
         note: previousExercise.sessionNote || "",
+        effort: Number(previousExercise.effort) || null,
         durationMinutes: previousExercise.durationMinutes,
         sets: Array.isArray(previousExercise.sets)
           ? previousExercise.sets.filter(set => set.completed)
@@ -121,6 +122,13 @@ function createSessionSet(plannedWeight, plannedReps, plannedRepTarget = "") {
 
 // START A WORKOUT
 function startWorkout(workoutId) {
+  const savedSession = getSavedWorkoutSession();
+  if (savedSession) {
+    currentSession = savedSession;
+    renderWorkoutSession();
+    showPage("workoutSession");
+    return;
+  }
   const programme = getProgrammes().find(
     item => item.id === getActiveProgrammeId()
   );
@@ -148,6 +156,8 @@ function startWorkout(workoutId) {
     id: createId(),
     programmeId: programme.id,
     programmeName: programme.name,
+    programmeRunId: programme.activeRunId || programme.id,
+    programmeRunStartedAt: programme.activeRunStartedAt || startedAt,
     weekId: week?.id || null,
     weekNumber: programme.currentWeek || 1,
     workoutId: workout.id,
@@ -160,6 +170,7 @@ function startWorkout(workoutId) {
       type: exercise.type || "strength",
       note: exercise.note || "",
       sessionNote: "",
+      effort: null,
       completed: false,
       collapsed: false,
       targetSets: Number(exercise.sets) || 0,
@@ -544,6 +555,13 @@ function renderWorkoutSession() {
       card.appendChild(lastNote);
     }
 
+    if (exercise.previousResult?.effort) {
+      const lastEffort = document.createElement("p");
+      lastEffort.className = "previous-session-effort";
+      lastEffort.textContent = `Last effort: ${exercise.previousResult.effort}/5`;
+      card.appendChild(lastEffort);
+    }
+
     if (exercise.type === "cardio") {
       const cardioRow = document.createElement("div");
       cardioRow.className = "session-cardio-row";
@@ -628,6 +646,28 @@ function renderWorkoutSession() {
     });
     sessionNoteLabel.appendChild(sessionNoteInput);
     card.appendChild(sessionNoteLabel);
+
+    const effort = document.createElement("fieldset");
+    effort.className = "exercise-effort";
+    const effortTitle = document.createElement("legend");
+    effortTitle.textContent = "Effort";
+    const effortButtons = document.createElement("div");
+    effortButtons.className = "effort-buttons";
+    for (let rating = 1; rating <= 5; rating += 1) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `effort-button effort-${rating}`;
+      button.textContent = String(rating);
+      button.setAttribute("aria-pressed", String(Number(exercise.effort) === rating));
+      button.addEventListener("click", () => {
+        exercise.effort = Number(exercise.effort) === rating ? null : rating;
+        saveActiveWorkoutSession();
+        renderWorkoutSession();
+      });
+      effortButtons.appendChild(button);
+    }
+    effort.append(effortTitle, effortButtons);
+    card.appendChild(effort);
 
     actionRow.appendChild(completeButton);
     if (exercise.type !== "cardio") actionRow.appendChild(menu);
@@ -794,6 +834,15 @@ document
 
     showPage("workouts");
   });
+
+document.getElementById("saveAndExitWorkout")?.addEventListener("click", () => {
+  saveActiveWorkoutSession();
+  document.getElementById("discardWorkoutDialog")?.close();
+  currentSession = null;
+  if (typeof renderActiveWorkout === "function") renderActiveWorkout();
+  if (typeof updateDashboard === "function") updateDashboard();
+  showPage("workouts");
+});
 
 
 // CANCEL WORKOUT
