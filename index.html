@@ -18,7 +18,7 @@
 
   <!-- MAIN STYLESHEET -->
   <link rel="stylesheet" href="style.css?v=46">
-  <link rel="stylesheet" href="refinements.css?v=3">
+  <link rel="stylesheet" href="refinements.css?v=4">
 </head>
 
 <body>
@@ -656,10 +656,14 @@
     <button type="button" id="exerciseStatFilter" class="icon-button outlined-icon-button" aria-label="Filter performance"><svg aria-hidden="true"><use href="#icon-filter"></use></svg></button>
   </div>
   <div class="card exercise-stat-controls">
-    <strong id="exerciseStatSelection">All Exercises</strong>
+    <div id="exerciseStatSpecificHeader" class="exercise-stat-specific-header" hidden>
+      <button type="button" id="showAllPerformance" class="icon-button" aria-label="Back to all exercises"><svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg></button>
+      <strong id="exerciseStatSelection"></strong>
+    </div>
     <div id="exerciseStatMetric" class="exercise-stat-metrics">
       <button type="button" data-metric="weight" class="active">Weight</button>
       <button type="button" data-metric="reps">Reps</button>
+      <button type="button" data-metric="duration">Time</button>
       <button type="button" data-metric="effort">Effort</button>
     </div>
   </div>
@@ -1040,10 +1044,10 @@
   <script src="library.js?v=30"></script>
   <script src="programme-overview.js?v=3"></script>
   <script src="programme-editor.js?v=23"></script>
-  <script src="workout-session.js?v=23"></script>
+  <script src="workout-session.js?v=24"></script>
   <script src="workout-history.js?v=13"></script>
   <script src="profile.js?v=9"></script>
-  <script src="statistics.js?v=4"></script>
+  <script src="statistics.js?v=5"></script>
   <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

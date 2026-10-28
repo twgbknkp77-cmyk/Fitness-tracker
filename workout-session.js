@@ -41,7 +41,7 @@ function showTimerFinishedAlert() {
   document.body.appendChild(toast); requestAnimationFrame(()=>toast.classList.add("show"));
   setTimeout(()=>{toast.classList.remove("show");setTimeout(()=>toast.remove(),250);},2800);
   if (document.hidden && timerNotificationEnabled() && "Notification" in window && Notification.permission === "granted") {
-    new Notification("Time’s up", { body:"Rest over — get back to it.", icon:"icons/spot-icon-192.png", tag:"spot-rest-timer" });
+    new Notification("Rest time complete", { icon:"icons/spot-icon-192.png", tag:"spot-rest-timer" });
   }
 }
 
