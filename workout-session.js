@@ -10,17 +10,38 @@ let restTimerInterval = null;
 let restTimerPaused = false;
 const REST_TIMER_CHOICE_KEY = "spot_rest_timer_choice_v1";
 const SPOT_NOTIFICATIONS_KEY = "spot_notifications_enabled_v1";
+let timerAudioContext = null;
+
+function primeTimerAudio() {
+  try {
+    timerAudioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (timerAudioContext.state === "suspended") timerAudioContext.resume();
+  } catch {}
+}
+
+function playTimerSound() {
+  if (!timerAudioContext || timerAudioContext.state !== "running") return;
+  [0, .18].forEach((delay, index) => {
+    const oscillator=timerAudioContext.createOscillator(); const gain=timerAudioContext.createGain();
+    oscillator.type="sine"; oscillator.frequency.value=index?880:660;
+    gain.gain.setValueAtTime(.0001,timerAudioContext.currentTime+delay);
+    gain.gain.exponentialRampToValueAtTime(.18,timerAudioContext.currentTime+delay+.015);
+    gain.gain.exponentialRampToValueAtTime(.0001,timerAudioContext.currentTime+delay+.17);
+    oscillator.connect(gain); gain.connect(timerAudioContext.destination);
+    oscillator.start(timerAudioContext.currentTime+delay); oscillator.stop(timerAudioContext.currentTime+delay+.19);
+  });
+}
 
 function timerNotificationEnabled() {
   return localStorage.getItem(SPOT_NOTIFICATIONS_KEY) === "true";
 }
 
 function showTimerFinishedAlert() {
-  const toast=document.createElement("div"); toast.className="spot-timer-toast"; toast.textContent="Rest complete";
+  const toast=document.createElement("div"); toast.className="spot-timer-toast"; toast.textContent="Time’s up — rest over";
   document.body.appendChild(toast); requestAnimationFrame(()=>toast.classList.add("show"));
   setTimeout(()=>{toast.classList.remove("show");setTimeout(()=>toast.remove(),250);},2800);
   if (document.hidden && timerNotificationEnabled() && "Notification" in window && Notification.permission === "granted") {
-    new Notification("Spot", { body:"Your rest timer has finished.", icon:"icons/spot-icon-192.png", tag:"spot-rest-timer" });
+    new Notification("Time’s up", { body:"Rest over — get back to it.", icon:"icons/spot-icon-192.png", tag:"spot-rest-timer" });
   }
 }
 
@@ -116,12 +137,13 @@ function updateRestTimerDisplay() {
   if (!running && restTimerInterval) {
     clearInterval(restTimerInterval); restTimerInterval=null;
     if (!restTimerPaused && typeof navigator.vibrate==="function") navigator.vibrate([160,90,160]);
-    if (!restTimerPaused) showTimerFinishedAlert();
+    if (!restTimerPaused) { playTimerSound(); showTimerFinishedAlert(); }
     button?.classList.add("timer-finished"); setTimeout(()=>button?.classList.remove("timer-finished"),900);
   }
 }
 
 function startRestTimer(seconds) {
+  primeTimerAudio();
   restTimerRemaining=Number(seconds)||60; restTimerEndsAt=Date.now()+restTimerRemaining*1000; restTimerPaused=false;
   localStorage.setItem(REST_TIMER_CHOICE_KEY,String(seconds)); clearInterval(restTimerInterval);
   restTimerInterval=setInterval(updateRestTimerDisplay,250); updateRestTimerDisplay(); document.getElementById("restTimerDialog")?.close();
@@ -1012,7 +1034,6 @@ document.getElementById("dockPauseRestTimer")?.addEventListener("click", () => {
 document.getElementById("showCustomRestTimer")?.addEventListener("click",()=>{
   document.getElementById("restTimerPresets")?.setAttribute("hidden","");
   document.getElementById("customRestTimer")?.removeAttribute("hidden");
-  document.getElementById("customRestSeconds")?.focus();
 });
 document.getElementById("startCustomRestTimer")?.addEventListener("click",async()=>{
   const input=document.getElementById("customRestSeconds"); const seconds=Number(input?.value);

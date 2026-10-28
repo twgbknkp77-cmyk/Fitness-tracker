@@ -160,9 +160,6 @@ function renderStatistics() {
   if (!recordList.children.length) recordList.innerHTML = "<p class='statistics-empty'>Complete workouts to build your records.</p>";
   records.appendChild(recordList);
 
-  if (activeId && currentProgrammeSessions.length) {
-    average.insertAdjacentHTML("beforeend", `<small>${currentProgrammeSessions.length} in your active programme</small>`);
-  }
   container.append(training, consistency, progress);
   animateStatisticNumbers(container);
 }
@@ -197,6 +194,7 @@ updateStatisticsFilterLabel();
 
 let exerciseStatMetric="weight";
 let exerciseStatExercise="all";
+let exerciseStatSort="name";
 function exerciseStatRows() {
   const rows=[];
   filteredStatisticsHistory().forEach(session=>(session.exercises||[]).forEach(exercise=>{
@@ -211,18 +209,25 @@ function renderExerciseStatistics() {
   const rows=exerciseStatRows(); const names=[...new Set(rows.map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   if(exerciseStatExercise!=="all"&&!names.includes(exerciseStatExercise))exerciseStatExercise="all";
   const selection=document.getElementById("exerciseStatSelection"); if(selection)selection.textContent=exerciseStatExercise==="all"?"All Exercises":exerciseStatExercise;
+  document.getElementById("exerciseStatMetric")?.toggleAttribute("hidden",exerciseStatExercise==="all");
   renderExerciseStatFilter(names);
   const unit=exerciseStatMetric==="weight"?" kg":exerciseStatMetric==="effort"?"/5":"";
   if(exerciseStatExercise==="all"){
-    const summaries=names.map(name=>{const values=rows.filter(row=>row.name===name&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));return {name,latest:values.at(-1)?.[exerciseStatMetric]||0,best:Math.max(0,...values.map(row=>row[exerciseStatMetric])),sessions:values.length};}).filter(item=>item.sessions);
-    container.innerHTML=summaries.length?`<div class="performance-list">${summaries.map(item=>`<button type="button" class="card performance-row" data-exercise="${item.name.replaceAll('"','&quot;')}"><span><strong>${item.name}</strong><small>${item.sessions} ${item.sessions===1?"session":"sessions"}</small></span><span><small>Latest</small><strong>${item.latest}${unit}</strong></span><span class="performance-chevron"><svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg></span></button>`).join("")}</div>`:"<div class='card empty-state-card'><p>Complete an exercise to see its statistics.</p></div>";
+    const summaries=names.map(name=>{const values=rows.filter(row=>row.name===name).sort((a,b)=>new Date(a.date)-new Date(b.date));const valid=metric=>values.filter(row=>row[metric]>0);const firstWeight=valid("weight")[0]?.weight||0;const latestWeight=valid("weight").at(-1)?.weight||0;return {name,sessions:values.length,latestWeight,bestWeight:Math.max(0,...values.map(row=>row.weight)),latestReps:valid("reps").at(-1)?.reps||0,bestReps:Math.max(0,...values.map(row=>row.reps)),latestEffort:valid("effort").at(-1)?.effort||0,bestEffort:Math.max(0,...values.map(row=>row.effort)),improvement:firstWeight?Math.round((latestWeight-firstWeight)/firstWeight*100):0};}).filter(item=>item.sessions);
+    const sorters={name:(a,b)=>a.name.localeCompare(b.name),weight:(a,b)=>b.bestWeight-a.bestWeight,reps:(a,b)=>b.bestReps-a.bestReps,effort:(a,b)=>b.bestEffort-a.bestEffort,improvement:(a,b)=>b.improvement-a.improvement}; summaries.sort(sorters[exerciseStatSort]||sorters.name);
+    container.innerHTML=summaries.length?`<div class="performance-list">${summaries.map(item=>`<button type="button" class="card performance-summary-card" data-exercise="${item.name.replaceAll('"','&quot;')}"><div class="performance-summary-heading"><span><strong>${item.name}</strong><small>${item.sessions} ${item.sessions===1?"session":"sessions"}</small></span><span class="performance-chevron"><svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg></span></div><div class="performance-summary-grid"><span><small>Latest weight</small><strong>${item.latestWeight} kg</strong></span><span><small>Highest weight</small><strong>${item.bestWeight} kg</strong></span><span><small>Latest reps</small><strong>${item.latestReps}</strong></span><span><small>Highest reps</small><strong>${item.bestReps}</strong></span><span><small>Latest effort</small><strong>${item.latestEffort||"—"}</strong></span><span><small>Highest effort</small><strong>${item.bestEffort||"—"}</strong></span></div></button>`).join("")}</div>`:"<div class='card empty-state-card'><p>Complete an exercise to see its statistics.</p></div>";
     container.querySelectorAll("[data-exercise]").forEach(button=>button.addEventListener("click",()=>{exerciseStatExercise=button.dataset.exercise;renderExerciseStatistics();})); return;
   }
   const chosen=exerciseStatExercise; const values=rows.filter(row=>row.name===chosen&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
   const latest=values.at(-1)?.[exerciseStatMetric]||0; const first=values[0]?.[exerciseStatMetric]||0; const best=Math.max(0,...values.map(row=>row[exerciseStatMetric])); const change=first?Math.round((latest-first)/first*100):0;
   container.innerHTML=`<div class="exercise-stat-grid"><div class="card"><span>Latest</span><strong>${latest}${unit}</strong></div><div class="card"><span>Best</span><strong>${best}${unit}</strong></div><div class="card"><span>Change</span><strong>${change>0?"+":""}${change}%</strong></div><div class="card"><span>Sessions</span><strong>${values.length}</strong></div></div><div class="card exercise-stat-history"><h2>Recent Sessions</h2>${values.slice(-8).reverse().map(row=>`<p><span>${new Date(row.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span><strong>${row[exerciseStatMetric]}${unit}</strong></p>`).join("")||"<p>No results for this metric.</p>"}</div>`;
 }
-function renderExerciseStatFilter(names){const options=document.getElementById("exerciseStatOptions");if(!options)return;options.innerHTML="";["all",...names].forEach(name=>{const button=document.createElement("button");button.type="button";button.textContent=name==="all"?"All Exercises":name;button.classList.toggle("active",name===exerciseStatExercise);button.onclick=()=>{exerciseStatExercise=name;document.getElementById("exerciseStatFilterDialog")?.close();renderExerciseStatistics();};options.appendChild(button);});}
+function renderExerciseStatFilter(names){
+  const options=document.getElementById("exerciseStatOptions");if(!options)return;options.innerHTML="<h3>Show</h3>";
+  ["all",...names].forEach(name=>{const button=document.createElement("button");button.type="button";button.textContent=name==="all"?"All Exercises":name;button.classList.toggle("active",name===exerciseStatExercise);button.onclick=()=>{exerciseStatExercise=name;document.getElementById("exerciseStatFilterDialog")?.close();renderExerciseStatistics();};options.appendChild(button);});
+  const sortTitle=document.createElement("h3");sortTitle.textContent="Sort all exercises";options.appendChild(sortTitle);
+  [["name","Name"],["weight","Highest Weight"],["reps","Highest Reps"],["effort","Highest Effort"],["improvement","Greatest Improvement"]].forEach(([value,label])=>{const button=document.createElement("button");button.type="button";button.textContent=label;button.classList.toggle("active",value===exerciseStatSort);button.onclick=()=>{exerciseStatSort=value;exerciseStatExercise="all";document.getElementById("exerciseStatFilterDialog")?.close();renderExerciseStatistics();};options.appendChild(button);});
+}
 document.getElementById("exerciseStatisticsBack")?.addEventListener("click",()=>showPage("statistics"));
 document.getElementById("exerciseStatFilter")?.addEventListener("click",()=>{renderExerciseStatFilter([...new Set(exerciseStatRows().map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b)));document.getElementById("exerciseStatFilterDialog")?.showModal();});
 document.getElementById("closeExerciseStatFilter")?.addEventListener("click",()=>document.getElementById("exerciseStatFilterDialog")?.close());
