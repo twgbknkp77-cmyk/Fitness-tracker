@@ -1974,6 +1974,62 @@ nav { background:#171717; border-color:#464646; box-shadow:0 10px 30px rgba(0,0,
 .editor-header-action { min-width:72px; min-height:42px; padding:8px 14px; color:var(--background); background:var(--orange); border:0; border-radius:12px; font-weight:800; }
 #discardProgrammeChanges { margin-top:12px; }
 nav { width:min(calc(100% - 44px),660px); }
+
+/* Final programme and workout detail cascade. */
+dialog button:focus,dialog button:focus-visible,dialog button:active { outline:none !important; box-shadow:none !important; }
+@media (hover:hover) and (pointer:fine) { dialog button:focus-visible { outline:2px solid #777 !important; outline-offset:2px; } }
+.editor-readonly .edit-name-button { display:none; }
+.editor-edit-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 0 14px; }
+.editor-edit-actions button { width:100%; min-height:48px; margin:0; }
+#discardProgrammeChanges { min-height:48px; margin:0; color:var(--white); background:#292929; border:1px solid #444; border-radius:12px; }
+#commitProgrammeChanges { border-radius:12px; }
+.editor-page-header .editor-header-action[hidden],.editor-edit-actions[hidden] { display:none; }
+.editor-day-card { min-height:74px; }
+.editor-day-card.is-collapsed { padding-top:14px; padding-bottom:14px; }
+.workout-detail-header { display:grid; grid-template-columns:52px minmax(0,1fr) auto; align-items:center; gap:12px; margin-bottom:14px; }
+.workout-detail-header h2 { min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workout-detail-back { margin:0; }
+.workout-detail-start { width:auto; min-width:112px; min-height:48px; margin:0; padding:10px 16px; }
+.week-navigation > button { position:relative; display:grid !important; place-items:center !important; }
+.week-navigation > button svg { position:absolute; inset:50% auto auto 50%; width:24px; height:24px; margin:0; transform:translate(-50%,-50%); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.history-detail-summary { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px 14px; }
+.history-detail-summary h2,.history-detail-summary p { grid-column:1; }
+.history-detail-summary .history-edit-button { grid-column:2; grid-row:1 / span 2; align-self:center; margin:0; }
+#editMeasurementModal input { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; height:52px; padding:12px 14px; }
+#editMeasurementTitle:focus { outline:none; }
+@media (max-width:430px) {
+  .workout-detail-header { grid-template-columns:48px minmax(0,1fr) auto; gap:9px; }
+  .workout-detail-header h2 { font-size:19px; }
+  .workout-detail-start { min-width:92px; padding:9px 12px; font-size:14px; }
+}
+
+/* October 28 programme and workout detail refinement. */
+dialog button:focus,dialog button:focus-visible,dialog button:active { outline:none !important; box-shadow:none !important; }
+@media (hover:hover) and (pointer:fine) { dialog button:focus-visible { outline:2px solid #777 !important; outline-offset:2px; } }
+.editor-readonly .edit-name-button { display:none; }
+.editor-edit-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 0 14px; }
+.editor-edit-actions button { width:100%; min-height:48px; margin:0; }
+#discardProgrammeChanges { color:var(--white); background:#292929; border:1px solid #444; border-radius:12px; }
+#commitProgrammeChanges { border-radius:12px; }
+.editor-page-header .editor-header-action[hidden],.editor-edit-actions[hidden] { display:none; }
+.editor-day-card { min-height:74px; }
+.editor-day-card.is-collapsed { padding-top:14px; padding-bottom:14px; }
+.workout-detail-header { display:grid; grid-template-columns:52px minmax(0,1fr) auto; align-items:center; gap:12px; margin-bottom:14px; }
+.workout-detail-header h2 { min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workout-detail-back { margin:0; }
+.workout-detail-start { width:auto; min-width:112px; min-height:48px; margin:0; padding:10px 16px; }
+.week-navigation > button { position:relative; display:grid !important; place-items:center !important; }
+.week-navigation > button svg { position:absolute; inset:50% auto auto 50%; width:24px; height:24px; margin:0; transform:translate(-50%,-50%); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.history-detail-summary { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px 14px; }
+.history-detail-summary h2,.history-detail-summary p { grid-column:1; }
+.history-detail-summary .history-edit-button { grid-column:2; grid-row:1 / span 2; align-self:center; margin:0; }
+#editMeasurementModal input { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; height:52px; padding:12px 14px; }
+#editMeasurementTitle:focus { outline:none; }
+@media (max-width:430px) {
+  .workout-detail-header { grid-template-columns:48px minmax(0,1fr) auto; gap:9px; }
+  .workout-detail-header h2 { font-size:19px; }
+  .workout-detail-start { min-width:92px; padding:9px 12px; font-size:14px; }
+}
 .bodyweight-card #weightMessage:empty { display:none; }
 .workout-summary-card:not(.next-workout) .compact-card-header { min-height:70px; align-items:center; }
 .workout-summary-card:not(.next-workout) .workout-card-chevron { align-self:center; }
@@ -3447,3 +3503,31 @@ nav { left:50%; transform:translateX(-50%); background:#171717; border-color:#46
 .editor-header-action { min-width:72px; min-height:42px; padding:8px 14px; color:var(--background); background:var(--orange); border:0; border-radius:12px; font-weight:800; }
 #discardProgrammeChanges { width:100%; min-height:52px; margin-top:12px; color:var(--white); background:#292929; border:1px solid #444; }
 nav { width:min(calc(100% - 44px),660px); }
+
+/* Final workout detail and editor action cascade. */
+dialog button:focus,dialog button:focus-visible,dialog button:active { outline:none !important; box-shadow:none !important; }
+@media (hover:hover) and (pointer:fine) { dialog button:focus-visible { outline:2px solid #777 !important; outline-offset:2px; } }
+.editor-readonly .edit-name-button { display:none; }
+.editor-edit-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:0 0 14px; }
+.editor-edit-actions button { width:100%; min-height:48px; margin:0; }
+#discardProgrammeChanges { min-height:48px; margin:0; color:var(--white); background:#292929; border:1px solid #444; border-radius:12px; }
+#commitProgrammeChanges { border-radius:12px; }
+.editor-page-header .editor-header-action[hidden],.editor-edit-actions[hidden] { display:none; }
+.editor-day-card { min-height:74px; }
+.editor-day-card.is-collapsed { padding-top:14px; padding-bottom:14px; }
+.workout-detail-header { display:grid; grid-template-columns:52px minmax(0,1fr) auto; align-items:center; gap:12px; margin-bottom:14px; }
+.workout-detail-header h2 { min-width:0; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workout-detail-back { margin:0; }
+.workout-detail-start { width:auto; min-width:112px; min-height:48px; margin:0; padding:10px 16px; }
+.week-navigation > button { position:relative; display:grid !important; place-items:center !important; }
+.week-navigation > button svg { position:absolute; inset:50% auto auto 50%; width:24px; height:24px; margin:0; transform:translate(-50%,-50%); fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.history-detail-summary { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:8px 14px; }
+.history-detail-summary h2,.history-detail-summary p { grid-column:1; }
+.history-detail-summary .history-edit-button { grid-column:2; grid-row:1 / span 2; align-self:center; margin:0; }
+#editMeasurementModal input { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; height:52px; padding:12px 14px; }
+#editMeasurementTitle:focus { outline:none; }
+@media (max-width:430px) {
+  .workout-detail-header { grid-template-columns:48px minmax(0,1fr) auto; gap:9px; }
+  .workout-detail-header h2 { font-size:19px; }
+  .workout-detail-start { min-width:92px; padding:9px 12px; font-size:14px; }
+}

@@ -215,12 +215,15 @@ function renderProgrammeEditor() {
 
   const saveProgrammeButton = document.getElementById("saveProgramme");
   const discardChangesButton = document.getElementById("discardProgrammeChanges");
+  const editActions = document.getElementById("editorEditActions");
   if (saveProgrammeButton) {
     saveProgrammeButton.textContent = programme.isDraft
       ? "Save Programme"
       : editorIsEditing ? "Save Changes" : "Edit Programme";
+    saveProgrammeButton.hidden = !programme.isDraft && editorIsEditing;
   }
-  if (discardChangesButton) discardChangesButton.hidden = programme.isDraft || !editorIsEditing;
+  if (discardChangesButton) discardChangesButton.hidden = false;
+  if (editActions) editActions.hidden = programme.isDraft || !editorIsEditing;
   document.getElementById("programmeEditor")?.classList.toggle("editor-readonly", !programme.isDraft && !editorIsEditing);
 
   header.innerHTML = "";
@@ -362,7 +365,7 @@ function renderProgrammeEditor() {
     dayHeader.addEventListener("click", event => {
       if (!event.target.closest("button,input")) expandDay.click();
     });
-    dayHeader.append(handle, name, expandDay, deleteDay);
+    dayHeader.append(handle, name, deleteDay, expandDay);
     card.appendChild(dayHeader);
 
     const exerciseList = document.createElement("div");
@@ -663,6 +666,10 @@ document.getElementById("discardProgrammeChanges")?.addEventListener("click", ()
   renderProgrammeEditor();
 });
 
+document.getElementById("commitProgrammeChanges")?.addEventListener("click", () => {
+  document.getElementById("saveProgramme")?.click();
+});
+
 document.getElementById("cancelProgrammeExit")?.addEventListener("click", () => {
   document.getElementById("programmeExitDialog")?.close();
 });
@@ -713,12 +720,23 @@ function addDayDragEvents(card, handle, programme, week, workout) {
     if (!active) return;
     const target = document.elementFromPoint(event.clientX, event.clientY)?.closest(".editor-day-card");
     if (!target || target === card) return;
+    const dayCards = [...card.parentElement.querySelectorAll(".editor-day-card")];
+    const before = new Map(dayCards.map(dayCard => [dayCard, dayCard.getBoundingClientRect().top]));
     const from = week.trainingDays.findIndex(item => item.id === workout.id);
     const to = week.trainingDays.findIndex(item => item.id === target.dataset.workoutId);
     if (from < 0 || to < 0) return;
     const [moved] = week.trainingDays.splice(from, 1);
     week.trainingDays.splice(to, 0, moved);
     target.parentNode.insertBefore(card, from < to ? target.nextSibling : target);
+    dayCards.forEach(dayCard => {
+      if (dayCard === card) return;
+      const movement = before.get(dayCard) - dayCard.getBoundingClientRect().top;
+      if (!movement) return;
+      dayCard.animate(
+        [{ transform: `translateY(${movement}px)` }, { transform: "translateY(0)" }],
+        { duration: 190, easing: "cubic-bezier(.2,.75,.25,1)" }
+      );
+    });
   });
   const finish = async () => {
     clearTimeout(holdTimer);

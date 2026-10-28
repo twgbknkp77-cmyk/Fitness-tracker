@@ -271,7 +271,7 @@ function renderWorkoutSessionLegacy() {
     const completeButton = document.createElement("button");
     completeButton.type = "button";
     completeButton.className = "exercise-complete-button";
-    completeButton.textContent = exercise.completed ? "Done ✓" : "Done";
+    completeButton.textContent = "Done";
     completeButton.setAttribute(
       "aria-label",
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`

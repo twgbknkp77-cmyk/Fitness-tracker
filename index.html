@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=43">
+  <link rel="stylesheet" href="style.css?v=44">
 </head>
 
 <body>
@@ -320,7 +320,7 @@
   id="editMeasurementModal"
   aria-labelledby="editMeasurementTitle"
 >
-  <h2 id="editMeasurementTitle">Edit Measurement</h2>
+  <h2 id="editMeasurementTitle" tabindex="-1">Edit Measurement</h2>
 
   <form id="editMeasurementForm">
     <input type="hidden" id="editMeasurementId">
@@ -393,6 +393,11 @@
     <button type="button" id="saveProgramme" class="editor-header-action">Edit</button>
   </div>
 
+  <div id="editorEditActions" class="editor-edit-actions" hidden>
+    <button type="button" id="discardProgrammeChanges">Cancel</button>
+    <button type="button" id="commitProgrammeChanges" class="primary-button">Done</button>
+  </div>
+
   <div id="editorProgrammeHeader"></div>
 
   <div id="editorWorkouts">
@@ -406,8 +411,6 @@
   >
     + Add Training Day
   </button>
-
-  <button type="button" id="discardProgrammeChanges" hidden>Discard Changes</button>
 
 </section>
 
@@ -895,12 +898,12 @@
 
   <script src="storage.js?v=4"></script>
   <script src="dashboard.js?v=21"></script>
-  <script src="library.js?v=27"></script>
-  <script src="programme-editor.js?v=21"></script>
-  <script src="workout-session.js?v=18"></script>
+  <script src="library.js?v=28"></script>
+  <script src="programme-editor.js?v=22"></script>
+  <script src="workout-session.js?v=19"></script>
   <script src="workout-history.js?v=13"></script>
   <script src="profile.js?v=8"></script>
-  <script src="measurements.js?v=3"></script>
+  <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>
 

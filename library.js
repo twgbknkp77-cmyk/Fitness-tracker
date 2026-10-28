@@ -1258,7 +1258,7 @@ function renderActiveWorkout() {
   navRow.className = "week-navigation";
 
   const previous = document.createElement("button");
-  previous.textContent = "‹";
+  previous.innerHTML = '<svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>';
   previous.setAttribute("aria-label", "Previous week");
   previous.disabled = viewedWorkoutWeek === 1;
   previous.addEventListener("click", () => {
@@ -1281,7 +1281,7 @@ function renderActiveWorkout() {
   }
 
   const next = document.createElement("button");
-  next.textContent = "›";
+  next.innerHTML = '<svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>';
   next.setAttribute("aria-label", "Next week");
   next.disabled = viewedWorkoutWeek === programme.durationWeeks;
   next.addEventListener("click", () => {
@@ -1301,6 +1301,7 @@ function renderActiveWorkout() {
   if (expandedWorkoutId) {
     const workout = (week?.trainingDays || []).find(item => item.id === expandedWorkoutId);
     if (workout) {
+      navigation.remove();
       const back = document.createElement("button");
       back.className = "icon-button workout-detail-back";
       back.setAttribute("aria-label", "Back to week");
@@ -1310,13 +1311,15 @@ function renderActiveWorkout() {
         expandedWorkoutId = null;
         renderActiveWorkout();
       });
-      container.appendChild(back);
+      const detailHeader = document.createElement("div");
+      detailHeader.className = "workout-detail-header";
+      const headerTitle = document.createElement("h2");
+      headerTitle.textContent = workout.name;
+      detailHeader.append(back, headerTitle);
+      container.appendChild(detailHeader);
 
       const detail = document.createElement("div");
       detail.className = "card workout-detail-card";
-      const title = document.createElement("h2");
-      title.textContent = workout.name;
-      detail.appendChild(title);
 
       (workout.exercises || []).forEach(exercise => {
         const row = document.createElement("div");
@@ -1345,7 +1348,7 @@ function renderActiveWorkout() {
       });
 
       const start = document.createElement("button");
-      start.className = "primary-button";
+      start.className = "primary-button workout-detail-start";
       start.textContent = viewedWorkoutWeek === programme.currentWeek
         ? "Start Workout"
         : `Make Week ${viewedWorkoutWeek} Current & Start`;
@@ -1360,7 +1363,7 @@ function renderActiveWorkout() {
         }
         startWorkout(workout.id);
       });
-      detail.appendChild(start);
+      detailHeader.appendChild(start);
       container.appendChild(detail);
       return;
     }

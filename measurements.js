@@ -154,6 +154,9 @@ function openMeasurementEditor(id) {
     entry.weight.toFixed(1);
 
   document.getElementById("editMeasurementModal").showModal();
+  requestAnimationFrame(() => {
+    document.getElementById("editMeasurementTitle")?.focus({ preventScroll: true });
+  });
 }
 
 
