@@ -18,7 +18,7 @@
 
   <!-- MAIN STYLESHEET -->
   <link rel="stylesheet" href="style.css?v=46">
-  <link rel="stylesheet" href="refinements.css?v=6">
+  <link rel="stylesheet" href="refinements.css?v=7">
 </head>
 
 <body>
@@ -96,6 +96,10 @@
     <symbol id="icon-profile" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
     <symbol id="icon-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
     <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+    <symbol id="icon-dumbbell" viewBox="0 0 24 24"><path d="M6 9v6M3.5 10.5v3M18 9v6M20.5 10.5v3M6 12h12"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="icon-trend" viewBox="0 0 24 24"><path d="m4 16 5-5 4 3 7-8"/><path d="M16 6h4v4"/></symbol>
+    <symbol id="icon-trophy" viewBox="0 0 24 24"><path d="M8 4h8v4a4 4 0 0 1-8 0Z"/><path d="M8 6H5v2a3 3 0 0 0 3 3M16 6h3v2a3 3 0 0 1-3 3M12 12v5M9 20h6M10 17h4"/></symbol>
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
     <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
@@ -361,8 +365,8 @@
 <section id="workouts" class="page">
   <div class="page-header">
     <h1>Workouts</h1>
-    <button type="button" class="icon-button outlined-icon-button" onclick="renderWorkoutHistory(); showPage('workoutHistory')" aria-label="View workout history">
-      <svg aria-hidden="true"><use href="#icon-history"></use></svg>
+    <button type="button" id="openWorkoutStatistics" class="icon-button outlined-icon-button" aria-label="View statistics">
+      <svg aria-hidden="true"><use href="#icon-progress"></use></svg>
     </button>
   </div>
 
@@ -519,7 +523,7 @@
 <section id="workoutHistory" class="page">
 
   <div class="page-header history-header">
-    <button type="button" class="icon-button" id="workoutHistoryBack" onclick="showPage('workouts')" aria-label="Back to Workouts">
+    <button type="button" class="icon-button" id="workoutHistoryBack" aria-label="Back">
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
     <h1>Workout History</h1>
@@ -579,8 +583,8 @@
 
 </details>
 
-<button type="button" id="openStatistics" class="card profile-link-card">
-  <span><strong>Statistics</strong><small>Training, consistency, progress and records</small></span>
+<button type="button" id="openProfileHistory" class="card profile-link-card">
+  <span><strong>Workout History</strong><small>Review your completed training sessions</small></span>
   <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
 </button>
 
@@ -627,7 +631,7 @@
 
 <section id="statistics" class="page">
   <div class="page-header statistics-header">
-    <button type="button" class="icon-button" id="statisticsBack" aria-label="Back to Profile">
+    <button type="button" class="icon-button" id="statisticsBack" aria-label="Back to Workouts">
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
     <h1>Statistics</h1>
@@ -639,11 +643,9 @@
   <dialog id="statisticsFilterDialog" class="decision-dialog" aria-labelledby="statisticsFilterTitle">
     <h2 id="statisticsFilterTitle">Time Period</h2>
     <div class="statistics-filter-options">
+      <button type="button" data-range="week">This Week</button>
       <button type="button" data-range="28">4 Weeks</button>
-      <button type="button" data-range="90">3 Months</button>
-      <button type="button" data-range="365">1 Year</button>
       <button type="button" data-range="all">All Time</button>
-      <button type="button" data-range="programme">Current Programme</button>
     </div>
     <button type="button" id="closeStatisticsFilter">Cancel</button>
   </dialog>
@@ -821,10 +823,10 @@
       library: 2,
       programmeOverview: 2.25,
       programmeEditor: 2.5,
-      workoutHistory: 2.5,
+      workoutHistory: 3.25,
       profile: 3,
-      statistics: 3.5,
-      exerciseStatistics: 3.7,
+      statistics: 1.25,
+      exerciseStatistics: 1.5,
       measurements: 3.5
     };
 
@@ -890,11 +892,11 @@
   const navOwner = {
     programmeOverview: "library",
     programmeEditor: "library",
-    workoutHistory: "workouts",
+    workoutHistory: window.workoutHistoryReturnPage || "profile",
     workoutSession: "workouts",
     workoutComplete: "workouts",
-    statistics: "profile",
-    exerciseStatistics: "profile",
+    statistics: "workouts",
+    exerciseStatistics: "workouts",
     measurements: "dashboard"
   }[pageId] || pageId;
   const navButton = document.getElementById(navOwner + "Button");
@@ -1039,10 +1041,10 @@
   <script src="library.js?v=31"></script>
   <script src="programme-overview.js?v=3"></script>
   <script src="programme-editor.js?v=23"></script>
-  <script src="workout-session.js?v=25"></script>
-  <script src="workout-history.js?v=13"></script>
+  <script src="workout-session.js?v=26"></script>
+  <script src="workout-history.js?v=14"></script>
   <script src="profile.js?v=9"></script>
-  <script src="statistics.js?v=6"></script>
+  <script src="statistics.js?v=7"></script>
   <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

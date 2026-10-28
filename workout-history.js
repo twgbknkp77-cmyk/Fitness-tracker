@@ -2,12 +2,13 @@
 function getSavedWorkoutHistory(){try{const value=JSON.parse(localStorage.getItem("fitness_workout_history")||"[]");return Array.isArray(value)?value:[]}catch{return[]}}
 function saveWorkoutHistory(history){localStorage.setItem("fitness_workout_history",JSON.stringify(history));if(typeof updateDashboard==="function")updateDashboard()}
 function historyDate(value){return new Date(value).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}
+function historyReturnPage(){return window.workoutHistoryReturnPage||"profile"}
 function setHistoryBack(label,run){const button=document.getElementById("workoutHistoryBack");button.setAttribute("aria-label",label);button.onclick=run}
 function historyButton(text,run,className="history-view-button"){const button=document.createElement("button");button.type="button";button.className=className;button.textContent=text;button.onclick=run;return button}
 
 function renderWorkoutHistory(){
  const container=document.getElementById("workoutHistoryList");if(!container)return;const history=getSavedWorkoutHistory();
- document.getElementById("workoutHistoryIntro").hidden=history.length>0;setHistoryBack("Back to Workouts",()=>showPage("workouts"));container.innerHTML="";
+ document.getElementById("workoutHistoryIntro").hidden=history.length>0;const returnPage=historyReturnPage();setHistoryBack(returnPage==="profile"?"Back to Profile":"Back to Workouts",()=>showPage(returnPage));container.innerHTML="";
  const groups=new Map();history.forEach(session=>{const key=session.programmeRunId||session.programmeId||session.programmeName||"workouts";if(!groups.has(key))groups.set(key,[]);groups.get(key).push(session)});
  [...groups.values()].sort((a,b)=>new Date(b.at(-1)?.finishedAt)-new Date(a.at(-1)?.finishedAt)).forEach(sessions=>{
   sessions.sort((a,b)=>new Date(a.finishedAt)-new Date(b.finishedAt));const card=document.createElement("div");card.className="card history-session-card";

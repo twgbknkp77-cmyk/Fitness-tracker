@@ -1,207 +1,52 @@
-// SPOT — PROFILE STATISTICS
+// SPOT — TRAINING STATISTICS AND PERFORMANCE
+const STATISTICS_FILTER_KEY="spot_statistics_filter_v1";
+let statisticsRange=localStorage.getItem(STATISTICS_FILTER_KEY)||"28";
+if(!["week","28","all"].includes(statisticsRange))statisticsRange="28";
+function statisticsHistory(){try{const value=JSON.parse(localStorage.getItem("fitness_workout_history")||"[]");return Array.isArray(value)?value:[]}catch{return[]}}
+function sessionDate(session){return new Date(session.finishedAt||session.startedAt)}
+function startOfWeek(value=new Date()){const date=new Date(value);date.setHours(0,0,0,0);date.setDate(date.getDate()-((date.getDay()+6)%7));return date}
+function filteredStatisticsHistory(){const history=statisticsHistory();if(statisticsRange==="all")return history;const cutoff=statisticsRange==="week"?startOfWeek().getTime():Date.now()-28*86400000;return history.filter(session=>sessionDate(session).getTime()>=cutoff)}
+function sessionDurationMinutes(session){const start=new Date(session.startedAt).getTime(),finish=new Date(session.finishedAt).getTime();return Number.isFinite(start)&&Number.isFinite(finish)?Math.max(0,Math.round((finish-start)/60000)):0}
+function safeText(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function shortDate(value){return new Date(value).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}
+function statIcon(name){return `<svg aria-hidden="true"><use href="#icon-${name}"></use></svg>`}
 
-const STATISTICS_FILTER_KEY = "spot_statistics_filter_v1";
-let statisticsRange = localStorage.getItem(STATISTICS_FILTER_KEY) || "28";
-
-function statisticsHistory() {
-  try {
-    const value = JSON.parse(localStorage.getItem("fitness_workout_history") || "[]");
-    return Array.isArray(value) ? value : [];
-  } catch {
-    return [];
-  }
+function activityBuckets(sessions){
+ if(statisticsRange==="week"){const monday=startOfWeek();return Array.from({length:7},(_,index)=>{const date=new Date(monday);date.setDate(date.getDate()+index);return{label:date.toLocaleDateString("en-GB",{weekday:"short"}).slice(0,1),detail:shortDate(date),count:sessions.filter(item=>sessionDate(item).toDateString()===date.toDateString()).length}})}
+ const groups=new Map();sessions.forEach(session=>{const week=startOfWeek(sessionDate(session)),key=week.toISOString().slice(0,10);if(!groups.has(key))groups.set(key,{label:shortDate(week),detail:`Week of ${shortDate(week)}`,count:0});groups.get(key).count++});
+ if(statisticsRange==="28"){const monday=startOfWeek();monday.setDate(monday.getDate()-21);return Array.from({length:4},(_,index)=>{const date=new Date(monday);date.setDate(date.getDate()+index*7);return groups.get(date.toISOString().slice(0,10))||{label:shortDate(date),detail:`Week of ${shortDate(date)}`,count:0}})}
+ return [...groups.values()].length?[...groups.values()]:[{label:"—",detail:"No activity",count:0}]
 }
-
-function filteredStatisticsHistory() {
-  const history = statisticsHistory();
-  if (statisticsRange === "all") return history;
-  if (statisticsRange === "programme") {
-    const activeId = getActiveProgrammeId();
-    return history.filter(session => session.programmeId === activeId);
-  }
-  const cutoff = Date.now() - Number(statisticsRange) * 86400000;
-  return history.filter(session => new Date(session.finishedAt).getTime() >= cutoff);
+function activityChart(buckets){
+ const width=340,height=168,left=30,bottom=28,top=14,max=Math.max(1,...buckets.map(item=>item.count)),plotHeight=height-top-bottom,slot=(width-left-8)/buckets.length,barWidth=Math.min(28,slot*.56);
+ const grid=[0,.5,1].map(ratio=>`<line x1="${left}" y1="${top+plotHeight*(1-ratio)}" x2="${width-8}" y2="${top+plotHeight*(1-ratio)}"/><text x="${left-8}" y="${top+plotHeight*(1-ratio)+3}" text-anchor="end">${Math.round(max*ratio)}</text>`).join("");
+ const bars=buckets.map((item,index)=>{const x=left+slot*index+(slot-barWidth)/2,h=item.count/max*plotHeight,y=top+plotHeight-h;return `<g class="activity-bar" data-detail="${safeText(item.detail)} · ${item.count} workout${item.count===1?"":"s"}"><rect x="${x}" y="${y}" width="${barWidth}" height="${Math.max(2,h)}" rx="5"/><text x="${x+barWidth/2}" y="${height-8}" text-anchor="middle">${safeText(item.label)}</text></g>`}).join("");
+ return `<div class="statistics-chart activity-chart"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Completed workouts over time"><g class="chart-grid">${grid}</g>${bars}</svg><p class="chart-selection" data-activity-detail>Tap a bar to view it</p></div>`
 }
-
-function sessionTrainingVolume(session) {
-  return (session.exercises || []).reduce((total, exercise) =>
-    total + (exercise.sets || []).reduce((sum, set) => {
-      if (set.completed === false) return sum;
-      return sum + (Number(set.weight) || 0) * (Number(set.reps) || 0);
-    }, 0), 0);
+function programmeConsistency(){const programme=getProgrammes().find(item=>item.id===getActiveProgrammeId());if(!programme?.weeks?.length)return null;const end=Math.max(0,(programme.currentWeek||1)-1),start=Math.max(0,end-3),history=statisticsHistory();const weeks=programme.weeks.slice(start,end+1).map((week,offset)=>{const number=start+offset+1,scheduled=Array.isArray(week.trainingDays)?week.trainingDays.length:null,completed=new Set(history.filter(session=>session.programmeId===programme.id&&(session.weekId?session.weekId===week.id:Number(session.weekNumber)===number)).map(session=>session.workoutId)).size;return{number,scheduled,completed,percent:scheduled?Math.min(100,Math.round(completed/scheduled*100)):0}});return{programme,weeks}}
+function renderStatistics(){
+ const container=document.getElementById("statisticsContent");if(!container)return;const sessions=filteredStatisticsHistory().sort((a,b)=>sessionDate(a)-sessionDate(b)),minutes=sessions.reduce((sum,item)=>sum+sessionDurationMinutes(item),0),consistency=programmeConsistency();
+ const totals=consistency?.weeks.reduce((result,week)=>({done:result.done+week.completed,planned:result.planned+(week.scheduled||0),onTarget:result.onTarget+(week.scheduled>0&&week.completed>=week.scheduled?1:0)}),{done:0,planned:0,onTarget:0});
+ const weeks=consistency?consistency.weeks.map(week=>`<div class="adherence-week"><div class="adherence-track"><span style="height:${week.percent}%"></span></div><strong>W${week.number}</strong><small>${week.completed}/${week.scheduled??"—"}</small></div>`).join(""):"";
+ container.innerHTML=`<section class="statistics-overview"><article class="training-tile">${statIcon("dumbbell")}<span>Workouts</span><strong>${sessions.length}</strong></article><article class="training-tile">${statIcon("clock")}<span>Minutes</span><strong>${minutes}</strong></article></section><section class="card statistics-section"><div class="statistics-section-heading"><div><h2>Activity</h2><p>${statisticsRange==="week"?"This week":statisticsRange==="28"?"Last 4 weeks":"All recorded time"}</p></div></div>${activityChart(activityBuckets(sessions))}</section><section class="card statistics-section"><div class="statistics-section-heading"><div><h2>Consistency</h2><p>${consistency?safeText(consistency.programme.name):"No active programme"}</p></div><strong>${totals?.planned?Math.round(totals.done/totals.planned*100):0}%</strong></div>${consistency?`<div class="adherence-weeks">${weeks}</div><div class="statistics-compact-meta"><span><strong>${totals.done}/${totals.planned}</strong><small>Workouts</small></span><span><strong>${totals.onTarget}</strong><small>Weeks on target</small></span></div>`:`<p class="statistics-empty">Activate a programme to measure adherence.</p>`}</section><button type="button" id="openPerformanceDashboard" class="card performance-navigation-card"><span class="performance-navigation-icon">${statIcon("trend")}</span><span><strong>Performance</strong><small>Exercise trends, effort and records</small></span>${statIcon("arrow-right")}</button>`;
+ container.querySelectorAll(".activity-bar").forEach(bar=>bar.addEventListener("click",()=>container.querySelector("[data-activity-detail]").textContent=bar.dataset.detail));document.getElementById("openPerformanceDashboard")?.addEventListener("click",()=>{renderExerciseStatistics();showPage("exerciseStatistics")})
 }
+const statisticsLabels={week:"This Week","28":"Last 4 Weeks",all:"All Time"};
+function updateStatisticsFilterLabel(){const button=document.getElementById("statisticsFilterButton"),label=statisticsLabels[statisticsRange];if(button){button.setAttribute("aria-label",`Filter statistics: ${label}`);button.title=label}document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(option=>option.classList.toggle("active",option.dataset.range===statisticsRange))}
+function openStatisticsPage(){updateStatisticsFilterLabel();renderStatistics();showPage("statistics")}
+document.getElementById("openWorkoutStatistics")?.addEventListener("click",openStatisticsPage);document.getElementById("statisticsBack")?.addEventListener("click",()=>showPage("workouts"));document.getElementById("openProfileHistory")?.addEventListener("click",()=>{window.workoutHistoryReturnPage="profile";renderWorkoutHistory();showPage("workoutHistory")});document.getElementById("statisticsFilterButton")?.addEventListener("click",()=>document.getElementById("statisticsFilterDialog")?.showModal());document.getElementById("closeStatisticsFilter")?.addEventListener("click",()=>document.getElementById("statisticsFilterDialog")?.close());document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(button=>button.addEventListener("click",()=>{statisticsRange=button.dataset.range;localStorage.setItem(STATISTICS_FILTER_KEY,statisticsRange);document.getElementById("statisticsFilterDialog")?.close();updateStatisticsFilterLabel();renderStatistics()}));updateStatisticsFilterLabel();
 
-function sessionDurationMinutes(session) {
-  const start = new Date(session.startedAt).getTime();
-  const finish = new Date(session.finishedAt).getTime();
-  return Number.isFinite(start) && Number.isFinite(finish)
-    ? Math.max(0, Math.round((finish - start) / 60000))
-    : 0;
+function representativeSet(exercise){const sets=(exercise.sets||[]).filter(set=>set.completed!==false&&(Number(set.weight)>0||Number(set.reps)>0));return sets.sort((a,b)=>(Number(b.weight)||0)-(Number(a.weight)||0)||(Number(b.reps)||0)-(Number(a.reps)||0))[0]||null}
+function performanceExercises(){const grouped=new Map();statisticsHistory().sort((a,b)=>sessionDate(a)-sessionDate(b)).forEach(session=>(session.exercises||[]).forEach(exercise=>{if(!exercise.name)return;const set=representativeSet(exercise),isCardio=exercise.type==="cardio";if(!grouped.has(exercise.name))grouped.set(exercise.name,{name:exercise.name,type:isCardio?"cardio":"strength",points:[]});grouped.get(exercise.name).points.push({date:session.finishedAt||session.startedAt,weight:set?Number(set.weight)||0:0,reps:set?Number(set.reps)||0:0,effort:Number(exercise.effort)||0,duration:Number(exercise.durationMinutes)||0})}));return[...grouped.values()].sort((a,b)=>a.name.localeCompare(b.name))}
+const performanceMetricByExercise=new Map();
+function metricDetails(metric){return metric==="weight"?{label:"Weight",unit:"kg"}:metric==="reps"?{label:"Reps",unit:"reps"}:metric==="duration"?{label:"Time",unit:"min"}:{label:"Effort",unit:"/5"}}
+function smoothPath(points){if(points.length<2)return"";if(points.length===2)return`M${points[0].x},${points[0].y} L${points[1].x},${points[1].y}`;let path=`M${points[0].x},${points[0].y}`;for(let i=0;i<points.length-1;i++){const a=points[i],b=points[i+1],mid=(a.x+b.x)/2;path+=` C${mid},${a.y} ${mid},${b.y} ${b.x},${b.y}`}return path}
+function performanceGraph(values,metric,index){
+ const valid=values.filter(point=>point[metric]>0),width=340,height=190,left=38,right=12,top=18,bottom=34,plotW=width-left-right,plotH=height-top-bottom;if(!valid.length)return`<div class="performance-graph empty-performance-graph"><span>Not recorded</span></div>`;
+ const rawMax=Math.max(...valid.map(point=>point[metric])),rawMin=Math.min(...valid.map(point=>point[metric])),padding=Math.max((rawMax-rawMin)*.25,metric==="effort"?.5:1),min=Math.max(0,rawMin-padding),max=rawMax+padding,points=valid.map((point,i)=>({point,x:left+(valid.length===1?plotW/2:i/(valid.length-1)*plotW),y:top+(max-point[metric])/(max-min||1)*plotH}));
+ let previous=-Infinity;const marks=points.map((entry,i)=>{const isPr=entry.point[metric]>previous;previous=Math.max(previous,entry.point[metric]);return`<button type="button" class="performance-point${isPr&&i>0?" is-pr":""}${i===points.length-1?" is-latest":""}" style="left:${entry.x/width*100}%;top:${entry.y/height*100}%" data-point-detail="${safeText(shortDate(entry.point.date))} · ${entry.point[metric]} ${metricDetails(metric).unit}" aria-label="${safeText(shortDate(entry.point.date))}, ${entry.point[metric]} ${metricDetails(metric).unit}"></button>`}).join(""),path=smoothPath(points),area=path+` L${points.at(-1).x},${top+plotH} L${points[0].x},${top+plotH} Z`;
+ return`<div class="performance-graph"><svg viewBox="0 0 ${width} ${height}" aria-hidden="true"><defs><linearGradient id="performanceFill${index}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a00" stop-opacity=".38"/><stop offset="1" stop-color="#ff8a00" stop-opacity="0"/></linearGradient></defs><g class="chart-grid"><line x1="${left}" y1="${top}" x2="${left}" y2="${top+plotH}"/><line x1="${left}" y1="${top+plotH/2}" x2="${width-right}" y2="${top+plotH/2}"/><line x1="${left}" y1="${top+plotH}" x2="${width-right}" y2="${top+plotH}"/><text x="${left-7}" y="${top+4}" text-anchor="end">${rawMax}</text><text x="${left-7}" y="${top+plotH+4}" text-anchor="end">${rawMin}</text><text x="${left}" y="${height-8}">${safeText(shortDate(valid[0].date))}</text><text x="${width-right}" y="${height-8}" text-anchor="end">${safeText(shortDate(valid.at(-1).date))}</text></g>${valid.length>1?`<path class="performance-area" d="${area}" fill="url(#performanceFill${index})"/><path class="performance-line" d="${path}"/>`:""}</svg>${marks}<p class="performance-point-detail" data-point-output>${valid.length===1?`Baseline · ${valid[0][metric]} ${metricDetails(metric).unit}`:"Tap a point for details"}</p></div>`
 }
-
-function statisticCard(label, value) {
-  const card = document.createElement("div");
-  card.className = "statistic-number-card";
-  card.innerHTML = `<span>${label}</span><strong data-stat-value="${value}">0</strong>`;
-  return card;
-}
-
-function animateStatisticNumbers(container) {
-  container.querySelectorAll("[data-stat-value]").forEach(element => {
-    const target = Number(element.dataset.statValue) || 0;
-    const start = performance.now();
-    const duration = 450;
-    const draw = now => {
-      const progress = Math.min((now - start) / duration, 1);
-      element.textContent = Math.round(target * (1 - Math.pow(1 - progress, 3))).toLocaleString();
-      if (progress < 1) requestAnimationFrame(draw);
-    };
-    requestAnimationFrame(draw);
-  });
-}
-
-function renderStatistics() {
-  const container = document.getElementById("statisticsContent");
-  if (!container) return;
-  const sessions = filteredStatisticsHistory().sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
-  const totalMinutes = sessions.reduce((sum, session) => sum + sessionDurationMinutes(session), 0);
-  const dated = sessions.map(session => new Date(session.finishedAt).getTime()).filter(Number.isFinite);
-  const spanWeeks = dated.length > 1 ? Math.max(1, Math.ceil((Math.max(...dated) - Math.min(...dated)) / 604800000)) : 1;
-
-  container.innerHTML = "";
-
-  const training = document.createElement("section");
-  training.className = "card statistics-section";
-  training.innerHTML = "<h2>Training</h2>";
-  const numberGrid = document.createElement("div");
-  numberGrid.className = "statistics-number-grid";
-  numberGrid.append(
-    statisticCard("Workouts", sessions.length),
-    statisticCard("Minutes", totalMinutes)
-  );
-  training.append(numberGrid);
-
-  const consistency = document.createElement("section");
-  consistency.className = "card statistics-section";
-  const activeProgramme=getProgrammes().find(programme=>programme.id===getActiveProgrammeId());
-  const activeWeek=activeProgramme?.weeks?.[(activeProgramme.currentWeek||1)-1];
-  const plannedWorkouts=activeWeek?.trainingDays||[]; const allHistory=statisticsHistory();
-  const completedWorkouts=plannedWorkouts.filter(workout=>allHistory.some(session=>session.programmeId===activeProgramme?.id&&session.workoutId===workout.id&&(!session.weekId||!activeWeek?.id||session.weekId===activeWeek.id))).length;
-  const consistencyPercent=plannedWorkouts.length?Math.round(completedWorkouts/plannedWorkouts.length*100):0;
-  consistency.innerHTML=`<div class="consistency-heading"><h2>Consistency</h2><strong>${consistencyPercent}%</strong></div><div class="consistency-progress"><span style="width:${consistencyPercent}%"></span></div><div class="consistency-meta"><span><strong>${completedWorkouts}/${plannedWorkouts.length}</strong><small>Workouts completed</small></span><span><strong>${activeProgramme?`Week ${activeProgramme.currentWeek||1}`:"—"}</strong><small>Current week</small></span></div>`;
-
-  const progress = document.createElement("section");
-  progress.className = "card statistics-section statistics-link-section";
-  progress.innerHTML = `<div><h2>Performance</h2><p>Review exercise numbers and records.</p></div>`;
-  const progressButton = document.createElement("button");
-  progressButton.className = "icon-button";
-  progressButton.setAttribute("aria-label", "Open exercise progress");
-  progressButton.innerHTML = '<svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>';
-  progressButton.onclick = () => { exerciseStatExercise="all"; renderExerciseStatistics(); showPage("exerciseStatistics"); };
-  progress.appendChild(progressButton);
-
-  const records = document.createElement("section");
-  records.className = "card statistics-section";
-  records.innerHTML = "<h2>Records</h2>";
-  const bestWeights = new Map();
-  let highestVolume = 0;
-  let longestCardio = 0;
-  sessions.forEach(session => {
-    highestVolume = Math.max(highestVolume, sessionTrainingVolume(session));
-    (session.exercises || []).forEach(exercise => {
-      if (exercise.type === "cardio") longestCardio = Math.max(longestCardio, Number(exercise.durationMinutes) || 0);
-      if (!exercise.starred) return;
-      const best = Math.max(0, ...(exercise.sets || []).map(set => Number(set.weight) || 0));
-      bestWeights.set(exercise.name, Math.max(bestWeights.get(exercise.name) || 0, best));
-    });
-  });
-  const recordList = document.createElement("div");
-  recordList.className = "statistics-record-list";
-  [...bestWeights.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([name, weight]) => {
-    const row = document.createElement("p");
-    row.innerHTML = `<span>${name}</span><strong>${weight} kg</strong>`;
-    recordList.appendChild(row);
-  });
-  if (highestVolume) {
-    const row = document.createElement("p");
-    row.innerHTML = `<span>Highest workout volume</span><strong>${Math.round(highestVolume).toLocaleString()} kg</strong>`;
-    recordList.appendChild(row);
-  }
-  if (longestCardio) {
-    const row = document.createElement("p");
-    row.innerHTML = `<span>Longest cardio session</span><strong>${longestCardio} min</strong>`;
-    recordList.appendChild(row);
-  }
-  if (!recordList.children.length) recordList.innerHTML = "<p class='statistics-empty'>Complete workouts to build your records.</p>";
-  records.appendChild(recordList);
-
-  container.append(training, consistency, progress);
-  animateStatisticNumbers(container);
-}
-
-const statisticsLabels = { "28": "4 Weeks", "90": "3 Months", "365": "1 Year", all: "All Time", programme: "Current Programme" };
-function updateStatisticsFilterLabel() {
-  const button = document.getElementById("statisticsFilterButton");
-  if (button) {
-    const label=statisticsLabels[statisticsRange]||"4 Weeks";
-    button.setAttribute("aria-label",`Filter statistics: ${label}`);
-    button.title=label;
-  }
-  document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(option=>option.classList.toggle("active",option.dataset.range===statisticsRange));
-}
-
-document.getElementById("openStatistics")?.addEventListener("click", () => {
-  updateStatisticsFilterLabel();
-  renderStatistics();
-  showPage("statistics");
-});
-document.getElementById("statisticsBack")?.addEventListener("click", () => showPage("profile"));
-document.getElementById("statisticsFilterButton")?.addEventListener("click", () => document.getElementById("statisticsFilterDialog")?.showModal());
-document.getElementById("closeStatisticsFilter")?.addEventListener("click", () => document.getElementById("statisticsFilterDialog")?.close());
-document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(button => button.addEventListener("click", () => {
-  statisticsRange = button.dataset.range;
-  localStorage.setItem(STATISTICS_FILTER_KEY, statisticsRange);
-  document.getElementById("statisticsFilterDialog")?.close();
-  updateStatisticsFilterLabel();
-  renderStatistics();
-}));
-updateStatisticsFilterLabel();
-
-let exerciseStatMetric="weight";
-let exerciseStatExercise="all";
-function exerciseStatRows() {
-  const rows=[];
-  filteredStatisticsHistory().forEach(session=>(session.exercises||[]).forEach(exercise=>{
-    const completedSets=(exercise.sets||[]).filter(set=>set.completed!==false);
-    rows.push({name:exercise.name,type:exercise.type||"strength",date:session.finishedAt,weight:Math.max(0,...completedSets.map(set=>Number(set.weight)||0)),reps:Math.max(0,...completedSets.map(set=>Number(set.reps)||0)),duration:Number(exercise.durationMinutes)||0,effort:Number(exercise.effort)||0});
-  }));
-  return rows;
-}
-
-function renderExerciseStatistics() {
-  const container=document.getElementById("exerciseStatisticsContent"); if(!container)return;
-  const rows=exerciseStatRows(); const names=[...new Set(rows.map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-  if(exerciseStatExercise!=="all"&&!names.includes(exerciseStatExercise))exerciseStatExercise="all";
-  const selection=document.getElementById("exerciseStatSelection"); if(selection)selection.textContent=exerciseStatExercise==="all"?"":exerciseStatExercise;
-  document.querySelector(".exercise-stat-controls")?.classList.toggle("all-exercises",exerciseStatExercise==="all");
-  document.getElementById("exerciseStatSpecificHeader")?.toggleAttribute("hidden",exerciseStatExercise==="all");
-  document.getElementById("exerciseStatMetric")?.toggleAttribute("hidden",exerciseStatExercise==="all");
-  if(exerciseStatExercise==="all"){
-    const summaries=names.map(name=>{const values=rows.filter(row=>row.name===name).sort((a,b)=>new Date(a.date)-new Date(b.date));const valid=metric=>values.filter(row=>row[metric]>0);const cardio=values.some(row=>row.type==="cardio");const growthMetric=cardio?"duration":"weight";const first=valid(growthMetric)[0]?.[growthMetric]||0;const latest=valid(growthMetric).at(-1)?.[growthMetric]||0;return {name,cardio,sessions:values.length,latestWeight:valid("weight").at(-1)?.weight||0,bestWeight:Math.max(0,...values.map(row=>row.weight)),latestReps:valid("reps").at(-1)?.reps||0,bestReps:Math.max(0,...values.map(row=>row.reps)),latestDuration:valid("duration").at(-1)?.duration||0,bestDuration:Math.max(0,...values.map(row=>row.duration)),totalDuration:values.reduce((sum,row)=>sum+row.duration,0),latestEffort:valid("effort").at(-1)?.effort||0,bestEffort:Math.max(0,...values.map(row=>row.effort)),improvement:first?Math.round((latest-first)/first*100):0};}).filter(item=>item.sessions);
-    summaries.sort((a,b)=>a.name.localeCompare(b.name));
-    container.innerHTML=summaries.length?`<div class="performance-list">${summaries.map(item=>`<button type="button" class="card performance-summary-card" data-exercise="${item.name.replaceAll('"','&quot;')}"><div class="performance-summary-heading"><span><strong>${item.name}</strong><small>${item.sessions} ${item.sessions===1?"session":"sessions"}</small></span></div><div class="performance-summary-grid">${item.cardio?`<span><small>Latest time</small><strong>${item.latestDuration} min</strong></span><span><small>Longest time</small><strong>${item.bestDuration} min</strong></span><span><small>Total time</small><strong>${item.totalDuration} min</strong></span>`:`<span><small>Latest weight</small><strong>${item.latestWeight} kg</strong></span><span><small>Highest weight</small><strong>${item.bestWeight} kg</strong></span><span><small>Latest reps</small><strong>${item.latestReps}</strong></span><span><small>Highest reps</small><strong>${item.bestReps}</strong></span>`}<span><small>Latest effort</small><strong>${item.latestEffort||"—"}</strong></span><span><small>Highest effort</small><strong>${item.bestEffort||"—"}</strong></span><span class="performance-growth"><small>Growth</small><strong>${item.improvement>0?"+":""}${item.improvement}%</strong></span></div></button>`).join("")}</div>`:"<div class='card empty-state-card'><p>Complete an exercise to see its statistics.</p></div>";
-    container.querySelectorAll("[data-exercise]").forEach(button=>button.addEventListener("click",()=>{exerciseStatExercise=button.dataset.exercise;renderExerciseStatistics();})); return;
-  }
-  const chosen=exerciseStatExercise;
-  const isCardio=rows.some(row=>row.name===chosen&&row.type==="cardio"); if(isCardio&&!["duration","effort"].includes(exerciseStatMetric))exerciseStatMetric="duration"; if(!isCardio&&exerciseStatMetric==="duration")exerciseStatMetric="weight";
-  const values=rows.filter(row=>row.name===chosen&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const unit=exerciseStatMetric==="weight"?" kg":exerciseStatMetric==="effort"?"/5":exerciseStatMetric==="duration"?" min":"";
-  document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(button=>{button.hidden=isCardio?!["duration","effort"].includes(button.dataset.metric):button.dataset.metric==="duration";button.classList.toggle("active",button.dataset.metric===exerciseStatMetric);});
-  const latest=values.at(-1)?.[exerciseStatMetric]||0; const first=values[0]?.[exerciseStatMetric]||0; const best=Math.max(0,...values.map(row=>row[exerciseStatMetric])); const change=first?Math.round((latest-first)/first*100):0;
-  container.innerHTML=`<div class="exercise-stat-grid"><div class="card"><span>Latest</span><strong>${latest}${unit}</strong></div><div class="card"><span>Best</span><strong>${best}${unit}</strong></div><div class="card"><span>Change</span><strong>${change>0?"+":""}${change}%</strong></div><div class="card"><span>Sessions</span><strong>${values.length}</strong></div></div><div class="card exercise-stat-history"><h2>Recent Sessions</h2>${values.slice(-8).reverse().map(row=>`<p><span>${new Date(row.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span><strong>${row[exerciseStatMetric]}${unit}</strong></p>`).join("")||"<p>No results for this metric.</p>"}</div>`;
-}
-document.getElementById("exerciseStatisticsBack")?.addEventListener("click",()=>{
-  if(exerciseStatExercise!=="all"){exerciseStatExercise="all";renderExerciseStatistics();return;}
-  showPage("statistics");
-});
-document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(button=>button.addEventListener("click",()=>{exerciseStatMetric=button.dataset.metric;document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(item=>item.classList.toggle("active",item===button));renderExerciseStatistics();}));
+function performanceCard(exercise,index){const metrics=exercise.type==="cardio"?["duration","effort"]:["weight","reps","effort"];let metric=performanceMetricByExercise.get(exercise.name)||metrics[0];if(!metrics.includes(metric))metric=metrics[0];const values=exercise.points.filter(point=>point[metric]>0),latest=values.at(-1)?.[metric],best=values.length?Math.max(...values.map(point=>point[metric])):null,first=values[0]?.[metric],change=values.length>1?(metric==="effort"?latest-first:first?Math.round((latest-first)/first*100):null):null,details=metricDetails(metric);return`<article class="card performance-dashboard-card" data-performance-card="${index}"><header><div><h2>${safeText(exercise.name)}</h2><p>${exercise.points.length} ${exercise.points.length===1?"session":"sessions"}</p></div>${statIcon("trend")}</header><div class="performance-tabs">${metrics.map(item=>`<button type="button" data-performance-metric="${item}" class="${item===metric?"active":""}">${metricDetails(item).label}</button>`).join("")}</div><div class="performance-latest"><span>Latest</span><strong>${latest??"Not recorded"}${latest!=null?` ${details.unit}`:""}</strong></div>${performanceGraph(exercise.points,metric,index)}<div class="performance-summary-row"><span><small>Latest</small><strong>${latest??"—"}${latest!=null?` ${details.unit}`:""}</strong></span><span class="performance-best"><small>${statIcon("trophy")} Best</small><strong>${best??"—"}${best!=null?` ${details.unit}`:""}</strong></span><span><small>${metric==="effort"?"Change":"Growth"}</small><strong>${change==null?"—":metric==="effort"?`${change>0?"+":""}${change} pts`:`${change>0?"+":""}${change}%`}</strong></span></div></article>`}
+function renderExerciseStatistics(){const container=document.getElementById("exerciseStatisticsContent");if(!container)return;const exercises=performanceExercises();document.querySelector(".exercise-stat-controls")?.setAttribute("hidden","");container.innerHTML=exercises.length?`<div class="performance-dashboard-list">${exercises.map(performanceCard).join("")}</div>`:`<div class="card empty-state-card"><p>Complete an exercise to see its performance.</p></div>`;container.querySelectorAll("[data-performance-card]").forEach(card=>{const exercise=exercises[Number(card.dataset.performanceCard)];card.querySelectorAll("[data-performance-metric]").forEach(button=>button.addEventListener("click",()=>{performanceMetricByExercise.set(exercise.name,button.dataset.performanceMetric);renderExerciseStatistics()}));card.querySelectorAll("[data-point-detail]").forEach(button=>button.addEventListener("click",()=>card.querySelector("[data-point-output]").textContent=button.dataset.pointDetail))})}
+document.getElementById("exerciseStatisticsBack")?.addEventListener("click",()=>showPage("statistics"));

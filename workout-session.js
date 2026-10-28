@@ -309,6 +309,7 @@ function startWorkout(workoutId) {
     programmeRunStartedAt: programme.activeRunStartedAt || startedAt,
     weekId: week?.id || null,
     weekNumber: programme.currentWeek || 1,
+    scheduledWorkoutCount: trainingDays.length,
     workoutId: workout.id,
     workoutName: workout.name,
     startedAt,
