@@ -1950,6 +1950,30 @@ nav { background:#171717; border-color:#464646; box-shadow:0 10px 30px rgba(0,0,
 #activeWorkout.week-enter-from-left { animation:blur-slide-from-left 300ms cubic-bezier(.2,.75,.25,1) both; }
 @keyframes blur-slide-from-right { from{opacity:.68;filter:blur(2px);transform:translateX(16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
 @keyframes blur-slide-from-left { from{opacity:.68;filter:blur(2px);transform:translateX(-16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
+
+/* October 28 editor and spacing pass. */
+.progress-chart-header { margin-bottom:12px; }
+.decision-dialog button:focus,.decision-dialog button:active,dialog button:focus,dialog button:active { outline:none; box-shadow:none; }
+.decision-dialog button:focus-visible,dialog button:focus-visible { outline:2px solid #777; outline-offset:2px; }
+.week-navigation > button { display:grid; place-items:center; padding:0; line-height:1; }
+.week-navigation > button svg { display:block; margin:auto; }
+.drag-handle,.edit-name-button,.delete-day-button,.editor-expand-day { background:transparent !important; border:0 !important; box-shadow:none !important; }
+.drag-handle { display:grid; place-items:center; }
+.delete-day-button { color:#e26363; }
+.editor-expand-day { display:grid; place-items:center; width:44px; min-width:44px; height:44px; padding:0; color:var(--grey); }
+.editor-expand-day svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; transition:transform 180ms ease; }
+.editor-day-card:not(.is-collapsed) .editor-expand-day svg { transform:rotate(90deg); }
+.editor-day-header { grid-template-columns:40px minmax(0,1fr) 44px 44px; margin-bottom:0; cursor:pointer; }
+.editor-day-card:not(.is-collapsed) .editor-day-header { margin-bottom:12px; }
+.editor-day-card.is-collapsed .editor-exercise-list,.editor-day-card.is-collapsed .editor-add-exercise { display:none; }
+.editor-day-card.is-dragging { z-index:20; opacity:.88; transform:scale(1.015); box-shadow:0 16px 32px rgba(0,0,0,.55); }
+.editor-readonly .drag-handle,.editor-readonly .delete-day-button { display:none; }
+.editor-readonly .editor-day-header { grid-template-columns:minmax(0,1fr) 44px; }
+.editor-page-header { display:grid; grid-template-columns:48px minmax(0,1fr) auto; align-items:center; gap:10px; }
+.editor-page-header h1 { min-width:0; font-size:clamp(24px,6vw,36px); }
+.editor-header-action { min-width:72px; min-height:42px; padding:8px 14px; color:var(--background); background:var(--orange); border:0; border-radius:12px; font-weight:800; }
+#discardProgrammeChanges { margin-top:12px; }
+nav { width:min(calc(100% - 44px),660px); }
 .bodyweight-card #weightMessage:empty { display:none; }
 .workout-summary-card:not(.next-workout) .compact-card-header { min-height:70px; align-items:center; }
 .workout-summary-card:not(.next-workout) .workout-card-chevron { align-self:center; }
@@ -3399,3 +3423,27 @@ nav { left:50%; transform:translateX(-50%); background:#171717; border-color:#46
 #activeWorkout.week-enter-from-left { animation:blur-slide-from-left 300ms cubic-bezier(.2,.75,.25,1) both; }
 @keyframes blur-slide-from-right { from{opacity:.68;filter:blur(2px);transform:translateX(16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
 @keyframes blur-slide-from-left { from{opacity:.68;filter:blur(2px);transform:translateX(-16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
+
+/* Final editor layout overrides. */
+.progress-chart-header { margin-bottom:12px; }
+.decision-dialog button:focus,.decision-dialog button:active,dialog button:focus,dialog button:active { outline:none; box-shadow:none; }
+.decision-dialog button:focus-visible,dialog button:focus-visible { outline:2px solid #777; outline-offset:2px; }
+.week-navigation > button { display:grid; place-items:center; padding:0; line-height:1; }
+.week-navigation > button svg { display:block; margin:auto; }
+.drag-handle,.edit-name-button,.delete-day-button,.editor-expand-day { background:transparent !important; border:0 !important; box-shadow:none !important; }
+.drag-handle { display:grid; place-items:center; }
+.delete-day-button { color:#e26363; }
+.editor-expand-day { display:grid; place-items:center; width:44px; min-width:44px; height:44px; padding:0; color:var(--grey); }
+.editor-expand-day svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; transition:transform 180ms ease; }
+.editor-day-card:not(.is-collapsed) .editor-expand-day svg { transform:rotate(90deg); }
+.editor-day-header { grid-template-columns:40px minmax(0,1fr) 44px 44px; margin-bottom:0; cursor:pointer; }
+.editor-day-card:not(.is-collapsed) .editor-day-header { margin-bottom:12px; }
+.editor-day-card.is-collapsed .editor-exercise-list,.editor-day-card.is-collapsed .editor-add-exercise { display:none; }
+.editor-day-card.is-dragging { z-index:20; opacity:.88; transform:scale(1.015); box-shadow:0 16px 32px rgba(0,0,0,.55); }
+.editor-readonly .drag-handle,.editor-readonly .delete-day-button { display:none; }
+.editor-readonly .editor-day-header { grid-template-columns:minmax(0,1fr) 44px; }
+.editor-page-header { display:grid; grid-template-columns:48px minmax(0,1fr) auto; align-items:center; gap:10px; }
+.editor-page-header h1 { min-width:0; font-size:clamp(24px,6vw,36px); }
+.editor-header-action { min-width:72px; min-height:42px; padding:8px 14px; color:var(--background); background:var(--orange); border:0; border-radius:12px; font-weight:800; }
+#discardProgrammeChanges { width:100%; min-height:52px; margin-top:12px; color:var(--white); background:#292929; border:1px solid #444; }
+nav { width:min(calc(100% - 44px),660px); }

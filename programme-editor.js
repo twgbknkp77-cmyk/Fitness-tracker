@@ -5,6 +5,7 @@ let weekSelectionProgrammeId = null;
 let editorWorkingProgramme = null;
 let editorOriginalProgramme = null;
 let editorIsEditing = false;
+const expandedEditorDays = new Set();
 
 function prepareProgrammeEditor(programmeId) {
   const stored = getProgrammes().find(programme => programme.id === programmeId);
@@ -152,11 +153,13 @@ document.getElementById("addWorkout")?.addEventListener("click", async () => {
   if (!programme || !week) return;
   const scope = await chooseWeekScope(programme, week);
   if (scope === "cancel") return;
+  const workoutId = createId();
   week.trainingDays.push({
-    id: createId(),
+    id: workoutId,
     name: `Day ${week.trainingDays.length + 1}`,
     exercises: []
   });
+  expandedEditorDays.add(workoutId);
   finishWeekChange(programme, week, scope);
 });
 
@@ -313,8 +316,9 @@ function renderProgrammeEditor() {
   week.trainingDays.forEach((workout, workoutIndex) => {
     const card = document.createElement("div");
     card.className = "card editor-day-card";
+    card.classList.toggle("is-collapsed", !expandedEditorDays.has(workout.id));
     card.dataset.workoutId = workout.id;
-    card.draggable = true;
+    card.draggable = programme.isDraft || editorIsEditing;
     const dayHeader = document.createElement("div");
     dayHeader.className = "editor-day-header";
     const handle = document.createElement("button");
@@ -344,7 +348,21 @@ function renderProgrammeEditor() {
       week.trainingDays.splice(workoutIndex, 1);
       finishWeekChange(programme, week, scope);
     });
-    dayHeader.append(handle, name, deleteDay);
+    const expandDay = document.createElement("button");
+    expandDay.type = "button";
+    expandDay.className = "editor-expand-day";
+    expandDay.setAttribute("aria-label", expandedEditorDays.has(workout.id) ? `Collapse ${workout.name}` : `Expand ${workout.name}`);
+    expandDay.innerHTML = '<svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>';
+    expandDay.addEventListener("click", () => {
+      expandedEditorDays.has(workout.id)
+        ? expandedEditorDays.delete(workout.id)
+        : expandedEditorDays.add(workout.id);
+      renderProgrammeEditor();
+    });
+    dayHeader.addEventListener("click", event => {
+      if (!event.target.closest("button,input")) expandDay.click();
+    });
+    dayHeader.append(handle, name, expandDay, deleteDay);
     card.appendChild(dayHeader);
 
     const exerciseList = document.createElement("div");
@@ -423,7 +441,7 @@ function renderProgrammeEditor() {
 
   const readOnly = !programme.isDraft && !editorIsEditing;
   [...header.querySelectorAll("input, button"), ...container.querySelectorAll("input, button")]
-    .forEach(control => { control.disabled = readOnly; });
+    .forEach(control => { control.disabled = readOnly && !control.classList.contains("editor-expand-day"); });
   weekSelect.disabled = false;
 }
 

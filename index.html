@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
   <meta name="theme-color" content="#121212">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=42">
+  <link rel="stylesheet" href="style.css?v=43">
 </head>
 
 <body>
@@ -390,6 +390,7 @@
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
     <h1>Programme Editor</h1>
+    <button type="button" id="saveProgramme" class="editor-header-action">Edit</button>
   </div>
 
   <div id="editorProgrammeHeader"></div>
@@ -406,9 +407,6 @@
     + Add Training Day
   </button>
 
-  <button type="button" id="saveProgramme" class="primary-button editor-save-programme">
-    Save Programme
-  </button>
   <button type="button" id="discardProgrammeChanges" hidden>Discard Changes</button>
 
 </section>
@@ -896,10 +894,10 @@
   </script>
 
   <script src="storage.js?v=4"></script>
-  <script src="dashboard.js?v=20"></script>
+  <script src="dashboard.js?v=21"></script>
   <script src="library.js?v=27"></script>
-  <script src="programme-editor.js?v=20"></script>
-  <script src="workout-session.js?v=17"></script>
+  <script src="programme-editor.js?v=21"></script>
+  <script src="workout-session.js?v=18"></script>
   <script src="workout-history.js?v=13"></script>
   <script src="profile.js?v=8"></script>
   <script src="measurements.js?v=3"></script>

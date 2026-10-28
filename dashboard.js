@@ -612,10 +612,9 @@ function drawExerciseProgressChart() {
   const visibleNames = names.filter(name => !progressHiddenExercises.has(normaliseProgressName(name)));
   const title = document.getElementById("exerciseProgressTitle");
   if (title) {
-    const metricName = metric === "weight" ? "Weight" : metric === "reps" ? "Reps" : "Effort";
     title.textContent = visibleNames.length === 1
-      ? `${visibleNames[0]} — ${metricName}`
-      : metric === "effort" ? "Overall Effort" : `Overall Progress — ${metricName}`;
+      ? visibleNames[0]
+      : "Overall Progress";
   }
   if (!names.length) { container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>'; legend.innerHTML = ""; return; }
 
