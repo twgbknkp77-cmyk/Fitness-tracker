@@ -218,8 +218,8 @@ function renderProgrammeEditor() {
   const editActions = document.getElementById("editorEditActions");
   if (saveProgrammeButton) {
     saveProgrammeButton.textContent = programme.isDraft
-      ? "Save Programme"
-      : editorIsEditing ? "Save Changes" : "Edit Programme";
+      ? "Save"
+      : editorIsEditing ? "Save" : "Edit";
     saveProgrammeButton.hidden = !programme.isDraft && editorIsEditing;
   }
   if (discardChangesButton) discardChangesButton.hidden = false;
@@ -243,6 +243,7 @@ function renderProgrammeEditor() {
   nameInput.value = programme.name;
   nameInput.placeholder = "Programme name";
   nameInput.autocomplete = "off";
+  nameInput.readOnly = !programme.isDraft && !editorIsEditing;
   nameInput.addEventListener("change", () => {
     const nextName = nameInput.value.trim();
     if (!nextName) {
@@ -365,7 +366,10 @@ function renderProgrammeEditor() {
     dayHeader.addEventListener("click", event => {
       if (!event.target.closest("button,input")) expandDay.click();
     });
-    dayHeader.append(handle, name, deleteDay, expandDay);
+    const nameGroup = document.createElement("div");
+    nameGroup.className = "editor-day-name-group";
+    nameGroup.append(name, expandDay);
+    dayHeader.append(handle, nameGroup, deleteDay);
     card.appendChild(dayHeader);
 
     const exerciseList = document.createElement("div");
@@ -729,12 +733,14 @@ function addDayDragEvents(card, handle, programme, week, workout) {
     week.trainingDays.splice(to, 0, moved);
     target.parentNode.insertBefore(card, from < to ? target.nextSibling : target);
     dayCards.forEach(dayCard => {
-      if (dayCard === card) return;
       const movement = before.get(dayCard) - dayCard.getBoundingClientRect().top;
       if (!movement) return;
       dayCard.animate(
-        [{ transform: `translateY(${movement}px)` }, { transform: "translateY(0)" }],
-        { duration: 190, easing: "cubic-bezier(.2,.75,.25,1)" }
+        [
+          { transform: `translateY(${movement}px)`, offset: 0 },
+          { transform: "translateY(0)", offset: 1 }
+        ],
+        { duration: 290, easing: "cubic-bezier(.2,.8,.2,1)" }
       );
     });
   });

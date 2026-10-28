@@ -435,8 +435,12 @@ function updateWorkoutSummary() {
   progressCount.textContent =
     `${completed}/${trainingDays.length}`;
 
-  progressFill.style.width =
-    `${percentage}%`;
+  progressFill.classList.remove("progress-fill-animate");
+  progressFill.style.width = "0%";
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    progressFill.classList.add("progress-fill-animate");
+    progressFill.style.width = `${percentage}%`;
+  }));
 
   if (remainingWorkouts.length > 0) {
     nextName.textContent =

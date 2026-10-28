@@ -88,10 +88,14 @@ function updateRestTimerDisplay() {
   const button = document.getElementById("openRestTimer");
   if (label) label.textContent = running ? formatRestTime(remaining) : "Timer";
   button?.classList.toggle("is-running",running);
+  document.getElementById("restTimerDockIdle")?.toggleAttribute("hidden",running);
+  document.getElementById("restTimerDockRunning")?.toggleAttribute("hidden",!running);
   document.getElementById("restTimerRunningActions")?.toggleAttribute("hidden",!running);
   document.getElementById("restTimerPresets")?.toggleAttribute("hidden",running);
   const pause = document.getElementById("pauseRestTimer");
   if (pause) pause.textContent = restTimerPaused ? "Resume" : "Pause";
+  const dockPause = document.getElementById("dockPauseRestTimer");
+  if (dockPause) dockPause.textContent = restTimerPaused ? "Resume" : "Pause";
   if (!running && restTimerInterval) {
     clearInterval(restTimerInterval); restTimerInterval=null;
     if (!restTimerPaused && typeof navigator.vibrate==="function") navigator.vibrate([160,90,160]);
@@ -960,11 +964,13 @@ document.getElementById("openRestTimer")?.addEventListener("click", () => {
   updateRestTimerDisplay();
   document.getElementById("restTimerDialog")?.showModal();
 });
+document.getElementById("setRestTimer")?.addEventListener("click", () => document.getElementById("openRestTimer")?.click());
 document.querySelectorAll("#restTimerPresets [data-seconds]").forEach(button =>
   button.addEventListener("click", () => startRestTimer(button.dataset.seconds))
 );
 document.getElementById("closeRestTimer")?.addEventListener("click", () => document.getElementById("restTimerDialog")?.close());
 document.getElementById("endRestTimer")?.addEventListener("click", endRestTimer);
+document.getElementById("dockEndRestTimer")?.addEventListener("click", endRestTimer);
 document.getElementById("addRestTimerTime")?.addEventListener("click", () => {
   if (restTimerPaused) restTimerRemaining += 30;
   else restTimerEndsAt += 30000;
@@ -979,6 +985,12 @@ document.getElementById("pauseRestTimer")?.addEventListener("click", () => {
     restTimerPaused = true;
   }
   updateRestTimerDisplay();
+});
+document.getElementById("dockAddRestTimerTime")?.addEventListener("click", () => document.getElementById("addRestTimerTime")?.click());
+document.getElementById("dockPauseRestTimer")?.addEventListener("click", () => {
+  document.getElementById("pauseRestTimer")?.click();
+  const button = document.getElementById("dockPauseRestTimer");
+  if (button) button.textContent = restTimerPaused ? "Resume" : "Pause";
 });
 
 document.getElementById("saveAndExitWorkout")?.addEventListener("click", () => {

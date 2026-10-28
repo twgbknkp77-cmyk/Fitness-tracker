@@ -84,7 +84,7 @@ function renderStatistics() {
   );
   const average = document.createElement("div");
   average.className = "statistics-wide-metric";
-  average.innerHTML = `<span>Average per week</span><strong>${weeklyAverage}</strong>`;
+  average.innerHTML = `<span>Workouts per week</span><strong>${weeklyAverage}</strong>`;
   training.append(numberGrid, average);
 
   const consistency = document.createElement("section");
@@ -104,21 +104,24 @@ function renderStatistics() {
       const time = new Date(session.finishedAt).getTime();
       return time >= start.getTime() && time <= end.getTime();
     }).length;
+    const barGroup = document.createElement("div");
     const bar = document.createElement("span");
     bar.style.setProperty("--activity", String(Math.min(count / 5, 1)));
     bar.title = `${count} workouts`;
-    bars.appendChild(bar);
+    const value = document.createElement("strong"); value.textContent=String(count);
+    const label = document.createElement("small"); label.textContent=offset===0?"Now":`${offset}w`;
+    barGroup.append(value,bar,label); bars.appendChild(barGroup);
   }
   consistency.appendChild(bars);
 
   const progress = document.createElement("section");
   progress.className = "card statistics-section statistics-link-section";
-  progress.innerHTML = `<div><h2>Exercise Progress</h2><p>View your starred exercise trends on the Dashboard.</p></div>`;
+  progress.innerHTML = `<div><h2>Exercise Progress</h2><p>Review exercise numbers and records.</p></div>`;
   const progressButton = document.createElement("button");
   progressButton.className = "icon-button";
   progressButton.setAttribute("aria-label", "Open exercise progress");
   progressButton.innerHTML = '<svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>';
-  progressButton.onclick = () => showPage("dashboard");
+  progressButton.onclick = () => { renderExerciseStatistics(); showPage("exerciseStatistics"); };
   progress.appendChild(progressButton);
 
   const records = document.createElement("section");
@@ -159,14 +162,19 @@ function renderStatistics() {
   if (activeId && currentProgrammeSessions.length) {
     average.insertAdjacentHTML("beforeend", `<small>${currentProgrammeSessions.length} in your active programme</small>`);
   }
-  container.append(training, consistency, progress, records);
+  container.append(training, consistency, progress);
   animateStatisticNumbers(container);
 }
 
 const statisticsLabels = { "28": "4 Weeks", "90": "3 Months", "365": "1 Year", all: "All Time", programme: "Current Programme" };
 function updateStatisticsFilterLabel() {
   const button = document.getElementById("statisticsFilterButton");
-  if (button) button.textContent = statisticsLabels[statisticsRange] || "4 Weeks";
+  if (button) {
+    const label=statisticsLabels[statisticsRange]||"4 Weeks";
+    button.setAttribute("aria-label",`Filter statistics: ${label}`);
+    button.title=label;
+  }
+  document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(option=>option.classList.toggle("active",option.dataset.range===statisticsRange));
 }
 
 document.getElementById("openStatistics")?.addEventListener("click", () => {
@@ -185,3 +193,27 @@ document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(button
   renderStatistics();
 }));
 updateStatisticsFilterLabel();
+
+let exerciseStatMetric="weight";
+function exerciseStatRows() {
+  const rows=[];
+  filteredStatisticsHistory().forEach(session=>(session.exercises||[]).forEach(exercise=>{
+    const completedSets=(exercise.sets||[]).filter(set=>set.completed!==false);
+    rows.push({name:exercise.name,date:session.finishedAt,weight:Math.max(0,...completedSets.map(set=>Number(set.weight)||0)),reps:Math.max(0,...completedSets.map(set=>Number(set.reps)||0)),effort:Number(exercise.effort)||0});
+  }));
+  return rows;
+}
+
+function renderExerciseStatistics() {
+  const select=document.getElementById("exerciseStatExercise"); const container=document.getElementById("exerciseStatisticsContent"); if(!select||!container)return;
+  const rows=exerciseStatRows(); const names=[...new Set(rows.map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); const previous=select.value;
+  select.innerHTML=names.map(name=>`<option value="${name.replaceAll('"','&quot;')}">${name}</option>`).join("");
+  if(names.includes(previous))select.value=previous; const chosen=select.value; const values=rows.filter(row=>row.name===chosen&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!chosen){container.innerHTML="<div class='card empty-state-card'><p>Complete an exercise to see its statistics.</p></div>";return;}
+  const latest=values.at(-1)?.[exerciseStatMetric]||0; const first=values[0]?.[exerciseStatMetric]||0; const best=Math.max(0,...values.map(row=>row[exerciseStatMetric])); const change=first?Math.round((latest-first)/first*100):0;
+  const unit=exerciseStatMetric==="weight"?" kg":exerciseStatMetric==="effort"?"/5":"";
+  container.innerHTML=`<div class="exercise-stat-grid"><div class="card"><span>Latest</span><strong>${latest}${unit}</strong></div><div class="card"><span>Best</span><strong>${best}${unit}</strong></div><div class="card"><span>Change</span><strong>${change>0?"+":""}${change}%</strong></div><div class="card"><span>Sessions</span><strong>${values.length}</strong></div></div><div class="card exercise-stat-history"><h2>Recent Sessions</h2>${values.slice(-8).reverse().map(row=>`<p><span>${new Date(row.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span><strong>${row[exerciseStatMetric]}${unit}</strong></p>`).join("")||"<p>No results for this metric.</p>"}</div>`;
+}
+document.getElementById("exerciseStatisticsBack")?.addEventListener("click",()=>showPage("statistics"));
+document.getElementById("exerciseStatExercise")?.addEventListener("change",renderExerciseStatistics);
+document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(button=>button.addEventListener("click",()=>{exerciseStatMetric=button.dataset.metric;document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(item=>item.classList.toggle("active",item===button));renderExerciseStatistics();}));

@@ -17,7 +17,8 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=45">
+  <link rel="stylesheet" href="style.css?v=46">
+  <link rel="stylesheet" href="refinements.css?v=1">
 </head>
 
 <body>
@@ -441,12 +442,23 @@
   </div>
 
   <div class="session-action-bar">
-    <button type="button" id="openRestTimer" class="rest-timer-button" aria-label="Open rest timer">
+    <p id="sessionProgress" hidden>0 results recorded</p>
+    <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
+  </div>
+
+  <div id="restTimerDock" class="rest-timer-dock">
+    <button type="button" id="openRestTimer" class="rest-timer-display" aria-label="Set rest timer">
       <span class="rest-timer-ring" aria-hidden="true"></span>
       <span id="restTimerLabel">Timer</span>
     </button>
-    <p id="sessionProgress" hidden>0 results recorded</p>
-    <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
+    <div id="restTimerDockIdle" class="rest-timer-dock-controls">
+      <button type="button" id="setRestTimer">Set</button>
+    </div>
+    <div id="restTimerDockRunning" class="rest-timer-dock-controls" hidden>
+      <button type="button" id="dockPauseRestTimer" aria-label="Pause timer">Pause</button>
+      <button type="button" id="dockAddRestTimerTime" aria-label="Add 30 seconds">+30</button>
+      <button type="button" id="dockEndRestTimer" aria-label="End timer">End</button>
+    </div>
   </div>
 
 </section>
@@ -516,11 +528,6 @@
 <section id="profile" class="page">
   <div class="page-header"><h1>Profile</h1></div>
 
-  <button type="button" id="openStatistics" class="card profile-link-card">
-    <span><strong>Statistics</strong><small>Training, consistency, progress and records</small></span>
-    <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
-  </button>
-
   <details class="card profile-editor-card" id="bodyweightGoalEditor">
   <summary>
     <span class="profile-summary-copy">
@@ -560,6 +567,11 @@
 
 </details>
 
+<button type="button" id="openStatistics" class="card profile-link-card">
+  <span><strong>Statistics</strong><small>Training, consistency, progress and records</small></span>
+  <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+</button>
+
 <div class="card data-backup-card">
   <div>
     <h2>Backup &amp; Restore</h2>
@@ -597,7 +609,9 @@
       <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
     </button>
     <h1>Statistics</h1>
-    <button type="button" id="statisticsFilterButton" class="statistics-filter-button">4 Weeks</button>
+    <button type="button" id="statisticsFilterButton" class="icon-button outlined-icon-button" aria-label="Filter statistics">
+      <svg aria-hidden="true"><use href="#icon-filter"></use></svg>
+    </button>
   </div>
 
   <dialog id="statisticsFilterDialog" class="decision-dialog" aria-labelledby="statisticsFilterTitle">
@@ -613,6 +627,23 @@
   </dialog>
 
   <div id="statisticsContent"></div>
+</section>
+
+<section id="exerciseStatistics" class="page">
+  <div class="page-header statistics-header">
+    <button type="button" class="icon-button" id="exerciseStatisticsBack" aria-label="Back to Statistics"><svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg></button>
+    <h1>Exercise Progress</h1>
+  </div>
+  <div class="card exercise-stat-controls">
+    <label for="exerciseStatExercise">Exercise</label>
+    <select id="exerciseStatExercise"></select>
+    <div id="exerciseStatMetric" class="exercise-stat-metrics">
+      <button type="button" data-metric="weight" class="active">Weight</button>
+      <button type="button" data-metric="reps">Reps</button>
+      <button type="button" data-metric="effort">Effort</button>
+    </div>
+  </div>
+  <div id="exerciseStatisticsContent"></div>
 </section>
 
 <!-- ADD OR EDIT EXERCISE POP-UP -->
@@ -769,6 +800,7 @@
       workoutHistory: 2.5,
       profile: 3,
       statistics: 3.5,
+      exerciseStatistics: 3.7,
       measurements: 3.5
     };
 
@@ -969,14 +1001,14 @@
   </script>
 
   <script src="storage.js?v=4"></script>
-  <script src="dashboard.js?v=21"></script>
-  <script src="library.js?v=28"></script>
-  <script src="programme-overview.js?v=1"></script>
-  <script src="programme-editor.js?v=22"></script>
-  <script src="workout-session.js?v=20"></script>
+  <script src="dashboard.js?v=22"></script>
+  <script src="library.js?v=29"></script>
+  <script src="programme-overview.js?v=2"></script>
+  <script src="programme-editor.js?v=23"></script>
+  <script src="workout-session.js?v=21"></script>
   <script src="workout-history.js?v=13"></script>
   <script src="profile.js?v=9"></script>
-  <script src="statistics.js?v=1"></script>
+  <script src="statistics.js?v=2"></script>
   <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

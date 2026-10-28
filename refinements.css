@@ -1,0 +1,77 @@
+/* SPOT — final component refinements */
+
+body { -webkit-user-select:none;user-select:none; }
+input:not([readonly]),textarea:not([readonly]),select,[contenteditable="true"] { -webkit-user-select:text;user-select:text; }
+input[readonly],textarea[readonly] { caret-color:transparent;pointer-events:none; }
+
+.editor-day-header { grid-template-columns:40px minmax(0,1fr) 44px !important; }
+.editor-readonly .editor-day-header { grid-template-columns:minmax(0,1fr) !important; }
+.editor-day-name-group { display:flex;align-items:center;min-width:0;gap:3px; }
+.editor-day-name-group .editable-name { min-width:0;flex:0 1 auto; }
+.editor-day-name-group .editor-expand-day { flex:0 0 36px;width:36px;min-width:36px;height:36px; }
+.editor-day-card { transition:transform 290ms cubic-bezier(.2,.8,.2,1),box-shadow 220ms ease,opacity 220ms ease; }
+.editor-day-card.is-dragging { transform:none !important;opacity:.94; }
+.drag-handle { touch-action:none;cursor:grab; }
+.drag-handle:active { cursor:grabbing; }
+
+#editMeasurementModal { box-sizing:border-box;width:min(calc(100% - 28px),430px);max-width:430px;overflow:hidden; }
+#editMeasurementModal form { box-sizing:border-box;width:100%;min-width:0; }
+#editMeasurementModal input[type="date"],#editMeasurementModal input[type="number"] {
+  display:block;box-sizing:border-box;inline-size:100%;min-inline-size:0;max-inline-size:100%;width:100%;min-width:0;max-width:100%;height:52px;min-height:52px;margin:0;padding:12px 14px;
+}
+#editMeasurementModal input[type="date"] { -webkit-appearance:none;appearance:none; }
+#editMeasurementModal .modal-actions { display:flex;justify-content:flex-end;gap:10px;width:100%; }
+#editMeasurementModal .modal-actions button { width:auto;min-width:112px;margin:0; }
+
+.overview-day-list { gap:10px; }
+.overview-group-heading { margin:16px 2px 2px; }
+.overview-day-card { min-height:72px;margin:0; }
+.overview-status { width:44px;height:44px;color:var(--orange);background:#292929;border:1px solid #444;border-radius:12px; }
+.overview-status.is-done { color:#111;background:var(--orange);border-color:var(--orange); }
+.week-navigation > button { color:var(--orange);border-radius:12px; }
+.week-navigation > button:disabled { color:#666; }
+.overview-week-selector { scroll-snap-type:x proximity;scroll-padding-inline:calc(50% - 42px); }
+.overview-week-selector button { scroll-snap-align:center; }
+
+.statistics-filter-button { color:var(--orange);border-color:rgba(255,138,0,.45); }
+.statistics-filter-options button.active { color:#111;background:var(--orange);border-color:var(--orange);font-weight:800; }
+#statisticsFilterDialog > #closeStatisticsFilter { display:block;margin-left:auto; }
+.consistency-bars { height:132px;align-items:stretch; }
+.consistency-bars > div { display:grid;grid-template-rows:18px 1fr 18px;align-items:end;gap:4px;text-align:center; }
+.consistency-bars > div strong,.consistency-bars > div small { color:var(--grey);font-size:10px;font-weight:700; }
+.consistency-bars > div > span { width:100%;min-height:8px; }
+.exercise-stat-controls { display:grid;gap:10px; }
+.exercise-stat-controls select { width:100%; }
+.exercise-stat-metrics { display:grid;grid-template-columns:repeat(3,1fr);gap:8px; }
+.exercise-stat-metrics button { min-height:42px; }
+.exercise-stat-metrics button.active { color:#111;background:var(--orange);border-color:var(--orange);font-weight:800; }
+.exercise-stat-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0; }
+.exercise-stat-grid .card { display:grid;gap:5px;margin:0; }
+.exercise-stat-grid span { color:var(--grey);font-size:12px;font-weight:800;text-transform:uppercase; }
+.exercise-stat-grid strong { font-size:24px; }
+.exercise-stat-history p { display:flex;justify-content:space-between;margin:0;padding:12px 0;border-top:1px solid var(--border); }
+
+.weekly-progress-track .progress-fill.progress-fill-animate { transition:width 700ms cubic-bezier(.2,.8,.2,1); }
+
+body.session-active #workoutSession { padding-bottom:110px; }
+body.session-active #workoutSession .session-action-bar { position:static;width:100%;margin:18px 0 0;padding:0;transform:none;background:transparent;border:0;box-shadow:none;backdrop-filter:none; }
+body.session-active #workoutSession .session-action-bar .primary-button { width:100%;min-height:54px; }
+.rest-timer-dock {
+  position:fixed;z-index:65;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:min(calc(100% - 28px),680px);min-height:68px;padding:9px 10px;transform:translateX(-50%);background:rgba(25,25,25,.97);border:1px solid #454545;border-radius:18px;box-shadow:0 14px 38px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.06) inset;backdrop-filter:blur(16px);
+}
+.rest-timer-display { display:flex;align-items:center;gap:10px;min-width:0;min-height:48px;padding:8px 12px;color:var(--white);background:transparent;border:0;text-align:left;font-size:20px;font-weight:800; }
+.rest-timer-display.is-running { color:var(--orange); }
+.rest-timer-dock-controls { display:flex;align-items:center;gap:7px; }
+.rest-timer-dock-controls[hidden] { display:none; }
+.rest-timer-dock-controls button { min-width:54px;min-height:44px;padding:8px 10px;color:var(--white);background:#292929;border:1px solid #444;border-radius:11px;font-size:12px;font-weight:800; }
+#dockEndRestTimer { color:#e26363; }
+
+@media (max-width:390px) {
+  .rest-timer-dock-controls { gap:5px; }
+  .rest-timer-dock-controls button { min-width:48px;padding:7px;font-size:11px; }
+  .rest-timer-display { padding-left:8px;font-size:18px; }
+  #editMeasurementModal .modal-actions button { min-width:0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .editor-day-card,.weekly-progress-track .progress-fill.progress-fill-animate { transition:none !important; }
+}

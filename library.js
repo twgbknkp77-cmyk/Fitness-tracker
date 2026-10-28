@@ -1164,7 +1164,7 @@ function renderLibrary() {
     panel.className = "overflow-menu-panel";
 
     const edit = document.createElement("button");
-    edit.textContent = "Edit programme";
+    edit.textContent = "Edit";
     edit.addEventListener("click", () => openProgrammeEditor(programme.id));
 
     const remove = document.createElement("button");
@@ -1311,6 +1311,10 @@ function renderActiveWorkout() {
       back.addEventListener("click", () => {
         expandedWorkoutId = null;
         renderActiveWorkout();
+        if (window.workoutDetailReturnPage === "programmeOverview") {
+          window.workoutDetailReturnPage = null;
+          showPage("programmeOverview");
+        }
       });
       const detailHeader = document.createElement("div");
       detailHeader.className = "workout-detail-header";
