@@ -17,7 +17,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 
   <!-- MAIN STYLESHEET -->
-  <link rel="stylesheet" href="style.css?v=44">
+  <link rel="stylesheet" href="style.css?v=45">
 </head>
 
 <body>
@@ -383,6 +383,17 @@
 
 </section>
 
+<section id="programmeOverview" class="page">
+  <div class="page-header programme-overview-header">
+    <button type="button" class="icon-button" id="programmeOverviewBack" aria-label="Back to Library">
+      <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+    </button>
+    <h1 id="programmeOverviewTitle">Programme</h1>
+    <button type="button" id="programmeOverviewEdit">Edit</button>
+  </div>
+  <div id="programmeOverviewContent"></div>
+</section>
+
 <!-- PROGRAMME EDITOR PAGE -->
 <section id="programmeEditor" class="page">
   <div class="page-header editor-page-header">
@@ -430,12 +441,37 @@
   </div>
 
   <div class="session-action-bar">
+    <button type="button" id="openRestTimer" class="rest-timer-button" aria-label="Open rest timer">
+      <span class="rest-timer-ring" aria-hidden="true"></span>
+      <span id="restTimerLabel">Timer</span>
+    </button>
     <p id="sessionProgress" hidden>0 results recorded</p>
     <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
   </div>
 
 </section>
 <!-- END WORKOUT SESSION -->
+
+<dialog id="restTimerDialog" class="decision-dialog rest-timer-dialog" aria-labelledby="restTimerTitle">
+  <h2 id="restTimerTitle">Rest Timer</h2>
+  <div id="restTimerPresets" class="timer-presets">
+    <button type="button" data-seconds="30">30 sec</button>
+    <button type="button" data-seconds="60">60 sec</button>
+    <button type="button" data-seconds="90">90 sec</button>
+    <button type="button" data-seconds="120">2 min</button>
+    <button type="button" data-seconds="180">3 min</button>
+  </div>
+  <div id="restTimerRunningActions" class="timer-running-actions" hidden>
+    <button type="button" id="pauseRestTimer">Pause</button>
+    <button type="button" id="addRestTimerTime">+30 sec</button>
+    <button type="button" id="endRestTimer" class="danger-text-button">End</button>
+  </div>
+  <button type="button" id="closeRestTimer">Cancel</button>
+</dialog>
+
+<section id="workoutComplete" class="page">
+  <div id="workoutCompletionSummary"></div>
+</section>
 
 <dialog id="discardWorkoutDialog" class="decision-dialog" aria-labelledby="discardWorkoutTitle">
   <h2 id="discardWorkoutTitle">Leave this workout?</h2>
@@ -479,6 +515,11 @@
 <!-- PROFILE PAGE -->
 <section id="profile" class="page">
   <div class="page-header"><h1>Profile</h1></div>
+
+  <button type="button" id="openStatistics" class="card profile-link-card">
+    <span><strong>Statistics</strong><small>Training, consistency, progress and records</small></span>
+    <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+  </button>
 
   <details class="card profile-editor-card" id="bodyweightGoalEditor">
   <summary>
@@ -549,6 +590,30 @@
 
 </section>
 <!-- END PROFILE PAGE -->
+
+<section id="statistics" class="page">
+  <div class="page-header statistics-header">
+    <button type="button" class="icon-button" id="statisticsBack" aria-label="Back to Profile">
+      <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+    </button>
+    <h1>Statistics</h1>
+    <button type="button" id="statisticsFilterButton" class="statistics-filter-button">4 Weeks</button>
+  </div>
+
+  <dialog id="statisticsFilterDialog" class="decision-dialog" aria-labelledby="statisticsFilterTitle">
+    <h2 id="statisticsFilterTitle">Time Period</h2>
+    <div class="statistics-filter-options">
+      <button type="button" data-range="28">4 Weeks</button>
+      <button type="button" data-range="90">3 Months</button>
+      <button type="button" data-range="365">1 Year</button>
+      <button type="button" data-range="all">All Time</button>
+      <button type="button" data-range="programme">Current Programme</button>
+    </div>
+    <button type="button" id="closeStatisticsFilter">Cancel</button>
+  </dialog>
+
+  <div id="statisticsContent"></div>
+</section>
 
 <!-- ADD OR EDIT EXERCISE POP-UP -->
 <dialog id="exerciseDialog" aria-labelledby="exerciseDialogTitle">
@@ -697,10 +762,13 @@
       dashboard: 0,
       workouts: 1,
       workoutSession: 1.5,
+      workoutComplete: 1.7,
       library: 2,
+      programmeOverview: 2.25,
       programmeEditor: 2.5,
       workoutHistory: 2.5,
       profile: 3,
+      statistics: 3.5,
       measurements: 3.5
     };
 
@@ -771,7 +839,7 @@
 
   document.body.classList.toggle(
     "session-active",
-    pageId === "workoutSession"
+    pageId === "workoutSession" || pageId === "workoutComplete"
   );
 
   if (
@@ -800,6 +868,10 @@
     if (typeof populateExerciseSuggestions === "function") {
       populateExerciseSuggestions();
     }
+  }
+
+  if (pageId === "statistics" && typeof renderStatistics === "function") {
+    renderStatistics();
   }
 
 }
@@ -899,10 +971,12 @@
   <script src="storage.js?v=4"></script>
   <script src="dashboard.js?v=21"></script>
   <script src="library.js?v=28"></script>
+  <script src="programme-overview.js?v=1"></script>
   <script src="programme-editor.js?v=22"></script>
-  <script src="workout-session.js?v=19"></script>
+  <script src="workout-session.js?v=20"></script>
   <script src="workout-history.js?v=13"></script>
-  <script src="profile.js?v=8"></script>
+  <script src="profile.js?v=9"></script>
+  <script src="statistics.js?v=1"></script>
   <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

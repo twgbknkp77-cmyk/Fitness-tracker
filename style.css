@@ -2003,6 +2003,131 @@ dialog button:focus,dialog button:focus-visible,dialog button:active { outline:n
   .workout-detail-start { min-width:92px; padding:9px 12px; font-size:14px; }
 }
 
+/* Active-workout toolbar replaces the normal navigation. */
+body.session-active #workoutSession .session-action-bar {
+  position:fixed;
+  z-index:60;
+  left:50%;
+  bottom:calc(10px + env(safe-area-inset-bottom));
+  width:min(calc(100% - 28px),680px);
+  margin:0;
+  padding:10px;
+  transform:translateX(-50%);
+  background:rgba(26,26,26,.96);
+  border:1px solid #454545;
+  border-radius:18px;
+  box-shadow:0 14px 38px rgba(0,0,0,.58),0 1px 0 rgba(255,255,255,.06) inset;
+  backdrop-filter:blur(16px);
+}
+
+/* Premium workout tools, completion and statistics. */
+.session-action-bar {
+  display:grid;
+  grid-template-columns:minmax(96px,.38fr) minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+}
+.rest-timer-button {
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  width:100%;
+  min-height:54px;
+  padding:10px 14px;
+  color:var(--white);
+  background:#292929;
+  border:1px solid #444;
+  border-radius:14px;
+  font-weight:800;
+}
+.rest-timer-ring { width:16px;height:16px;border:2px solid var(--grey);border-top-color:var(--orange);border-radius:50%; }
+.rest-timer-button.is-running { color:var(--orange);border-color:rgba(255,138,0,.55); }
+.rest-timer-button.is-running .rest-timer-ring { animation:timer-spin 1.2s linear infinite; }
+.rest-timer-button.timer-finished { animation:timer-finish-pulse 450ms ease 2; }
+.timer-presets { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:18px 0; }
+.timer-presets button,.timer-running-actions button { min-height:48px; }
+.timer-presets button:last-child { grid-column:1 / -1; }
+.timer-presets button.last-used { color:var(--orange);border-color:rgba(255,138,0,.55); }
+.timer-running-actions { display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0; }
+.timer-running-actions[hidden],.timer-presets[hidden] { display:none; }
+@keyframes timer-spin { to { transform:rotate(360deg); } }
+@keyframes timer-finish-pulse { 50% { transform:scale(1.04);background:rgba(255,138,0,.2); } }
+
+#workoutCompletionSummary { max-width:680px;margin:0 auto;padding-bottom:28px; }
+.completion-hero { padding:28px 10px 22px;text-align:center;animation:completion-rise 420ms cubic-bezier(.2,.8,.2,1) both; }
+.completion-check { display:grid;place-items:center;width:68px;height:68px;margin:0 auto 16px;color:#101010;background:var(--orange);border-radius:50%;font-size:34px;font-weight:900;box-shadow:0 0 0 10px rgba(255,138,0,.1); }
+.completion-hero p,.completion-hero small { margin:0;color:var(--grey); }
+.completion-hero h1 { margin:6px 0;font-size:clamp(30px,8vw,44px); }
+.completion-metric-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px; }
+.completion-metric-grid div { display:grid;gap:5px;padding:18px;background:var(--card);border:1px solid var(--border);border-radius:16px; }
+.completion-metric-grid span { color:var(--grey);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em; }
+.completion-metric-grid strong { font-size:21px; }
+.completion-comparison h2 { margin-top:0; }
+.completion-comparison > div { display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;padding:11px 0;border-top:1px solid var(--border); }
+.completion-comparison em { min-width:72px;color:var(--orange);font-style:normal;text-align:right; }
+.completion-insight { margin:16px 0 4px;padding:16px;color:var(--white);background:rgba(255,138,0,.09);border-left:3px solid var(--orange);border-radius:0 12px 12px 0; }
+.completion-next { color:var(--grey);text-align:center; }
+#closeWorkoutSummary { width:100%;min-height:54px;margin-top:10px; }
+@keyframes completion-rise { from { opacity:0;transform:translateY(16px) scale(.98); } to { opacity:1;transform:none; } }
+
+.profile-link-card { display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:16px;padding:20px;color:var(--white);text-align:left; }
+.profile-link-card span { display:grid;gap:5px; }
+.profile-link-card small { color:var(--grey);font-weight:400; }
+.profile-link-card svg { width:22px;height:22px;fill:none;stroke:var(--orange);stroke-width:2; }
+.statistics-header { display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:10px; }
+.statistics-header h1 { margin:0; }
+.statistics-filter-button { min-height:42px;padding:8px 12px;color:var(--orange);background:#262626;border:1px solid #444;border-radius:12px;font-weight:800; }
+.statistics-filter-options { display:grid;gap:10px;margin:16px 0; }
+.statistics-filter-options button { min-height:48px; }
+.statistics-section { margin-bottom:14px; }
+.statistics-section h2 { margin-top:0; }
+.statistics-number-grid { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+.statistic-number-card { display:grid;gap:5px;padding:16px;background:#171717;border:1px solid #353535;border-radius:14px; }
+.statistic-number-card span,.statistics-wide-metric span { color:var(--grey);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em; }
+.statistic-number-card strong { font-size:28px; }
+.statistics-wide-metric { display:flex;align-items:center;gap:12px;margin-top:10px;padding:14px 2px 0; }
+.statistics-wide-metric strong { margin-left:auto;font-size:22px; }
+.statistics-wide-metric small { color:var(--grey); }
+.consistency-bars { display:grid;grid-template-columns:repeat(8,1fr);align-items:end;gap:8px;height:112px;padding-top:12px; }
+.consistency-bars span { height:max(8px,calc(var(--activity) * 100%));background:linear-gradient(to top,#2979ff,var(--orange));border-radius:7px 7px 3px 3px;opacity:calc(.35 + var(--activity) * .65);transition:height 400ms ease; }
+.statistics-link-section { display:flex;align-items:center;justify-content:space-between;gap:14px; }
+.statistics-link-section p { margin-bottom:0;color:var(--grey); }
+.statistics-record-list p { display:flex;justify-content:space-between;gap:14px;margin:0;padding:13px 0;border-top:1px solid var(--border); }
+.statistics-record-list span { color:var(--grey); }
+.statistics-empty { color:var(--grey); }
+.programme-overview-header { display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:10px; }
+.programme-overview-header h1 { min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+#programmeOverviewEdit { min-height:42px;padding:8px 15px;color:var(--background);background:var(--orange);border:0;border-radius:12px;font-weight:800; }
+.overview-progress-card > div:first-child { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+.overview-progress-card span { color:var(--grey); }
+.overview-progress-card strong { font-size:24px; }
+.overview-progress-card .progress-track { height:12px;overflow:hidden;background:#303030;border-radius:999px; }
+.overview-progress-card .progress-track span { display:block;height:100%;background:var(--orange);border-radius:inherit;transition:width 420ms cubic-bezier(.2,.8,.2,1); }
+.overview-week-selector { display:flex;gap:8px;margin:14px 0;overflow-x:auto;scrollbar-width:none; }
+.overview-week-selector::-webkit-scrollbar { display:none; }
+.overview-week-selector button { flex:0 0 auto;min-height:40px;padding:8px 14px;color:var(--grey);background:#252525;border:1px solid #3b3b3b;border-radius:999px; }
+.overview-week-selector button.active { color:#111;background:var(--orange);border-color:var(--orange);font-weight:800; }
+.overview-day-list { display:grid;gap:12px; }
+.overview-day-card { display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer; }
+.overview-day-card small { color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.06em; }
+.overview-day-card h3 { margin:5px 0; }
+.overview-day-card p { margin:0;color:var(--grey); }
+.overview-status { display:grid;place-items:center;width:42px;height:42px;color:var(--orange);background:#292929;border-radius:50%;font-size:25px; }
+.overview-status.is-done { color:#111;background:var(--orange);font-size:18px;font-weight:900; }
+
+@media (max-width:430px) {
+  .session-action-bar { grid-template-columns:108px minmax(0,1fr); }
+  .completion-comparison > div { grid-template-columns:minmax(0,1fr) auto; }
+  .completion-comparison em { grid-column:2; }
+  .statistics-header h1 { font-size:28px; }
+  .statistics-filter-button { max-width:100px;font-size:12px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .completion-hero,.rest-timer-button,.rest-timer-ring,.consistency-bars span { animation:none !important;transition:none !important; }
+}
+
 /* October 28 programme and workout detail refinement. */
 dialog button:focus,dialog button:focus-visible,dialog button:active { outline:none !important; box-shadow:none !important; }
 @media (hover:hover) and (pointer:fine) { dialog button:focus-visible { outline:2px solid #777 !important; outline-offset:2px; } }

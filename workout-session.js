@@ -4,6 +4,111 @@ const SESSION_HISTORY_KEY = "fitness_workout_history";
 const ACTIVE_SESSION_KEY = "spot_active_workout_session_v1";
 
 let currentSession = null;
+let restTimerEndsAt = 0;
+let restTimerRemaining = 0;
+let restTimerInterval = null;
+let restTimerPaused = false;
+const REST_TIMER_CHOICE_KEY = "spot_rest_timer_choice_v1";
+
+function completedSessionDuration(session) {
+  const start = new Date(session.startedAt).getTime();
+  const finish = new Date(session.finishedAt).getTime();
+  return Number.isFinite(start) && Number.isFinite(finish)
+    ? Math.max(0, Math.round((finish - start) / 60000)) : 0;
+}
+
+function completedSessionVolume(session) {
+  return (session.exercises || []).reduce((total, exercise) => total +
+    (exercise.sets || []).reduce((sum, set) => set.completed === false
+      ? sum : sum + (Number(set.weight) || 0) * (Number(set.reps) || 0), 0), 0);
+}
+
+function completedSessionEffort(session) {
+  const values = (session.exercises || []).map(exercise => Number(exercise.effort)).filter(value => value > 0);
+  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+}
+
+function completedCardioMinutes(session) {
+  return (session.exercises || []).filter(exercise => exercise.type === "cardio")
+    .reduce((total, exercise) => total + (Number(exercise.durationMinutes) || 0), 0);
+}
+
+function completionChange(current, previous, suffix = "") {
+  if (!previous) return "—";
+  const difference = current - previous;
+  return `${difference > 0 ? "+" : ""}${Number.isInteger(difference) ? difference : difference.toFixed(1)}${suffix}`;
+}
+
+function renderWorkoutCompletionSummary(session, previousSession, progression) {
+  const container = document.getElementById("workoutCompletionSummary");
+  if (!container) return;
+  const duration = completedSessionDuration(session);
+  const volume = Math.round(completedSessionVolume(session));
+  const effort = completedSessionEffort(session);
+  const sets = (session.exercises || []).flatMap(exercise => exercise.sets || []).filter(set => set.completed).length;
+  const oldDuration = previousSession ? completedSessionDuration(previousSession) : 0;
+  const oldVolume = previousSession ? Math.round(completedSessionVolume(previousSession)) : 0;
+  const oldEffort = previousSession ? completedSessionEffort(previousSession) : 0;
+  const cardioMinutes = completedCardioMinutes(session);
+  const oldCardioMinutes = previousSession ? completedCardioMinutes(previousSession) : 0;
+  const cardioOnly = cardioMinutes > 0 && volume === 0;
+  let insight = "Your first result for this workout is now saved.";
+  if (previousSession) {
+    const currentProgress = cardioOnly ? cardioMinutes : volume;
+    const oldProgress = cardioOnly ? oldCardioMinutes : oldVolume;
+    const percent = oldProgress ? Math.round(((currentProgress - oldProgress) / oldProgress) * 100) : 0;
+    insight = percent > 0 ? `Training volume increased by ${percent}% from your previous session.`
+      : percent < 0 ? `Training volume was ${Math.abs(percent)}% lower than your previous session.`
+      : "Training volume matched your previous session.";
+    if (cardioOnly) insight = percent > 0 ? `Cardio time increased by ${percent}% from your previous session.`
+      : percent < 0 ? `Cardio time was ${Math.abs(percent)}% lower than your previous session.`
+      : "Cardio time matched your previous session.";
+    if (effort && oldEffort && effort < oldEffort) insight += " Average effort was lower.";
+  }
+  const next = progression?.advanced ? `Week complete — Week ${progression.newWeek} is now ready.`
+    : progression?.programmeComplete ? "Programme complete." : "Your next workout is ready when you are.";
+  container.innerHTML = `
+    <div class="completion-hero"><span class="completion-check">✓</span><p>Workout Complete</p><h1>${session.workoutName}</h1><small>${new Date(session.finishedAt).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})}</small></div>
+    <div class="completion-metric-grid"><div><span>Duration</span><strong>${duration} min</strong></div><div><span>${cardioOnly ? "Cardio" : "Sets"}</span><strong>${cardioOnly ? `${cardioMinutes} min` : sets}</strong></div><div><span>${cardioOnly ? "Exercises" : "Volume"}</span><strong>${cardioOnly ? (session.exercises || []).length : `${volume.toLocaleString()} kg`}</strong></div><div><span>Avg effort</span><strong>${effort ? effort.toFixed(1) : "—"}</strong></div></div>
+    <div class="card completion-comparison"><h2>Previous Session</h2>${previousSession ? `<div><span>${cardioOnly ? "Cardio time" : "Volume"}</span><strong>${cardioOnly ? `${oldCardioMinutes} min` : `${oldVolume.toLocaleString()} kg`}</strong><em>${cardioOnly ? completionChange(cardioMinutes,oldCardioMinutes," min") : completionChange(volume,oldVolume," kg")}</em></div><div><span>Duration</span><strong>${oldDuration} min</strong><em>${completionChange(duration,oldDuration," min")}</em></div><div><span>Average effort</span><strong>${oldEffort ? oldEffort.toFixed(1) : "—"}</strong><em>${oldEffort ? completionChange(effort,oldEffort) : "—"}</em></div>` : "<p>No previous session to compare yet.</p>"}</div>
+    <p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
+  document.getElementById("closeWorkoutSummary")?.addEventListener("click", () => showPage("workouts"));
+  showPage("workoutComplete");
+}
+
+function formatRestTime(seconds) {
+  const safe = Math.max(0, Math.ceil(seconds));
+  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2,"0")}`;
+}
+
+function updateRestTimerDisplay() {
+  const remaining = restTimerPaused ? restTimerRemaining : Math.max(0,(restTimerEndsAt-Date.now())/1000);
+  const running = remaining > 0;
+  const label = document.getElementById("restTimerLabel");
+  const button = document.getElementById("openRestTimer");
+  if (label) label.textContent = running ? formatRestTime(remaining) : "Timer";
+  button?.classList.toggle("is-running",running);
+  document.getElementById("restTimerRunningActions")?.toggleAttribute("hidden",!running);
+  document.getElementById("restTimerPresets")?.toggleAttribute("hidden",running);
+  const pause = document.getElementById("pauseRestTimer");
+  if (pause) pause.textContent = restTimerPaused ? "Resume" : "Pause";
+  if (!running && restTimerInterval) {
+    clearInterval(restTimerInterval); restTimerInterval=null;
+    if (!restTimerPaused && typeof navigator.vibrate==="function") navigator.vibrate([160,90,160]);
+    button?.classList.add("timer-finished"); setTimeout(()=>button?.classList.remove("timer-finished"),900);
+  }
+}
+
+function startRestTimer(seconds) {
+  restTimerRemaining=Number(seconds)||60; restTimerEndsAt=Date.now()+restTimerRemaining*1000; restTimerPaused=false;
+  localStorage.setItem(REST_TIMER_CHOICE_KEY,String(seconds)); clearInterval(restTimerInterval);
+  restTimerInterval=setInterval(updateRestTimerDisplay,250); updateRestTimerDisplay(); document.getElementById("restTimerDialog")?.close();
+}
+
+function endRestTimer() {
+  clearInterval(restTimerInterval); restTimerInterval=null; restTimerRemaining=0; restTimerEndsAt=0; restTimerPaused=false;
+  updateRestTimerDisplay(); document.getElementById("restTimerDialog")?.close();
+}
 
 
 // READ HISTORY SAFELY
@@ -459,7 +564,7 @@ function renderWorkoutSession() {
     const completeButton = document.createElement("button");
     completeButton.type = "button";
     completeButton.className = "exercise-complete-button";
-    completeButton.textContent = exercise.completed ? "Done ✓" : "Done";
+    completeButton.textContent = "Done";
     completeButton.setAttribute(
       "aria-label",
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
@@ -796,6 +901,10 @@ document
     });
 
     const history = getWorkoutSessionHistory();
+    const previousSession = [...history].reverse().find(session =>
+      session.workoutId === currentSession.workoutId ||
+      sessionExerciseName(session.workoutName) === sessionExerciseName(currentSession.workoutName)
+    ) || null;
 
     const finishedSession = {
       ...currentSession,
@@ -827,8 +936,10 @@ document
           )
         : { advanced: false };
 
+    const completedSession = finishedSession;
     currentSession = null;
     clearActiveWorkoutSession();
+    endRestTimer();
 
     if (typeof renderActiveWorkout === "function") {
       renderActiveWorkout();
@@ -838,22 +949,41 @@ document
       updateDashboard();
     }
 
-    if (progression.advanced) {
-      await showSpotMessage(
-        "Workout saved",
-        `Week complete — moving to Week ${progression.newWeek}.`
-      );
-    } else if (progression.programmeComplete) {
-      await showSpotMessage("Programme complete", "You have completed the entire programme.");
-    } else {
-      await showSpotMessage("Workout saved", "Your results and notes are safely stored.");
-    }
-
-    showPage("workouts");
+    renderWorkoutCompletionSummary(completedSession, previousSession, progression);
   });
+
+document.getElementById("openRestTimer")?.addEventListener("click", () => {
+  const lastChoice = localStorage.getItem(REST_TIMER_CHOICE_KEY) || "90";
+  document.querySelectorAll("#restTimerPresets [data-seconds]").forEach(button => {
+    button.classList.toggle("last-used", button.dataset.seconds === lastChoice);
+  });
+  updateRestTimerDisplay();
+  document.getElementById("restTimerDialog")?.showModal();
+});
+document.querySelectorAll("#restTimerPresets [data-seconds]").forEach(button =>
+  button.addEventListener("click", () => startRestTimer(button.dataset.seconds))
+);
+document.getElementById("closeRestTimer")?.addEventListener("click", () => document.getElementById("restTimerDialog")?.close());
+document.getElementById("endRestTimer")?.addEventListener("click", endRestTimer);
+document.getElementById("addRestTimerTime")?.addEventListener("click", () => {
+  if (restTimerPaused) restTimerRemaining += 30;
+  else restTimerEndsAt += 30000;
+  updateRestTimerDisplay();
+});
+document.getElementById("pauseRestTimer")?.addEventListener("click", () => {
+  if (restTimerPaused) {
+    restTimerEndsAt = Date.now() + restTimerRemaining * 1000;
+    restTimerPaused = false;
+  } else {
+    restTimerRemaining = Math.max(0,(restTimerEndsAt-Date.now())/1000);
+    restTimerPaused = true;
+  }
+  updateRestTimerDisplay();
+});
 
 document.getElementById("saveAndExitWorkout")?.addEventListener("click", () => {
   saveActiveWorkoutSession();
+  endRestTimer();
   document.getElementById("discardWorkoutDialog")?.close();
   currentSession = null;
   if (typeof renderActiveWorkout === "function") renderActiveWorkout();
@@ -890,6 +1020,7 @@ document
 
     currentSession = null;
     clearActiveWorkoutSession();
+    endRestTimer();
     showPage("workouts");
   });
 

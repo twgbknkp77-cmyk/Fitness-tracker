@@ -1215,7 +1215,8 @@ function renderLibrary() {
 
     card.addEventListener("click", event => {
       if (event.target.closest(".overflow-menu")) return;
-      openProgrammeEditor(programme.id);
+      if (typeof openProgrammeOverview === "function") openProgrammeOverview(programme.id);
+      else openProgrammeEditor(programme.id);
     });
 
     container.appendChild(card);
