@@ -9,6 +9,20 @@ let restTimerRemaining = 0;
 let restTimerInterval = null;
 let restTimerPaused = false;
 const REST_TIMER_CHOICE_KEY = "spot_rest_timer_choice_v1";
+const SPOT_NOTIFICATIONS_KEY = "spot_notifications_enabled_v1";
+
+function timerNotificationEnabled() {
+  return localStorage.getItem(SPOT_NOTIFICATIONS_KEY) === "true";
+}
+
+function showTimerFinishedAlert() {
+  const toast=document.createElement("div"); toast.className="spot-timer-toast"; toast.textContent="Rest complete";
+  document.body.appendChild(toast); requestAnimationFrame(()=>toast.classList.add("show"));
+  setTimeout(()=>{toast.classList.remove("show");setTimeout(()=>toast.remove(),250);},2800);
+  if (document.hidden && timerNotificationEnabled() && "Notification" in window && Notification.permission === "granted") {
+    new Notification("Spot", { body:"Your rest timer has finished.", icon:"icons/spot-icon-192.png", tag:"spot-rest-timer" });
+  }
+}
 
 function completedSessionDuration(session) {
   const start = new Date(session.startedAt).getTime();
@@ -95,10 +109,14 @@ function updateRestTimerDisplay() {
   const pause = document.getElementById("pauseRestTimer");
   if (pause) pause.textContent = restTimerPaused ? "Resume" : "Pause";
   const dockPause = document.getElementById("dockPauseRestTimer");
-  if (dockPause) dockPause.textContent = restTimerPaused ? "Resume" : "Pause";
+  if (dockPause) {
+    dockPause.setAttribute("aria-label",restTimerPaused?"Resume timer":"Pause timer");
+    dockPause.innerHTML = restTimerPaused ? '<svg aria-hidden="true"><use href="#icon-play"></use></svg>' : '<svg aria-hidden="true"><use href="#icon-pause"></use></svg>';
+  }
   if (!running && restTimerInterval) {
     clearInterval(restTimerInterval); restTimerInterval=null;
     if (!restTimerPaused && typeof navigator.vibrate==="function") navigator.vibrate([160,90,160]);
+    if (!restTimerPaused) showTimerFinishedAlert();
     button?.classList.add("timer-finished"); setTimeout(()=>button?.classList.remove("timer-finished"),900);
   }
 }
@@ -962,6 +980,7 @@ document.getElementById("openRestTimer")?.addEventListener("click", () => {
     button.classList.toggle("last-used", button.dataset.seconds === lastChoice);
   });
   updateRestTimerDisplay();
+  document.getElementById("customRestTimer")?.setAttribute("hidden","");
   document.getElementById("restTimerDialog")?.showModal();
 });
 document.getElementById("setRestTimer")?.addEventListener("click", () => document.getElementById("openRestTimer")?.click());
@@ -989,9 +1008,31 @@ document.getElementById("pauseRestTimer")?.addEventListener("click", () => {
 document.getElementById("dockAddRestTimerTime")?.addEventListener("click", () => document.getElementById("addRestTimerTime")?.click());
 document.getElementById("dockPauseRestTimer")?.addEventListener("click", () => {
   document.getElementById("pauseRestTimer")?.click();
-  const button = document.getElementById("dockPauseRestTimer");
-  if (button) button.textContent = restTimerPaused ? "Resume" : "Pause";
 });
+document.getElementById("showCustomRestTimer")?.addEventListener("click",()=>{
+  document.getElementById("restTimerPresets")?.setAttribute("hidden","");
+  document.getElementById("customRestTimer")?.removeAttribute("hidden");
+  document.getElementById("customRestSeconds")?.focus();
+});
+document.getElementById("startCustomRestTimer")?.addEventListener("click",async()=>{
+  const input=document.getElementById("customRestSeconds"); const seconds=Number(input?.value);
+  if(!Number.isInteger(seconds)||seconds<1||seconds>3600){await showSpotMessage("Check timer","Enter between 1 and 3600 seconds.");return;}
+  startRestTimer(seconds);
+});
+
+const notificationToggle=document.getElementById("notificationsEnabled");
+const notificationStatus=document.getElementById("notificationStatus");
+function refreshNotificationSetting(){
+  const supported="Notification" in window; const enabled=timerNotificationEnabled()&&supported&&Notification.permission==="granted";
+  if(notificationToggle){notificationToggle.checked=enabled;notificationToggle.disabled=!supported;}
+  if(notificationStatus)notificationStatus.textContent=!supported?"Notifications are not supported in this browser.":Notification.permission==="denied"?"Notifications are blocked in your phone settings.":enabled?"Timer alerts are enabled.":"Timer alerts are off.";
+}
+notificationToggle?.addEventListener("change",async()=>{
+  if(!notificationToggle.checked){localStorage.setItem(SPOT_NOTIFICATIONS_KEY,"false");refreshNotificationSetting();return;}
+  const permission=Notification.permission==="granted"?"granted":await Notification.requestPermission();
+  localStorage.setItem(SPOT_NOTIFICATIONS_KEY,String(permission==="granted")); refreshNotificationSetting();
+});
+refreshNotificationSetting();
 
 document.getElementById("saveAndExitWorkout")?.addEventListener("click", () => {
   saveActiveWorkoutSession();

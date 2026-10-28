@@ -1412,6 +1412,8 @@ function renderActiveWorkout() {
     card.className = "card workout-summary-card";
     if (isCurrentWeek && index === 0) {
       card.classList.add("next-workout");
+    } else {
+      card.classList.add("upcoming-workout");
     }
 
     const header = document.createElement("div");

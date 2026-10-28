@@ -91,8 +91,9 @@ function renderStatistics() {
   consistency.className = "card statistics-section";
   consistency.innerHTML = "<h2>Consistency</h2>";
   const bars = document.createElement("div");
-  bars.className = "consistency-bars";
+  bars.className = "consistency-chart";
   const now = new Date();
+  const weekly=[];
   for (let offset = 7; offset >= 0; offset -= 1) {
     const end = new Date(now);
     end.setHours(23, 59, 59, 999);
@@ -104,19 +105,19 @@ function renderStatistics() {
       const time = new Date(session.finishedAt).getTime();
       return time >= start.getTime() && time <= end.getTime();
     }).length;
-    const barGroup = document.createElement("div");
-    const bar = document.createElement("span");
-    bar.style.setProperty("--activity", String(Math.min(count / 5, 1)));
-    bar.title = `${count} workouts`;
-    const value = document.createElement("strong"); value.textContent=String(count);
-    const label = document.createElement("small"); label.textContent=offset===0?"Now":`${offset}w`;
-    barGroup.append(value,bar,label); bars.appendChild(barGroup);
+    weekly.push({count,start});
   }
+  const width=340,height=220,left=42,right=14,top=16,bottom=38; const max=Math.max(3,...weekly.map(item=>item.count));
+  const plotHeight=height-top-bottom; const plotWidth=width-left-right; const barWidth=Math.max(12,plotWidth/weekly.length*.58);
+  const y=value=>top+plotHeight-(value/max)*plotHeight;
+  const columns=weekly.map((item,index)=>{const x=left+(index+.5)*plotWidth/weekly.length;const barTop=y(item.count);return `<g><rect class="consistency-column" x="${x-barWidth/2}" y="${barTop}" width="${barWidth}" height="${Math.max(2,height-bottom-barTop)}" rx="5"><title>${item.count} workouts · ${item.start.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</title></rect><text class="consistency-value" text-anchor="middle" x="${x}" y="${Math.max(top+10,barTop-5)}">${item.count}</text></g>`;}).join("");
+  const ticks=[0,Math.ceil(max/2),max].map(value=>`<g><line class="progress-grid-line" x1="${left}" y1="${y(value)}" x2="${width-right}" y2="${y(value)}"></line><text class="axis-label" text-anchor="end" x="${left-7}" y="${y(value)+4}">${value}</text></g>`).join("");
+  bars.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Workouts completed per week">${ticks}<line class="progress-axis" x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"></line><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line>${columns}<text class="axis-label" x="${left}" y="${height-10}">${weekly[0].start.toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</text><text class="axis-label" text-anchor="end" x="${width-right}" y="${height-10}">Now</text><text class="axis-title" text-anchor="middle" transform="rotate(-90 11 ${top+plotHeight/2})" x="11" y="${top+plotHeight/2}">WORKOUTS</text></svg>`;
   consistency.appendChild(bars);
 
   const progress = document.createElement("section");
   progress.className = "card statistics-section statistics-link-section";
-  progress.innerHTML = `<div><h2>Exercise Progress</h2><p>Review exercise numbers and records.</p></div>`;
+  progress.innerHTML = `<div><h2>Performance</h2><p>Review exercise numbers and records.</p></div>`;
   const progressButton = document.createElement("button");
   progressButton.className = "icon-button";
   progressButton.setAttribute("aria-label", "Open exercise progress");
@@ -195,6 +196,7 @@ document.querySelectorAll("#statisticsFilterDialog [data-range]").forEach(button
 updateStatisticsFilterLabel();
 
 let exerciseStatMetric="weight";
+let exerciseStatExercise="all";
 function exerciseStatRows() {
   const rows=[];
   filteredStatisticsHistory().forEach(session=>(session.exercises||[]).forEach(exercise=>{
@@ -205,15 +207,23 @@ function exerciseStatRows() {
 }
 
 function renderExerciseStatistics() {
-  const select=document.getElementById("exerciseStatExercise"); const container=document.getElementById("exerciseStatisticsContent"); if(!select||!container)return;
-  const rows=exerciseStatRows(); const names=[...new Set(rows.map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b)); const previous=select.value;
-  select.innerHTML=names.map(name=>`<option value="${name.replaceAll('"','&quot;')}">${name}</option>`).join("");
-  if(names.includes(previous))select.value=previous; const chosen=select.value; const values=rows.filter(row=>row.name===chosen&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  if(!chosen){container.innerHTML="<div class='card empty-state-card'><p>Complete an exercise to see its statistics.</p></div>";return;}
-  const latest=values.at(-1)?.[exerciseStatMetric]||0; const first=values[0]?.[exerciseStatMetric]||0; const best=Math.max(0,...values.map(row=>row[exerciseStatMetric])); const change=first?Math.round((latest-first)/first*100):0;
+  const container=document.getElementById("exerciseStatisticsContent"); if(!container)return;
+  const rows=exerciseStatRows(); const names=[...new Set(rows.map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  if(exerciseStatExercise!=="all"&&!names.includes(exerciseStatExercise))exerciseStatExercise="all";
+  const selection=document.getElementById("exerciseStatSelection"); if(selection)selection.textContent=exerciseStatExercise==="all"?"All Exercises":exerciseStatExercise;
+  renderExerciseStatFilter(names);
   const unit=exerciseStatMetric==="weight"?" kg":exerciseStatMetric==="effort"?"/5":"";
+  if(exerciseStatExercise==="all"){
+    const summaries=names.map(name=>{const values=rows.filter(row=>row.name===name&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));return {name,latest:values.at(-1)?.[exerciseStatMetric]||0,best:Math.max(0,...values.map(row=>row[exerciseStatMetric])),sessions:values.length};}).filter(item=>item.sessions);
+    container.innerHTML=summaries.length?`<div class="performance-list">${summaries.map(item=>`<button type="button" class="card performance-row" data-exercise="${item.name.replaceAll('"','&quot;')}"><span><strong>${item.name}</strong><small>${item.sessions} ${item.sessions===1?"session":"sessions"}</small></span><span><small>Latest</small><strong>${item.latest}${unit}</strong></span><span class="performance-chevron"><svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg></span></button>`).join("")}</div>`:"<div class='card empty-state-card'><p>Complete an exercise to see its statistics.</p></div>";
+    container.querySelectorAll("[data-exercise]").forEach(button=>button.addEventListener("click",()=>{exerciseStatExercise=button.dataset.exercise;renderExerciseStatistics();})); return;
+  }
+  const chosen=exerciseStatExercise; const values=rows.filter(row=>row.name===chosen&&row[exerciseStatMetric]>0).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const latest=values.at(-1)?.[exerciseStatMetric]||0; const first=values[0]?.[exerciseStatMetric]||0; const best=Math.max(0,...values.map(row=>row[exerciseStatMetric])); const change=first?Math.round((latest-first)/first*100):0;
   container.innerHTML=`<div class="exercise-stat-grid"><div class="card"><span>Latest</span><strong>${latest}${unit}</strong></div><div class="card"><span>Best</span><strong>${best}${unit}</strong></div><div class="card"><span>Change</span><strong>${change>0?"+":""}${change}%</strong></div><div class="card"><span>Sessions</span><strong>${values.length}</strong></div></div><div class="card exercise-stat-history"><h2>Recent Sessions</h2>${values.slice(-8).reverse().map(row=>`<p><span>${new Date(row.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span><strong>${row[exerciseStatMetric]}${unit}</strong></p>`).join("")||"<p>No results for this metric.</p>"}</div>`;
 }
+function renderExerciseStatFilter(names){const options=document.getElementById("exerciseStatOptions");if(!options)return;options.innerHTML="";["all",...names].forEach(name=>{const button=document.createElement("button");button.type="button";button.textContent=name==="all"?"All Exercises":name;button.classList.toggle("active",name===exerciseStatExercise);button.onclick=()=>{exerciseStatExercise=name;document.getElementById("exerciseStatFilterDialog")?.close();renderExerciseStatistics();};options.appendChild(button);});}
 document.getElementById("exerciseStatisticsBack")?.addEventListener("click",()=>showPage("statistics"));
-document.getElementById("exerciseStatExercise")?.addEventListener("change",renderExerciseStatistics);
+document.getElementById("exerciseStatFilter")?.addEventListener("click",()=>{renderExerciseStatFilter([...new Set(exerciseStatRows().map(row=>row.name).filter(Boolean))].sort((a,b)=>a.localeCompare(b)));document.getElementById("exerciseStatFilterDialog")?.showModal();});
+document.getElementById("closeExerciseStatFilter")?.addEventListener("click",()=>document.getElementById("exerciseStatFilterDialog")?.close());
 document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(button=>button.addEventListener("click",()=>{exerciseStatMetric=button.dataset.metric;document.querySelectorAll("#exerciseStatMetric [data-metric]").forEach(item=>item.classList.toggle("active",item===button));renderExerciseStatistics();}));
