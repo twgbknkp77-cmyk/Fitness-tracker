@@ -741,17 +741,6 @@ document
       exercise => exercise.sets
     );
 
-    const partialSets = allSets.filter(set => {
-      const hasWeight = set.weight !== "";
-      const hasReps = set.reps !== "";
-      return hasWeight !== hasReps;
-    });
-
-    if (partialSets.length > 0) {
-      await showSpotMessage("Check your sets", "Complete both weight and reps for each entered set, or clear both fields.");
-      return;
-    }
-
     const completedSets = allSets.filter(set =>
       set.weight !== "" && set.reps !== ""
     );
@@ -765,16 +754,6 @@ document
       Number(exercise.durationMinutes) > 0
     );
 
-    if (completedSets.length === 0 && completedCardio.length === 0) {
-      await showSpotMessage("Nothing recorded yet", "Enter at least one result before finishing.");
-      return;
-    }
-
-    if (completedCardio.length !== cardioExercises.length) {
-      await showSpotMessage("Check cardio time", "Please enter a valid duration for each cardio activity.");
-      return;
-    }
-
     const invalidCompletedSet = completedSets.some(set =>
       !Number.isFinite(Number(set.weight)) ||
       Number(set.weight) < 0 ||
@@ -787,10 +766,28 @@ document
       return;
     }
 
-    if (!await showSpotConfirm(
+    const blankSets = allSets.filter(set => set.weight === "" || set.reps === "").length;
+    const missingCardio = cardioExercises.length - completedCardio.length;
+    const missingEffort = currentSession.exercises.filter(exercise => !Number(exercise.effort)).length;
+    const missingParts = [];
+    if (blankSets) missingParts.push(`${blankSets} incomplete ${blankSets === 1 ? "set" : "sets"}`);
+    if (missingCardio) missingParts.push(`${missingCardio} missing cardio ${missingCardio === 1 ? "time" : "times"}`);
+    if (missingEffort) missingParts.push(`${missingEffort} missing effort ${missingEffort === 1 ? "rating" : "ratings"}`);
+
+    let finishConfirmed = false;
+    if (missingParts.length) {
+      finishConfirmed = await showSpotConfirm(
+        "Some information is missing",
+        missingParts.join(" • "),
+        { confirmText: "Finish Anyway", cancelText: "Go Back" }
+      );
+      if (!finishConfirmed) return;
+    }
+
+    if (!finishConfirmed && !await showSpotConfirm(
       "Finish this workout?",
       "Your results and notes will be saved to workout history.",
-      { confirmText: "Finish Workout" }
+      { confirmText: "Finish Workout", cancelText: "Go Back" }
     )) return;
 
     allSets.forEach(set => {

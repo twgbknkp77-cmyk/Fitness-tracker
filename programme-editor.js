@@ -2,9 +2,22 @@
 
 let editingWeekNumber = null;
 let weekSelectionProgrammeId = null;
+let editorWorkingProgramme = null;
+let editorOriginalProgramme = null;
+let editorIsEditing = false;
+
+function prepareProgrammeEditor(programmeId) {
+  const stored = getProgrammes().find(programme => programme.id === programmeId);
+  editorWorkingProgramme = stored ? JSON.parse(JSON.stringify(stored)) : null;
+  editorOriginalProgramme = stored ? JSON.parse(JSON.stringify(stored)) : null;
+  editorIsEditing = Boolean(stored?.isDraft);
+}
 
 function getEditingProgramme() {
-  return getProgrammes().find(programme => programme.id === window.editingProgrammeId);
+  if (editorWorkingProgramme?.id !== window.editingProgrammeId) {
+    prepareProgrammeEditor(window.editingProgrammeId);
+  }
+  return editorWorkingProgramme;
 }
 
 function getEditingWeek(programme = getEditingProgramme()) {
@@ -12,6 +25,8 @@ function getEditingWeek(programme = getEditingProgramme()) {
 }
 
 function saveEditedProgramme(programme) {
+  editorWorkingProgramme = programme;
+  if (!programme.isDraft && editorIsEditing) return;
   const programmes = getProgrammes();
   const index = programmes.findIndex(item => item.id === programme.id);
   if (index === -1) return;
@@ -38,6 +53,8 @@ function chooseWeekScope(programme, week) {
   if (programme?.isDraft) {
     return Promise.resolve("future");
   }
+
+  if (editorIsEditing) return Promise.resolve("current");
 
   if (week.number >= programme.durationWeeks) {
     return Promise.resolve("current");
@@ -194,9 +211,14 @@ function renderProgrammeEditor() {
   if (!week) return;
 
   const saveProgrammeButton = document.getElementById("saveProgramme");
+  const discardChangesButton = document.getElementById("discardProgrammeChanges");
   if (saveProgrammeButton) {
-    saveProgrammeButton.textContent = programme.isDraft ? "Save Programme" : "Done";
+    saveProgrammeButton.textContent = programme.isDraft
+      ? "Save Programme"
+      : editorIsEditing ? "Save Changes" : "Edit Programme";
   }
+  if (discardChangesButton) discardChangesButton.hidden = programme.isDraft || !editorIsEditing;
+  document.getElementById("programmeEditor")?.classList.toggle("editor-readonly", !programme.isDraft && !editorIsEditing);
 
   header.innerHTML = "";
   container.innerHTML = "";
@@ -306,22 +328,23 @@ function renderProgrammeEditor() {
       workout.name = nextName;
       finishWeekChange(programme, week, scope);
     });
-    const dayMenu = createOverflowMenu(`${workout.name} options`, [{
-      label: "Delete day",
-      danger: true,
-      run: async () => {
-        if (!await showSpotConfirm(
-          `Delete ${workout.name}?`,
-          "All exercises in this training day will also be removed.",
-          { confirmText: "Delete Day", danger: true }
-        )) return;
-        const scope = await chooseWeekScope(programme, week);
-        if (scope === "cancel") return;
-        week.trainingDays.splice(workoutIndex, 1);
-        finishWeekChange(programme, week, scope);
-      }
-    }]);
-    dayHeader.append(handle, name, dayMenu);
+    const deleteDay = document.createElement("button");
+    deleteDay.type = "button";
+    deleteDay.className = "delete-day-button";
+    deleteDay.setAttribute("aria-label", `Delete ${workout.name}`);
+    deleteDay.innerHTML = '<svg aria-hidden="true"><use href="#icon-trash"></use></svg>';
+    deleteDay.addEventListener("click", async () => {
+      if (!await showSpotConfirm(
+        `Delete ${workout.name}?`,
+        "All exercises in this training day will also be removed.",
+        { confirmText: "Delete Day", danger: true }
+      )) return;
+      const scope = await chooseWeekScope(programme, week);
+      if (scope === "cancel") return;
+      week.trainingDays.splice(workoutIndex, 1);
+      finishWeekChange(programme, week, scope);
+    });
+    dayHeader.append(handle, name, deleteDay);
     card.appendChild(dayHeader);
 
     const exerciseList = document.createElement("div");
@@ -397,6 +420,11 @@ function renderProgrammeEditor() {
     addDayDragEvents(card, handle, programme, week, workout);
     container.appendChild(card);
   });
+
+  const readOnly = !programme.isDraft && !editorIsEditing;
+  [...header.querySelectorAll("input, button"), ...container.querySelectorAll("input, button")]
+    .forEach(control => { control.disabled = readOnly; });
+  weekSelect.disabled = false;
 }
 
 let exerciseDialogContext = null;
@@ -549,8 +577,18 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   finishWeekChange(programme, week, scope);
 });
 
-function leaveProgrammeEditor() {
+async function leaveProgrammeEditor() {
   const programme = getEditingProgramme();
+  if (programme && !programme.isDraft && editorIsEditing) {
+    const discard = await showSpotConfirm(
+      "Discard unsaved changes?",
+      "Your saved programme will remain unchanged.",
+      { confirmText: "Discard", cancelText: "Keep Editing", danger: true }
+    );
+    if (!discard) return;
+    editorWorkingProgramme = JSON.parse(JSON.stringify(editorOriginalProgramme));
+    editorIsEditing = false;
+  }
   if (!programme?.isDraft) {
     showPage("library");
     return;
@@ -563,12 +601,48 @@ document.getElementById("programmeEditorBack")?.addEventListener(
   leaveProgrammeEditor
 );
 
-document.getElementById("saveProgramme")?.addEventListener("click", () => {
+document.getElementById("saveProgramme")?.addEventListener("click", async () => {
   const programme = getEditingProgramme();
   if (!programme) return;
+  if (!programme.isDraft && !editorIsEditing) {
+    editorOriginalProgramme = JSON.parse(JSON.stringify(programme));
+    editorIsEditing = true;
+    renderProgrammeEditor();
+    return;
+  }
+  if (!programme.isDraft && editorIsEditing) {
+    const week = getEditingWeek(programme);
+    editorIsEditing = false;
+    const scope = await chooseWeekScope(programme, week);
+    editorIsEditing = true;
+    if (scope === "cancel") return;
+    if (scope === "future") {
+      programme.weeks.filter(item => item.number > week.number).forEach(item => {
+        item.trainingDays = cloneTrainingDays(week.trainingDays);
+      });
+    }
+    editorIsEditing = false;
+    const programmes = getProgrammes();
+    const index = programmes.findIndex(item => item.id === programme.id);
+    if (index >= 0) programmes[index] = programme;
+    saveProgrammes(programmes);
+    editorOriginalProgramme = JSON.parse(JSON.stringify(programme));
+    renderLibrary();
+    renderActiveWorkout();
+    renderProgrammeEditor();
+    return;
+  }
   programme.isDraft = false;
+  editorIsEditing = false;
   saveEditedProgramme(programme);
   showPage("library");
+});
+
+document.getElementById("discardProgrammeChanges")?.addEventListener("click", () => {
+  if (!editorOriginalProgramme) return;
+  editorWorkingProgramme = JSON.parse(JSON.stringify(editorOriginalProgramme));
+  editorIsEditing = false;
+  renderProgrammeEditor();
 });
 
 document.getElementById("cancelProgrammeExit")?.addEventListener("click", () => {

@@ -1,6 +1,11 @@
 // FITNESS TRACKER - DASHBOARD
 
-let selectedDays = 30;
+const savedWeightFilter = localStorage.getItem("spot_weight_graph_filter");
+let selectedDays = savedWeightFilter === "all"
+  ? "all"
+  : Number.isFinite(Number(savedWeightFilter)) && Number(savedWeightFilter) > 0
+    ? Number(savedWeightFilter)
+    : 30;
 
 const weightForm =
   document.getElementById("weightForm");
@@ -292,6 +297,8 @@ document
             ? "all"
             : Number(value);
 
+        localStorage.setItem("spot_weight_graph_filter", String(selectedDays));
+
         document
           .querySelectorAll(
             "#weightFilterOptions button"
@@ -317,7 +324,7 @@ document
         );
 
           drawWeightChart();
-          drawGoalRadarChart();
+          drawExerciseProgressChart();
         }
     );
   });
@@ -545,8 +552,18 @@ function updateDashboard() {
 }
 
 const progressLineColours = ["#3b82f6", "#557fdc", "#7378c1", "#9272a5", "#ad6d8d", "#c66b72", "#dc7057", "#ec7940", "#f48325", "#ff8c00"];
-const progressHiddenExercises = new Set();
+let savedProgressFilters = {};
+try { savedProgressFilters = JSON.parse(localStorage.getItem("spot_progress_graph_filters") || "{}"); } catch {}
+const progressHiddenExercises = new Set(Array.isArray(savedProgressFilters.hidden) ? savedProgressFilters.hidden : []);
 const normaliseProgressName = value => String(value || "").trim().toLowerCase();
+
+function saveProgressGraphFilters() {
+  localStorage.setItem("spot_progress_graph_filters", JSON.stringify({
+    metric: document.getElementById("progressMetricFilter")?.value || "weight",
+    scope: document.getElementById("progressScopeFilter")?.value || "current",
+    hidden: [...progressHiddenExercises]
+  }));
+}
 
 function getStarredExerciseNames() {
   const names = new Map();
@@ -576,6 +593,7 @@ function refreshProgressExerciseChoices(names) {
     checkbox.addEventListener("change", () => {
       const key = normaliseProgressName(name);
       checkbox.checked ? progressHiddenExercises.delete(key) : progressHiddenExercises.add(key);
+      saveProgressGraphFilters();
       drawExerciseProgressChart();
     });
     label.append(checkbox, document.createTextNode(name));
@@ -592,6 +610,13 @@ function drawExerciseProgressChart() {
   const names = getStarredExerciseNames();
   refreshProgressExerciseChoices(names);
   const visibleNames = names.filter(name => !progressHiddenExercises.has(normaliseProgressName(name)));
+  const title = document.getElementById("exerciseProgressTitle");
+  if (title) {
+    const metricName = metric === "weight" ? "Weight" : metric === "reps" ? "Reps" : "Effort";
+    title.textContent = visibleNames.length === 1
+      ? `${visibleNames[0]} — ${metricName}`
+      : metric === "effort" ? "Overall Effort" : `Overall Progress — ${metricName}`;
+  }
   if (!names.length) { container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>'; legend.innerHTML = ""; return; }
 
   let history = [];
@@ -625,16 +650,26 @@ function drawExerciseProgressChart() {
     container.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${unit} progress over time"><g>${yTicks}</g><line class="progress-axis" x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"></line><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><g class="progress-series">${lines}</g><text class="axis-label" x="${left}" y="${height-9}">${first}</text><text class="axis-label" text-anchor="end" x="${width-right}" y="${height-9}">${last}</text><text class="axis-title" text-anchor="middle" transform="rotate(-90 11 ${axisCentre})" x="11" y="${axisCentre}">${unit}</text></svg>`;
   }
   legend.innerHTML="";
-  names.forEach((name,index)=>{const button=document.createElement("button");button.type="button";button.className="progress-legend-item";button.classList.toggle("is-hidden",progressHiddenExercises.has(normaliseProgressName(name)));button.innerHTML=`<span style="background:${progressLineColours[index%progressLineColours.length]}"></span>${name}`;button.onclick=()=>{const key=normaliseProgressName(name);progressHiddenExercises.has(key)?progressHiddenExercises.delete(key):progressHiddenExercises.add(key);drawExerciseProgressChart()};legend.appendChild(button)});
+  names.forEach((name,index)=>{const button=document.createElement("button");button.type="button";button.className="progress-legend-item";button.classList.toggle("is-hidden",progressHiddenExercises.has(normaliseProgressName(name)));button.innerHTML=`<span style="background:${progressLineColours[index%progressLineColours.length]}"></span>${name}`;button.onclick=()=>{const key=normaliseProgressName(name);progressHiddenExercises.has(key)?progressHiddenExercises.delete(key):progressHiddenExercises.add(key);saveProgressGraphFilters();drawExerciseProgressChart()};legend.appendChild(button)});
 }
 
 document.getElementById("openProgressFilters")?.addEventListener("click",()=>{
   const dialog=document.getElementById("progressFilterDialog");
   dialog?.showModal();
-  document.getElementById("progressFilterTitle")?.focus({preventScroll:true});
+  dialog?.focus({preventScroll:true});
 });
 document.getElementById("closeProgressFilters")?.addEventListener("click",()=>document.getElementById("progressFilterDialog")?.close());
-["progressMetricFilter","progressScopeFilter"].forEach(id=>document.getElementById(id)?.addEventListener("change",drawExerciseProgressChart));
+["progressMetricFilter","progressScopeFilter"].forEach(id=>document.getElementById(id)?.addEventListener("change",()=>{saveProgressGraphFilters();drawExerciseProgressChart()}));
+
+const progressMetricFilter=document.getElementById("progressMetricFilter");
+const progressScopeFilter=document.getElementById("progressScopeFilter");
+if (["weight","reps","effort"].includes(savedProgressFilters.metric)) progressMetricFilter.value=savedProgressFilters.metric;
+if (["current","all"].includes(savedProgressFilters.scope)) progressScopeFilter.value=savedProgressFilters.scope;
+
+document.querySelectorAll("#weightFilterOptions button").forEach(button => {
+  const value = button.dataset.days === "all" ? "all" : Number(button.dataset.days);
+  button.classList.toggle("active", value === selectedDays);
+});
 
 
 // FORMAT A GRAPH DATE

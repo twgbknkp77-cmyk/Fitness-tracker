@@ -198,11 +198,22 @@ function renderLibraryLegacy() {
     return;
   }
 
+  let lastLibrarySection = null;
   programmes.sort((a, b) => {
     if (a.id === activeId) return -1;
     if (b.id === activeId) return 1;
     return String(a.name || "").localeCompare(String(b.name || ""));
   }).forEach(programme => {
+    const section = programme.id === activeId
+      ? "Active"
+      : (String(programme.name || "#").trim().charAt(0).toUpperCase() || "#");
+    if (section !== lastLibrarySection) {
+      const label = document.createElement("div");
+      label.className = "library-section-label";
+      label.textContent = section;
+      container.appendChild(label);
+      lastLibrarySection = section;
+    }
     const card = document.createElement("div");
     card.className = "card";
 
@@ -1107,11 +1118,22 @@ function renderLibrary() {
     return;
   }
 
+  let lastLibrarySection = null;
   programmes.sort((a, b) => {
     if (a.id === activeId) return -1;
     if (b.id === activeId) return 1;
     return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
   }).forEach(programme => {
+    const section = programme.id === activeId
+      ? "Active"
+      : (String(programme.name || "#").trim().charAt(0).toUpperCase() || "#");
+    if (section !== lastLibrarySection) {
+      const label = document.createElement("div");
+      label.className = "library-section-label";
+      label.textContent = section;
+      container.appendChild(label);
+      lastLibrarySection = section;
+    }
     const card = document.createElement("div");
     card.className = "card programme-card";
 
@@ -1471,6 +1493,7 @@ function openProgrammeEditor(id) {
   if (!programme) return;
 
   window.editingProgrammeId = id;
+  if (typeof prepareProgrammeEditor === "function") prepareProgrammeEditor(id);
 
   showPage("programmeEditor");
 

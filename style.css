@@ -1925,6 +1925,31 @@ summary,
 
 /* Compact bodyweight card and aligned workout cards */
 .bodyweight-measurements-link { min-height:30px; margin-top:-8px; padding:2px 8px; }
+
+/* October 28 refinements */
+html { touch-action:manipulation; }
+#progressFilterDialog:focus { outline:none; }
+#exerciseProgressChart { padding:8px; background:#151515; border:1px solid #343434; border-radius:14px; }
+nav { background:#171717; border-color:#464646; box-shadow:0 10px 30px rgba(0,0,0,.62),0 1px 0 rgba(255,255,255,.08) inset,0 -1px 0 rgba(255,255,255,.05) inset; }
+.delete-day-button { display:grid; place-items:center; width:44px; min-width:44px; height:44px; padding:0; color:#e26363; background:transparent; border:1px solid rgba(226,99,99,.45); border-radius:12px; }
+.delete-day-button svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.exercise-star-button { display:grid; place-items:center; width:44px; min-width:44px; height:44px; padding:0; background:transparent !important; border:0 !important; box-shadow:none !important; }
+.exercise-star-button svg { display:block; margin:auto; }
+.library-section-label { margin:18px 0 7px 4px; color:var(--grey); font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.library-section-label:first-child { margin-top:4px; }
+.workout-summary-card .compact-card-header { display:flex; align-items:center; min-height:70px; }
+.workout-card-chevron { display:grid; place-items:center; align-self:center !important; height:44px; }
+.programme-card:last-child .overflow-menu-panel,.goal-card:last-child .overflow-menu-panel { top:46px; bottom:auto; }
+.overflow-menu.opens-up .overflow-menu-panel { top:auto !important; bottom:46px !important; }
+.editor-readonly #editorProgrammeHeader input,.editor-readonly #editorProgrammeHeader button:disabled,.editor-readonly #editorWorkouts button:disabled { opacity:.72; }
+.editor-save-programme,#discardProgrammeChanges { width:100%; min-height:52px; margin-top:12px; }
+#discardProgrammeChanges { color:var(--white); background:#292929; border:1px solid #444; }
+.page.active.page-enter-right { animation:blur-slide-from-right 300ms cubic-bezier(.2,.75,.25,1) both; }
+.page.active.page-enter-left { animation:blur-slide-from-left 300ms cubic-bezier(.2,.75,.25,1) both; }
+#activeWorkout.week-enter-from-right { animation:blur-slide-from-right 300ms cubic-bezier(.2,.75,.25,1) both; }
+#activeWorkout.week-enter-from-left { animation:blur-slide-from-left 300ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes blur-slide-from-right { from{opacity:.68;filter:blur(2px);transform:translateX(16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
+@keyframes blur-slide-from-left { from{opacity:.68;filter:blur(2px);transform:translateX(-16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
 .bodyweight-card #weightMessage:empty { display:none; }
 .workout-summary-card:not(.next-workout) .compact-card-header { min-height:70px; align-items:center; }
 .workout-summary-card:not(.next-workout) .workout-card-chevron { align-self:center; }
@@ -3350,3 +3375,27 @@ main {
 #discardProgrammeDraft { grid-row:2; }
 #cancelProgrammeExit { grid-row:3; color:var(--white); background:#292929; border:1px solid #444; }
 .bodyweight-measurements-link { min-height:30px; margin-top:-8px; padding:2px 8px; }
+
+/* October 28 final cascade overrides. */
+html { touch-action:manipulation; }
+#progressFilterDialog:focus { outline:none; }
+#exerciseProgressChart { padding:8px; background:#151515; border:1px solid #343434; border-radius:14px; }
+nav { left:50%; transform:translateX(-50%); background:#171717; border-color:#464646; box-shadow:0 10px 30px rgba(0,0,0,.62),0 1px 0 rgba(255,255,255,.08) inset,0 -1px 0 rgba(255,255,255,.05) inset; }
+.delete-day-button { display:grid; place-items:center; width:44px; min-width:44px; height:44px; padding:0; color:#e26363; background:transparent; border:1px solid rgba(226,99,99,.45); border-radius:12px; }
+.delete-day-button svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.exercise-star-button { display:grid; place-items:center; width:44px; min-width:44px; height:44px; padding:0; background:transparent !important; border:0 !important; box-shadow:none !important; }
+.exercise-star-button svg { display:block; margin:auto; }
+.library-section-label { margin:18px 0 7px 4px; color:var(--grey); font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.library-section-label:first-child { margin-top:4px; }
+.workout-summary-card .compact-card-header { display:flex; align-items:center; min-height:70px; }
+.workout-card-chevron { display:grid; place-items:center; align-self:center !important; height:44px; }
+.programme-card:last-child .overflow-menu-panel,.goal-card:last-child .overflow-menu-panel { top:46px; bottom:auto; }
+.overflow-menu.opens-up .overflow-menu-panel { top:auto !important; bottom:46px !important; }
+.editor-save-programme,#discardProgrammeChanges { width:100%; min-height:52px; margin-top:12px; }
+#discardProgrammeChanges { color:var(--white); background:#292929; border:1px solid #444; }
+.page.active.page-enter-right { animation:blur-slide-from-right 300ms cubic-bezier(.2,.75,.25,1) both; }
+.page.active.page-enter-left { animation:blur-slide-from-left 300ms cubic-bezier(.2,.75,.25,1) both; }
+#activeWorkout.week-enter-from-right { animation:blur-slide-from-right 300ms cubic-bezier(.2,.75,.25,1) both; }
+#activeWorkout.week-enter-from-left { animation:blur-slide-from-left 300ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes blur-slide-from-right { from{opacity:.68;filter:blur(2px);transform:translateX(16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
+@keyframes blur-slide-from-left { from{opacity:.68;filter:blur(2px);transform:translateX(-16px)} to{opacity:1;filter:blur(0);transform:translateX(0)} }
