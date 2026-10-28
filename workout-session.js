@@ -37,7 +37,7 @@ function timerNotificationEnabled() {
 }
 
 function showTimerFinishedAlert() {
-  const toast=document.createElement("div"); toast.className="spot-timer-toast"; toast.textContent="Time’s up — rest over";
+  const toast=document.createElement("div"); toast.className="spot-timer-toast"; toast.textContent="Rest complete";
   document.body.appendChild(toast); requestAnimationFrame(()=>toast.classList.add("show"));
   setTimeout(()=>{toast.classList.remove("show");setTimeout(()=>toast.remove(),250);},2800);
   if (document.hidden && timerNotificationEnabled() && "Notification" in window && Notification.permission === "granted") {

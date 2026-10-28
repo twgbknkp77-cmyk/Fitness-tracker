@@ -18,7 +18,7 @@
 
   <!-- MAIN STYLESHEET -->
   <link rel="stylesheet" href="style.css?v=46">
-  <link rel="stylesheet" href="refinements.css?v=4">
+  <link rel="stylesheet" href="refinements.css?v=6">
 </head>
 
 <body>
@@ -479,8 +479,10 @@
     <button type="button" id="showCustomRestTimer">Custom</button>
   </div>
   <div id="customRestTimer" class="custom-rest-timer" hidden>
-    <label for="customRestSeconds">Seconds</label>
-    <input type="number" id="customRestSeconds" inputmode="numeric" min="1" max="3600" placeholder="Enter seconds">
+    <label class="custom-seconds-field" for="customRestSeconds">
+      <input type="number" id="customRestSeconds" inputmode="numeric" min="1" max="3600" placeholder="Enter time">
+      <span>sec</span>
+    </label>
     <button type="button" id="startCustomRestTimer" class="primary-button">Start</button>
   </div>
   <div id="restTimerRunningActions" class="timer-running-actions" hidden>
@@ -499,8 +501,8 @@
   <h2 id="discardWorkoutTitle">Leave this workout?</h2>
   <div class="decision-dialog-actions stacked-dialog-actions workout-exit-actions">
     <button type="button" id="saveAndExitWorkout" class="primary-button">Save &amp; Exit</button>
-    <button type="button" id="keepWorkoutSession">Continue</button>
     <button type="button" id="confirmDiscardWorkout" class="danger-button">Discard</button>
+    <button type="button" id="keepWorkoutSession">Continue</button>
   </div>
 </dialog>
 
@@ -583,13 +585,13 @@
 </button>
 
 <div class="card privacy-card">
-  <div><h2>Privacy</h2><p>Control notifications on this device.</p></div>
+  <h2>Notifications</h2>
   <label class="privacy-toggle" for="notificationsEnabled">
     <input type="checkbox" id="notificationsEnabled">
     <span aria-hidden="true"></span>
-    <strong>Notifications</strong>
+    <strong class="sr-only">Notifications</strong>
   </label>
-  <small id="notificationStatus" aria-live="polite"></small>
+  <small id="notificationStatus" class="sr-only" aria-live="polite"></small>
 </div>
 
 <div class="card data-backup-card">
@@ -653,11 +655,9 @@
   <div class="page-header statistics-header">
     <button type="button" class="icon-button" id="exerciseStatisticsBack" aria-label="Back to Statistics"><svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg></button>
     <h1>Performance</h1>
-    <button type="button" id="exerciseStatFilter" class="icon-button outlined-icon-button" aria-label="Filter performance"><svg aria-hidden="true"><use href="#icon-filter"></use></svg></button>
   </div>
   <div class="card exercise-stat-controls">
     <div id="exerciseStatSpecificHeader" class="exercise-stat-specific-header" hidden>
-      <button type="button" id="showAllPerformance" class="icon-button" aria-label="Back to all exercises"><svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg></button>
       <strong id="exerciseStatSelection"></strong>
     </div>
     <div id="exerciseStatMetric" class="exercise-stat-metrics">
@@ -668,11 +668,6 @@
     </div>
   </div>
   <div id="exerciseStatisticsContent"></div>
-  <dialog id="exerciseStatFilterDialog" class="decision-dialog" aria-labelledby="exerciseStatFilterTitle">
-    <h2 id="exerciseStatFilterTitle">Performance Filter</h2>
-    <div id="exerciseStatOptions" class="statistics-filter-options"></div>
-    <button type="button" id="closeExerciseStatFilter">Cancel</button>
-  </dialog>
 </section>
 
 <!-- ADD OR EDIT EXERCISE POP-UP -->
@@ -1041,13 +1036,13 @@
 
   <script src="storage.js?v=4"></script>
   <script src="dashboard.js?v=22"></script>
-  <script src="library.js?v=30"></script>
+  <script src="library.js?v=31"></script>
   <script src="programme-overview.js?v=3"></script>
   <script src="programme-editor.js?v=23"></script>
-  <script src="workout-session.js?v=24"></script>
+  <script src="workout-session.js?v=25"></script>
   <script src="workout-history.js?v=13"></script>
   <script src="profile.js?v=9"></script>
-  <script src="statistics.js?v=5"></script>
+  <script src="statistics.js?v=6"></script>
   <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

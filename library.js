@@ -1354,16 +1354,9 @@ function renderActiveWorkout() {
 
       const start = document.createElement("button");
       start.className = "primary-button workout-detail-start";
-      start.textContent = viewedWorkoutWeek === programme.currentWeek
-        ? "Start Workout"
-        : `Make Week ${viewedWorkoutWeek} Current & Start`;
+      start.textContent = "Start Workout";
       start.addEventListener("click", async () => {
         if (viewedWorkoutWeek !== programme.currentWeek) {
-          if (!await showSpotConfirm(
-            `Make Week ${viewedWorkoutWeek} current?`,
-            "This workout will then become available to start.",
-            { confirmText: "Make Current" }
-          )) return;
           changeActiveProgrammeWeek(programme.id, viewedWorkoutWeek);
         }
         startWorkout(workout.id);
@@ -1435,17 +1428,10 @@ function renderActiveWorkout() {
     const startButton = document.createElement("button");
     startButton.type = "button";
     startButton.className = "primary-button compact-start-button";
-    startButton.textContent = viewedWorkoutWeek === programme.currentWeek
-      ? "Start Workout"
-      : "Make Current & Start";
+    startButton.textContent = "Start Workout";
     startButton.addEventListener("click", async event => {
       event.stopPropagation();
       if (viewedWorkoutWeek !== programme.currentWeek) {
-        if (!await showSpotConfirm(
-          `Make Week ${viewedWorkoutWeek} current?`,
-          "This workout will then become available to start.",
-          { confirmText: "Make Current" }
-        )) return;
         changeActiveProgrammeWeek(programme.id, viewedWorkoutWeek);
       }
       startWorkout(workout.id);
