@@ -573,7 +573,10 @@ function getStarredExerciseNames() {
   const names = new Map();
   getProgrammes().forEach(programme => (programme.weeks || []).forEach(week =>
     (week.trainingDays || []).forEach(day => (day.exercises || []).forEach(exercise => {
-      if (exercise.starred && exercise.name) names.set(normaliseProgressName(exercise.name), exercise.name);
+      if (exercise.starred && exercise.name) {
+        const label=`${exercise.name} — ${day.name||"Workout"}`;
+        names.set(`${programme.id}|${normaliseProgressName(day.name)}|${normaliseProgressName(exercise.name)}`,label);
+      }
     }))
   ));
   return [...names.values()].sort((a, b) => a.localeCompare(b)).slice(0, 10);
@@ -618,7 +621,7 @@ function drawExerciseProgressChart() {
   if (title) {
     title.textContent = visibleNames.length === 1
       ? visibleNames[0]
-      : "Overall Progress";
+      : "Overall Growth";
   }
   if (!names.length) { container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>'; legend.innerHTML = ""; return; }
 
@@ -632,7 +635,9 @@ function drawExerciseProgressChart() {
   const series = visibleNames.map((name, colourIndex) => ({
     name, colour: progressLineColours[names.indexOf(name) % progressLineColours.length],
     points: sessions.flatMap(session => {
-      const exercise = (session.exercises || []).find(item => normaliseProgressName(item.name) === normaliseProgressName(name));
+      const divider=name.lastIndexOf(" — "),exerciseName=divider>=0?name.slice(0,divider):name,workoutName=divider>=0?name.slice(divider+3):"";
+      if(workoutName&&normaliseProgressName(session.workoutName)!==normaliseProgressName(workoutName))return[];
+      const exercise = (session.exercises || []).find(item => normaliseProgressName(item.name) === normaliseProgressName(exerciseName));
       const value = exercise ? progressValue(exercise, metric) : 0;
       return value > 0 ? [{ value, date: session.finishedAt }] : [];
     })

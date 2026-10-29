@@ -18,6 +18,24 @@ function spotHaptic(pattern = 18) {
   if (typeof navigator.vibrate === "function") navigator.vibrate(pattern);
 }
 
+function updateWorkoutCommentIndicator() {
+  document.getElementById("openWorkoutComment")?.classList.toggle("has-comment", Boolean(String(currentSession?.workoutNote || "").trim()));
+}
+
+function animateSessionCard(card, collapsing, done) {
+  if (!card || matchMedia("(prefers-reduced-motion: reduce)").matches) { done(); return; }
+  const start = card.getBoundingClientRect().height;
+  const animation = card.animate(
+    collapsing
+      ? [{height:`${start}px`,opacity:1},{height:"102px",opacity:.78}]
+      : [{height:"102px",opacity:.78},{height:`${start}px`,opacity:1}],
+    {duration:280,easing:"cubic-bezier(.2,.8,.2,1)"}
+  );
+  card.style.overflow="hidden";
+  animation.onfinish=done;
+  animation.oncancel=done;
+}
+
 function saveRestTimerState() {
   if (!restTimerEndsAt && !restTimerPaused) {
     localStorage.removeItem(REST_TIMER_STATE_KEY);
@@ -141,7 +159,7 @@ function renderWorkoutCompletionSummary(session, previousSession, progression) {
     <div class="completion-hero"><span class="completion-check">✓</span><p>Workout Complete</p><h1>${session.workoutName}</h1><small>${new Date(session.finishedAt).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})}</small></div>
     <div class="completion-metric-grid"><div><span>Duration</span><strong data-completion-value="${duration}" data-completion-suffix=" min">0</strong></div><div><span>${cardioOnly ? "Cardio" : "Sets"}</span><strong data-completion-value="${cardioOnly ? cardioMinutes : sets}" data-completion-suffix="${cardioOnly ? " min" : ""}">0</strong></div><div><span>${cardioOnly ? "Exercises" : "Volume"}</span><strong data-completion-value="${cardioOnly ? (session.exercises || []).length : volume}" data-completion-suffix="${cardioOnly ? "" : " kg"}">0</strong></div><div><span>Avg effort</span><strong data-completion-value="${effort || 0}" data-completion-decimals="1">${effort ? "0.0" : "—"}</strong></div></div>
     <div class="card completion-comparison"><h2>Previous Session</h2>${previousSession ? `<div><span>${cardioOnly ? "Cardio time" : "Volume"}</span><strong>${cardioOnly ? `${oldCardioMinutes} min` : `${oldVolume.toLocaleString()} kg`}</strong><em>${cardioOnly ? completionChange(cardioMinutes,oldCardioMinutes," min") : completionChange(volume,oldVolume," kg")}</em></div><div><span>Duration</span><strong>${oldDuration} min</strong><em>${completionChange(duration,oldDuration," min")}</em></div><div><span>Average effort</span><strong>${oldEffort ? oldEffort.toFixed(1) : "—"}</strong><em>${oldEffort ? completionChange(effort,oldEffort) : "—"}</em></div>` : "<p>No previous session to compare yet.</p>"}</div>
-    <p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
+    ${session.workoutNote ? `<div class="card completion-comment"><h2>Workout Comment</h2><p>${String(session.workoutNote).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</p></div>` : ""}<p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
   document.getElementById("closeWorkoutSummary")?.addEventListener("click", () => { spotHaptic(18); showPage("workouts"); });
   showPage("workoutComplete");
   spotHaptic([45,35,80]);
@@ -220,7 +238,7 @@ function sessionExerciseName(name) {
 
 
 // FIND THE MOST RECENT RESULT FOR AN EXERCISE
-function getPreviousExerciseResult(exercise, beforeTime) {
+function getPreviousExerciseResult(exercise, beforeTime, workoutId, workoutName) {
   const history = getWorkoutSessionHistory()
     .filter(session => {
       const finishedTime = new Date(session.finishedAt).getTime();
@@ -237,6 +255,9 @@ function getPreviousExerciseResult(exercise, beforeTime) {
     );
 
   for (const session of history) {
+    const sameWorkout = (workoutId && session.workoutId === workoutId) ||
+      sessionExerciseName(session.workoutName) === sessionExerciseName(workoutName);
+    if (!sameWorkout) continue;
     const previousExercise = (
       Array.isArray(session.exercises)
         ? session.exercises
@@ -371,7 +392,7 @@ function startWorkout(workoutId) {
       targetWeight: exercise.weight,
       targetRepLabel: getExerciseRepTarget(exercise).label,
       previousResult:
-        getPreviousExerciseResult(exercise, startedTime),
+        getPreviousExerciseResult(exercise, startedTime, workout.id, workout.name),
 
       targetDurationMinutes: exercise.type === "cardio"
         ? Number(exercise.durationMinutes) || 0
@@ -448,6 +469,7 @@ function renderWorkoutSessionLegacy() {
     card.className = "card session-exercise-card";
     card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
     card.classList.toggle("exercise-is-collapsed", Boolean(exercise.collapsed));
+    card.dataset.exerciseKey = exercise.id || exercise.name;
 
     const titleRow = document.createElement("div");
     titleRow.className = "session-exercise-title";
@@ -472,12 +494,11 @@ function renderWorkoutSessionLegacy() {
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
     );
     completeButton.addEventListener("click", () => {
-      card.classList.add(exercise.completed ? "exercise-opening" : "exercise-closing");
-      spotHaptic(exercise.completed ? 12 : 24);
-      exercise.completed = !exercise.completed;
-      exercise.collapsed = exercise.completed;
-      saveActiveWorkoutSession();
-      setTimeout(renderWorkoutSession, 170);
+      const reopening=exercise.completed;spotHaptic(reopening?12:24);
+      if(!reopening){animateSessionCard(card,true,()=>{exercise.completed=true;exercise.collapsed=true;saveActiveWorkoutSession();renderWorkoutSession()});return}
+      exercise.completed=false;exercise.collapsed=false;saveActiveWorkoutSession();renderWorkoutSession();
+      const opened=[...document.querySelectorAll(".session-exercise-card")].find(item=>item.dataset.exerciseKey===String(exercise.id||exercise.name));
+      animateSessionCard(opened,false,()=>{if(opened)opened.style.overflow=""});
     });
 
     const previousHeading = document.createElement("p");
@@ -646,6 +667,7 @@ function renderWorkoutSession() {
     card.className = "card session-exercise-card";
     card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
     card.classList.toggle("exercise-is-collapsed", Boolean(exercise.collapsed));
+    card.dataset.exerciseKey = exercise.id || exercise.name;
 
     const titleRow = document.createElement("div");
     titleRow.className = "session-exercise-title";
@@ -663,12 +685,11 @@ function renderWorkoutSession() {
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
     );
     completeButton.addEventListener("click", () => {
-      card.classList.add(exercise.completed ? "exercise-opening" : "exercise-closing");
-      spotHaptic(exercise.completed ? 12 : 24);
-      exercise.completed = !exercise.completed;
-      exercise.collapsed = exercise.completed;
-      saveActiveWorkoutSession();
-      setTimeout(renderWorkoutSession, 170);
+      const reopening=exercise.completed;spotHaptic(reopening?12:24);
+      if(!reopening){animateSessionCard(card,true,()=>{exercise.completed=true;exercise.collapsed=true;saveActiveWorkoutSession();renderWorkoutSession()});return}
+      exercise.completed=false;exercise.collapsed=false;saveActiveWorkoutSession();renderWorkoutSession();
+      const opened=[...document.querySelectorAll(".session-exercise-card")].find(item=>item.dataset.exerciseKey===String(exercise.id||exercise.name));
+      animateSessionCard(opened,false,()=>{if(opened)opened.style.overflow=""});
     });
 
     const menu = document.createElement("details");
@@ -899,14 +920,7 @@ function renderWorkoutSession() {
     container.appendChild(card);
   });
 
-  const workoutNoteInput = document.getElementById("workoutSessionNote");
-  if (workoutNoteInput) {
-    workoutNoteInput.value = currentSession.workoutNote || "";
-    workoutNoteInput.oninput = () => {
-      currentSession.workoutNote = workoutNoteInput.value;
-      saveActiveWorkoutSession();
-    };
-  }
+  updateWorkoutCommentIndicator();
 
   updateSessionProgress();
 }
@@ -997,7 +1011,7 @@ document
 
     if (!finishConfirmed && !await showSpotConfirm(
       "Finish this workout?",
-      "Your results and notes will be saved to workout history.",
+      currentSession.workoutNote ? `Comment: ${currentSession.workoutNote}` : "Your results and notes will be saved to workout history.",
       { confirmText: "Finish Workout", cancelText: "Go Back" }
     )) return;
 
@@ -1067,6 +1081,17 @@ document.getElementById("openRestTimer")?.addEventListener("click", () => {
   document.getElementById("customRestTimer")?.setAttribute("hidden","");
   document.getElementById("restTimerDialog")?.showModal();
 });
+document.getElementById("openWorkoutComment")?.addEventListener("click",()=>{
+  if(!currentSession)return;spotHaptic(10);const input=document.getElementById("workoutCommentInput");if(input)input.value=currentSession.workoutNote||"";document.getElementById("workoutCommentDialog")?.showModal();setTimeout(()=>input?.focus(),80);
+});
+document.getElementById("workoutCommentInput")?.addEventListener("input",event=>{
+  if(!currentSession)return;currentSession.workoutNote=event.target.value;saveActiveWorkoutSession();updateWorkoutCommentIndicator();
+});
+document.getElementById("closeWorkoutComment")?.addEventListener("click",()=>{
+  saveActiveWorkoutSession();updateWorkoutCommentIndicator();document.getElementById("workoutCommentDialog")?.close();spotHaptic(10);
+});
+document.getElementById("workoutCommentDialog")?.addEventListener("click",event=>{if(event.target===event.currentTarget)event.currentTarget.close()});
+document.getElementById("workoutCommentDialog")?.addEventListener("close",()=>{saveActiveWorkoutSession();updateWorkoutCommentIndicator()});
 document.getElementById("setRestTimer")?.addEventListener("click", () => document.getElementById("openRestTimer")?.click());
 document.querySelectorAll("#restTimerPresets [data-seconds]").forEach(button =>
   button.addEventListener("click", () => startRestTimer(button.dataset.seconds))
