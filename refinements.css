@@ -280,3 +280,67 @@ body.session-active #workoutSession .session-action-bar .primary-button { displa
   .exercise-closing,.exercise-opening,.completion-metric-grid > div { animation:none !important; }
   .activity-bar rect { animation:none !important; }
 }
+
+/* Premium dashboard graphs, filters and profile grouping. */
+.bodyweight-title { display:grid;gap:2px; }
+.bodyweight-title #currentWeight { font-size:clamp(25px,6vw,34px);line-height:1.1; }
+#weightPeriodChange { color:var(--grey);font-size:12px;font-weight:600; }
+.weight-chart-point { cursor:pointer;opacity:.45;transition:r 150ms ease,opacity 150ms ease; }
+.weight-chart-point.is-latest,.weight-chart-point.is-selected { opacity:1;stroke:#171717;stroke-width:2; }
+.progress-chart-header { align-items:flex-start; }
+.progress-chart-header > div { min-width:0; }
+.chart-filter-summary { margin:5px 0 0;color:var(--grey);font-size:12px; }
+.exercise-progress-legend { display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px !important;justify-content:stretch !important; }
+.progress-legend-item { justify-content:flex-start;min-width:0;text-align:left;line-height:1.25; }
+.progress-legend-item span { flex:0 0 10px; }
+.progress-grid { stroke:#303030 !important; }
+.progress-series polyline { stroke-width:2.25 !important; }
+
+#toggleWeightFilters,#openProgressFilters,#statisticsFilterButton,.statistics-filter-button {
+  display:grid;place-items:center;box-sizing:border-box;width:46px;min-width:46px;height:46px;min-height:46px;padding:0;color:var(--grey);background:#292929;border:1px solid #424242;border-radius:13px;
+}
+#toggleWeightFilters svg,#openProgressFilters svg,#statisticsFilterButton svg,.statistics-filter-button svg { width:22px;height:22px;margin:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+#toggleWeightFilters[aria-expanded="true"],#openProgressFilters[aria-expanded="true"],#statisticsFilterButton[aria-expanded="true"],.statistics-filter-button.active { color:var(--orange);border-color:rgba(255,140,0,.48); }
+
+.profile-goal-hero { padding:0 !important;overflow:hidden; }
+.profile-goal-hero > summary { display:grid !important;grid-template-columns:48px minmax(0,1fr) 28px;align-items:center;gap:12px;padding:20px !important; }
+.profile-goal-icon { display:grid;place-items:center;width:48px;height:48px;color:var(--orange);background:rgba(255,140,0,.1);border-radius:14px; }
+.profile-goal-icon svg { width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round; }
+.bodyweight-goal-stats { grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;padding-top:5px; }
+.bodyweight-goal-stats[hidden] { display:none; }
+.bodyweight-goal-stats > span { display:grid;gap:3px; }
+.bodyweight-goal-stats small { color:var(--grey);font-size:10px;text-transform:uppercase;letter-spacing:.04em; }
+.bodyweight-goal-stats strong { font-size:14px; }
+.bodyweight-goal-track { grid-column:1 / -1;height:7px;overflow:hidden;background:#343434;border-radius:999px; }
+.bodyweight-goal-track span { display:block;width:0;height:100%;background:linear-gradient(90deg,#b85e00,var(--orange));border-radius:inherit;transition:width 500ms cubic-bezier(.2,.8,.2,1); }
+.profile-goal-hero[open] > label,.profile-goal-hero[open] > input,.profile-goal-hero[open] > .editor-actions { margin-right:20px;margin-left:20px; }
+.profile-goal-hero[open] > .editor-actions { margin-bottom:20px; }
+.profile-group { margin:20px 0 0; }
+.profile-group > h2 { margin:0 4px 10px;font-size:15px;color:var(--grey); }
+.profile-group-panel { overflow:hidden;background:var(--card);border:1px solid #353535;border-radius:18px; }
+.profile-group-row { box-sizing:border-box;width:100%;min-height:76px;margin:0 !important;padding:16px 18px !important;background:transparent !important;border:0 !important;border-radius:0 !important; }
+.profile-link-card.profile-group-row { display:grid;grid-template-columns:38px minmax(0,1fr) 24px;align-items:center;gap:12px; }
+.profile-row-icon { display:grid !important;place-items:center;width:38px;height:38px;color:var(--orange);background:rgba(255,140,0,.08);border-radius:11px; }
+.profile-row-icon svg { width:21px !important;height:21px !important;fill:none;stroke:currentColor !important;stroke-width:1.8; }
+.profile-link-card.profile-group-row > span:nth-child(2) { display:grid;gap:4px; }
+.profile-group-row + .profile-group-row { border-top:1px solid #343434 !important; }
+.privacy-card.profile-group-row { display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:12px; }
+.profile-guide-button { display:block;margin:22px auto 0 !important;color:var(--grey) !important;background:transparent !important;border:0 !important;font-size:13px; }
+
+.workout-comment-dialog { box-sizing:border-box;width:min(calc(100% - 28px),440px);padding:22px;border:1px solid #484848;border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.72); }
+.workout-comment-dialog:focus { outline:none; }
+.workout-comment-dialog header { display:flex;align-items:center;gap:13px;margin-bottom:18px; }
+.workout-comment-dialog header h2,.workout-comment-dialog header p { margin:0; }
+.workout-comment-dialog header h2 { font-size:21px;line-height:1.2; }
+.workout-comment-dialog header p { margin-top:3px;color:var(--grey);font-size:13px; }
+.workout-comment-icon { display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;color:var(--orange);background:rgba(255,140,0,.1);border-radius:13px; }
+.workout-comment-icon svg { width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8; }
+.workout-comment-dialog textarea { min-height:150px;margin:0 0 16px !important;padding:14px;font:inherit;font-size:16px;line-height:1.45;border-color:#414141 !important;border-radius:15px !important;outline:none;box-shadow:none; }
+.workout-comment-dialog textarea:focus { border-color:#5a5a5a !important;outline:none;box-shadow:none; }
+.workout-comment-dialog .primary-button { min-height:48px;border-radius:13px; }
+
+@media (max-width:430px) {
+  .exercise-progress-legend { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .profile-goal-hero > summary { padding:17px !important; }
+  .workout-comment-dialog { padding:19px; }
+}

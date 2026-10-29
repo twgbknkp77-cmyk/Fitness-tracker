@@ -1082,7 +1082,14 @@ document.getElementById("openRestTimer")?.addEventListener("click", () => {
   document.getElementById("restTimerDialog")?.showModal();
 });
 document.getElementById("openWorkoutComment")?.addEventListener("click",()=>{
-  if(!currentSession)return;spotHaptic(10);const input=document.getElementById("workoutCommentInput");if(input)input.value=currentSession.workoutNote||"";document.getElementById("workoutCommentDialog")?.showModal();setTimeout(()=>input?.focus(),80);
+  if(!currentSession)return;
+  spotHaptic(10);
+  const input=document.getElementById("workoutCommentInput");
+  const dialog=document.getElementById("workoutCommentDialog");
+  if(input)input.value=currentSession.workoutNote||"";
+  dialog?.showModal();
+  input?.blur();
+  dialog?.focus({preventScroll:true});
 });
 document.getElementById("workoutCommentInput")?.addEventListener("input",event=>{
   if(!currentSession)return;currentSession.workoutNote=event.target.value;saveActiveWorkoutSession();updateWorkoutCommentIndicator();

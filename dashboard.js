@@ -564,6 +564,7 @@ const normaliseProgressName = value => String(value || "").trim().toLowerCase();
 function saveProgressGraphFilters() {
   localStorage.setItem("spot_progress_graph_filters", JSON.stringify({
     metric: document.getElementById("progressMetricFilter")?.value || "weight",
+    display: document.getElementById("progressDisplayFilter")?.value || "growth",
     scope: document.getElementById("progressScopeFilter")?.value || "current",
     hidden: [...progressHiddenExercises]
   }));
@@ -579,7 +580,7 @@ function getStarredExerciseNames() {
       }
     }))
   ));
-  return [...names.values()].sort((a, b) => a.localeCompare(b)).slice(0, 10);
+  return [...names.values()].sort((a, b) => a.localeCompare(b));
 }
 
 function progressValue(exercise, metric) {
@@ -612,17 +613,17 @@ function drawExerciseProgressChart() {
   const container = document.getElementById("exerciseProgressChart");
   const legend = document.getElementById("exerciseProgressLegend");
   const metric = document.getElementById("progressMetricFilter")?.value || "weight";
+  const requestedDisplay = document.getElementById("progressDisplayFilter")?.value || "growth";
+  const display = metric === "effort" ? "actual" : requestedDisplay;
   const scope = document.getElementById("progressScopeFilter")?.value || "current";
   if (!container || !legend) return;
   const names = getStarredExerciseNames();
   refreshProgressExerciseChoices(names);
   const visibleNames = names.filter(name => !progressHiddenExercises.has(normaliseProgressName(name)));
   const title = document.getElementById("exerciseProgressTitle");
-  if (title) {
-    title.textContent = visibleNames.length === 1
-      ? visibleNames[0]
-      : "Overall Growth";
-  }
+  if (title) title.textContent = "Exercise Progress";
+  const summary=document.getElementById("exerciseProgressFilterSummary");
+  if(summary) summary.textContent=`${metric === "weight" ? "Weight" : metric === "reps" ? "Repetitions" : "Effort"} · ${display === "growth" ? "Growth %" : "Actual Values"} · ${visibleNames.length === names.length ? "All Exercises" : `${visibleNames.length} Selected`}`;
   if (!names.length) { container.innerHTML = '<p class="chart-empty-state">Star an exercise to track it here.</p>'; legend.innerHTML = ""; return; }
 
   let history = [];
@@ -642,18 +643,26 @@ function drawExerciseProgressChart() {
       return value > 0 ? [{ value, date: session.finishedAt }] : [];
     })
   }));
+  if (display === "growth") {
+    series.forEach(item => {
+      const baseline=item.points.find(point=>point.value>0)?.value;
+      item.points=baseline && item.points.length>1 ? item.points.map(point=>({...point,value:((point.value-baseline)/baseline)*100})) : [];
+    });
+  }
   const allPoints = series.flatMap(item => item.points);
   if (!allPoints.length) { container.innerHTML = '<p class="chart-empty-state">No recorded results for this view.</p>'; }
   else {
     const width=340,height=220,left=48,right=14,top=14,bottom=38;
     const dates=allPoints.map(p=>new Date(p.date).getTime()), minDate=Math.min(...dates), maxDate=Math.max(...dates);
-    const maxValue=metric==="effort"?5:Math.max(...allPoints.map(p=>p.value),1), minValue=0;
+    const values=allPoints.map(p=>p.value),rawMin=Math.min(...values),rawMax=Math.max(...values);
+    const spread=Math.max(rawMax-rawMin,display==="growth"?10:1),padding=spread*.14;
+    const minValue=metric==="effort"?1:Math.min(0,rawMin-padding),maxValue=metric==="effort"?5:Math.max(display==="growth"?0:rawMax,rawMax+padding);
     const x=t=>maxDate===minDate?(left+width-right)/2:left+(t-minDate)/(maxDate-minDate)*(width-left-right);
     const y=v=>top+(maxValue-v)/(maxValue-minValue||1)*(height-top-bottom);
-    const yTicks=[0,.25,.5,.75,1].map(f=>{const value=maxValue*f,py=y(value);return `<line class="progress-grid" x1="${left}" y1="${py}" x2="${width-right}" y2="${py}"></line><text text-anchor="end" x="${left-7}" y="${py+4}">${metric==="weight"?value.toFixed(maxValue<20?1:0):Math.round(value)}</text>`}).join("");
-    const lines=series.map(item=>{if(!item.points.length)return"";const coords=item.points.map(p=>`${x(new Date(p.date).getTime())},${y(p.value)}`).join(" ");const dots=item.points.map(p=>`<circle style="fill:${item.colour}" cx="${x(new Date(p.date).getTime())}" cy="${y(p.value)}" r="4"></circle>`).join("");return `<polyline style="stroke:${item.colour}" points="${coords}"></polyline>${dots}`}).join("");
+    const yTicks=[0,.333,.666,1].map(f=>{const value=minValue+(maxValue-minValue)*f,py=y(value);return `<line class="progress-grid" x1="${left}" y1="${py}" x2="${width-right}" y2="${py}"></line><text text-anchor="end" x="${left-7}" y="${py+4}">${display==="growth"?`${Math.round(value)}%`:metric==="weight"?value.toFixed(maxValue<20?1:0):Math.round(value)}</text>`}).join("");
+    const lines=series.map(item=>{if(!item.points.length)return"";const coords=item.points.map(p=>`${x(new Date(p.date).getTime())},${y(p.value)}`).join(" ");const dots=item.points.map((p,index)=>`<circle style="fill:${item.colour}" cx="${x(new Date(p.date).getTime())}" cy="${y(p.value)}" r="${index===item.points.length-1?3.5:2}"></circle>`).join("");return `<polyline style="stroke:${item.colour}" points="${coords}"></polyline>${dots}`}).join("");
     const first=new Date(minDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),last=new Date(maxDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
-    const unit=metric==="weight"?"KG":metric==="effort"?"EFFORT":"REPS";
+    const unit=display==="growth"?"GROWTH %":metric==="weight"?"KG":metric==="effort"?"EFFORT":"REPS";
     const axisCentre=top+(height-top-bottom)/2;
     container.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${unit} progress over time"><g>${yTicks}</g><line class="progress-axis" x1="${left}" y1="${top}" x2="${left}" y2="${height-bottom}"></line><line class="progress-axis" x1="${left}" y1="${height-bottom}" x2="${width-right}" y2="${height-bottom}"></line><g class="progress-series">${lines}</g><text class="axis-label" x="${left}" y="${height-9}">${first}</text><text class="axis-label" text-anchor="end" x="${width-right}" y="${height-9}">${last}</text><text class="axis-title" text-anchor="middle" transform="rotate(-90 11 ${axisCentre})" x="11" y="${axisCentre}">${unit}</text></svg>`;
   }
@@ -663,15 +672,19 @@ function drawExerciseProgressChart() {
 
 document.getElementById("openProgressFilters")?.addEventListener("click",()=>{
   const dialog=document.getElementById("progressFilterDialog");
+  document.getElementById("openProgressFilters")?.setAttribute("aria-expanded","true");
   dialog?.showModal();
   dialog?.focus({preventScroll:true});
 });
 document.getElementById("closeProgressFilters")?.addEventListener("click",()=>document.getElementById("progressFilterDialog")?.close());
-["progressMetricFilter","progressScopeFilter"].forEach(id=>document.getElementById(id)?.addEventListener("change",()=>{saveProgressGraphFilters();drawExerciseProgressChart()}));
+document.getElementById("progressFilterDialog")?.addEventListener("close",()=>document.getElementById("openProgressFilters")?.setAttribute("aria-expanded","false"));
+["progressMetricFilter","progressDisplayFilter","progressScopeFilter"].forEach(id=>document.getElementById(id)?.addEventListener("change",()=>{saveProgressGraphFilters();drawExerciseProgressChart()}));
 
 const progressMetricFilter=document.getElementById("progressMetricFilter");
+const progressDisplayFilter=document.getElementById("progressDisplayFilter");
 const progressScopeFilter=document.getElementById("progressScopeFilter");
 if (["weight","reps","effort"].includes(savedProgressFilters.metric)) progressMetricFilter.value=savedProgressFilters.metric;
+if (["growth","actual"].includes(savedProgressFilters.display)) progressDisplayFilter.value=savedProgressFilters.display;
 if (["current","all"].includes(savedProgressFilters.scope)) progressScopeFilter.value=savedProgressFilters.scope;
 
 document.querySelectorAll("#weightFilterOptions button").forEach(button => {
@@ -817,25 +830,26 @@ function drawWeightChart() {
       weight: entry.weight
     }));
 
-  const path =
-    points.map((point, index) => {
-      return (
-        `${index === 0 ? "M" : "L"} ` +
-        `${point.x} ${point.y}`
-      );
-    }).join(" ");
+  const path = points.length < 2
+    ? points.map(point => `M ${point.x} ${point.y}`).join(" ")
+    : points.reduce((result, point, index) => {
+        if (index === 0) return `M ${point.x} ${point.y}`;
+        const previous = points[index - 1];
+        const middleX = (previous.x + point.x) / 2;
+        return `${result} Q ${middleX} ${previous.y} ${middleX} ${(previous.y + point.y) / 2} T ${point.x} ${point.y}`;
+      }, "");
 
   let svg = "";
 
   // GRID LINES
-  for (let i = 0; i <= 4; i++) {
+  for (let i = 0; i <= 3; i++) {
     const y =
       top +
-      i * (bottom - top) / 4;
+      i * (bottom - top) / 3;
 
     const value =
       maxY -
-      i * (maxY - minY) / 4;
+      i * (maxY - minY) / 3;
 
     svg += `
       <line
@@ -843,14 +857,14 @@ function drawWeightChart() {
         y1="${y}"
         x2="${right}"
         y2="${y}"
-        stroke="#444"
+        stroke="#343434"
       />
 
       <text
         x="3"
         y="${y + 4}"
-        fill="#b0b0b0"
-        font-size="11"
+        fill="#888"
+        font-size="10"
       >
         ${value.toFixed(1)}
       </text>
@@ -859,12 +873,15 @@ function drawWeightChart() {
 
   // ORANGE GRAPH LINE
   if (points.length > 0) {
+    const areaPath = `${path} L ${points[points.length - 1].x} ${bottom} L ${points[0].x} ${bottom} Z`;
     svg += `
+      <defs><linearGradient id="weightAreaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff8c00" stop-opacity=".25"/><stop offset="100%" stop-color="#ff8c00" stop-opacity="0"/></linearGradient></defs>
+      <path d="${areaPath}" fill="url(#weightAreaGradient)" stroke="none" />
       <path
         d="${path}"
         fill="none"
         stroke="#ff8c00"
-        stroke-width="3"
+        stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
       />
@@ -872,16 +889,18 @@ function drawWeightChart() {
   }
 
   // MEASUREMENT POINTS
-  points.forEach(point => {
+  points.forEach((point,index) => {
     const description =
       new Date(point.time)
         .toLocaleString("en-GB");
 
     svg += `
       <circle
+        class="weight-chart-point${index===points.length-1?" is-latest":""}"
+        data-index="${index}"
         cx="${point.x}"
         cy="${point.y}"
-        r="5"
+        r="${index===points.length-1?4:2.25}"
         fill="#ff8c00"
       >
         <title>
@@ -933,6 +952,16 @@ function drawWeightChart() {
     </svg>
 
   `;
+
+  const changeElement=document.getElementById("weightPeriodChange");
+  if(changeElement){
+    const change=weights.length>1?weights[weights.length-1].weight-weights[0].weight:0;
+    changeElement.textContent=weights.length>1?`${change>=0?"+":""}${change.toFixed(1)} kg over this period`:"Add another measurement to see change";
+  }
+  container.querySelectorAll(".weight-chart-point").forEach(point=>point.addEventListener("click",()=>{
+    container.querySelectorAll(".weight-chart-point").forEach(item=>item.classList.remove("is-selected"));
+    point.classList.add("is-selected");
+  }));
 }
 
 // GET DASHBOARD GOALS

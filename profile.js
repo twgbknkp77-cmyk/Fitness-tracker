@@ -154,6 +154,12 @@ function renderBodyweightGoal() {
       "bodyweightGoalMessage"
     );
 
+  const stats=document.getElementById("bodyweightGoalStats");
+  const currentOutput=document.getElementById("bodyweightGoalCurrent");
+  const targetOutput=document.getElementById("bodyweightGoalTarget");
+  const remainingOutput=document.getElementById("bodyweightGoalRemaining");
+  const progressOutput=document.getElementById("bodyweightGoalProgress");
+
   if (
     !weightInput ||
     !dateInput ||
@@ -163,8 +169,10 @@ function renderBodyweightGoal() {
   }
 
   if (!bodyweightGoal) {
-    message.textContent =
-      "No bodyweight goal saved yet.";
+    message.textContent = "Set Goal";
+    if(stats)stats.hidden=true;
+    weightInput.value="";
+    dateInput.value="";
 
     return;
   }
@@ -175,14 +183,20 @@ function renderBodyweightGoal() {
   dateInput.value =
     bodyweightGoal.targetDate || "";
 
-  message.textContent =
-    `Current goal: ` +
-    `${bodyweightGoal.targetWeight} kg` +
-    (
-      bodyweightGoal.targetDate
-        ? ` by ${bodyweightGoal.targetDate}`
-        : ""
-    );
+  const weights=FitnessStorage.getWeights().filter(entry=>entry&&Number.isFinite(Number(entry.weight))).sort((a,b)=>new Date(a.recordedAt||`${a.date}T12:00:00`)-new Date(b.recordedAt||`${b.date}T12:00:00`));
+  const current=weights.length?Number(weights[weights.length-1].weight):null;
+  const target=Number(bodyweightGoal.targetWeight);
+  const start=Number(bodyweightGoal.startingWeight);
+  const remaining=current===null?null:Math.abs(target-current);
+  const total=Number.isFinite(start)?target-start:0;
+  const travelled=current===null||!Number.isFinite(start)?0:current-start;
+  const progress=total!==0?Math.min(100,Math.max(0,(travelled/total)*100)):0;
+  message.textContent = bodyweightGoal.targetDate ? `Target ${target} kg · ${bodyweightGoal.targetDate}` : `Target ${target} kg`;
+  if(stats)stats.hidden=false;
+  if(currentOutput)currentOutput.textContent=current===null?"--":`${current.toFixed(1)} kg`;
+  if(targetOutput)targetOutput.textContent=`${target.toFixed(1)} kg`;
+  if(remainingOutput)remainingOutput.textContent=remaining===null?"--":`${remaining.toFixed(1)} kg`;
+  if(progressOutput)progressOutput.style.width=`${progress}%`;
 }
 
 
