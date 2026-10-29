@@ -675,6 +675,13 @@ function renderWorkoutSession() {
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
     titleRow.appendChild(heading);
+    if (exercise.starred) {
+      const star = document.createElement("svg");
+      star.classList.add("display-star");
+      star.setAttribute("aria-label", "Starred exercise");
+      star.innerHTML = '<use href="#icon-star-round"></use>';
+      titleRow.appendChild(star);
+    }
 
     const completeButton = document.createElement("button");
     completeButton.type = "button";

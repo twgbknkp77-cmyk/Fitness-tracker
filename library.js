@@ -1136,6 +1136,9 @@ function renderLibrary() {
     }
     const card = document.createElement("div");
     card.className = "card programme-card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `Open ${programme.name}`);
 
     if (programme.id === activeId) {
       card.classList.add("active-programme");
@@ -1155,26 +1158,11 @@ function renderLibrary() {
         : `${programme.durationWeeks} weeks • Week ${programme.currentWeek}`;
     copy.append(title, details);
 
-    const menu = document.createElement("details");
-    menu.className = "overflow-menu";
-    const summary = document.createElement("summary");
-    summary.textContent = "⋯";
-    summary.setAttribute("aria-label", `${programme.name} options`);
-    const panel = document.createElement("div");
-    panel.className = "overflow-menu-panel";
-
-    const edit = document.createElement("button");
-    edit.textContent = "Edit";
-    edit.addEventListener("click", () => openProgrammeEditor(programme.id));
-
-    const remove = document.createElement("button");
-    remove.textContent = "Delete programme";
-    remove.className = "danger-action";
-    remove.addEventListener("click", () => deleteProgramme(programme.id));
-
-    panel.append(edit, remove);
-    menu.append(summary, panel);
-    header.append(copy, menu);
+    const chevron = document.createElement("span");
+    chevron.className = "programme-card-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.innerHTML = '<svg><use href="#icon-arrow-right"></use></svg>';
+    header.append(copy, chevron);
     card.appendChild(header);
 
     const activationButton = document.createElement("button");
@@ -1214,9 +1202,14 @@ function renderLibrary() {
     }
 
     card.addEventListener("click", event => {
-      if (event.target.closest(".overflow-menu")) return;
-      if (typeof openProgrammeOverview === "function") openProgrammeOverview(programme.id);
-      else openProgrammeEditor(programme.id);
+      if (event.target.closest(".programme-activation-button")) return;
+      openProgrammeEditor(programme.id);
+    });
+    card.addEventListener("keydown", event => {
+      if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
+        event.preventDefault();
+        openProgrammeEditor(programme.id);
+      }
     });
 
     container.appendChild(card);

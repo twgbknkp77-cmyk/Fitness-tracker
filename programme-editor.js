@@ -377,6 +377,7 @@ function renderProgrammeEditor() {
     (workout.exercises || []).forEach((exercise, exerciseIndex) => {
       const row = document.createElement("div");
       row.className = "editor-exercise-row";
+      row.classList.toggle("is-editable", programme.isDraft || editorIsEditing);
       const copy = document.createElement("div");
       const exerciseName = document.createElement("strong");
       exerciseName.textContent = exercise.name;
@@ -390,10 +391,6 @@ function renderProgrammeEditor() {
         copy.appendChild(note);
       }
       const menu = createOverflowMenu(`${exercise.name} options`, [
-        {
-          label: "Edit exercise",
-          run: () => editExercise(programme, week, workout, exercise)
-        },
         {
           label: "Remove exercise",
           danger: true,
@@ -431,6 +428,10 @@ function renderProgrammeEditor() {
       actions.className = "editor-exercise-actions";
       actions.append(star, menu);
       row.append(copy, actions);
+      row.addEventListener("click", event => {
+        if (!(programme.isDraft || editorIsEditing) || event.target.closest("button,details,summary")) return;
+        editExercise(programme, week, workout, exercise);
+      });
       exerciseList.appendChild(row);
     });
     card.appendChild(exerciseList);
@@ -500,7 +501,7 @@ function openExerciseDialog(programme, week, workout, exercise = null) {
 
   form.reset();
   document.getElementById("exerciseDialogTitle").textContent =
-    exercise ? "Edit Exercise" : "Add Exercise";
+    exercise ? "Exercise" : "Add Exercise";
   document.getElementById("exerciseDialogWorkoutId").value = workout.id;
   document.getElementById("exerciseDialogExerciseId").value = exercise?.id || "";
   document.getElementById("exerciseTypeInput").value = exercise?.type || "strength";
@@ -672,6 +673,18 @@ document.getElementById("discardProgrammeChanges")?.addEventListener("click", ()
 
 document.getElementById("commitProgrammeChanges")?.addEventListener("click", () => {
   document.getElementById("saveProgramme")?.click();
+});
+
+document.getElementById("deleteProgrammeFromEditor")?.addEventListener("click", async () => {
+  const programme = getEditingProgramme();
+  if (!programme || typeof deleteProgramme !== "function") return;
+  await deleteProgramme(programme.id);
+  if (getProgrammes().some(item => item.id === programme.id)) return;
+  window.editingProgrammeId = null;
+  editorWorkingProgramme = null;
+  editorOriginalProgramme = null;
+  editorIsEditing = false;
+  showPage("library");
 });
 
 document.getElementById("cancelProgrammeExit")?.addEventListener("click", () => {

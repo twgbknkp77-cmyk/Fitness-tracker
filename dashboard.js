@@ -830,14 +830,7 @@ function drawWeightChart() {
       weight: entry.weight
     }));
 
-  const path = points.length < 2
-    ? points.map(point => `M ${point.x} ${point.y}`).join(" ")
-    : points.reduce((result, point, index) => {
-        if (index === 0) return `M ${point.x} ${point.y}`;
-        const previous = points[index - 1];
-        const middleX = (previous.x + point.x) / 2;
-        return `${result} Q ${middleX} ${previous.y} ${middleX} ${(previous.y + point.y) / 2} T ${point.x} ${point.y}`;
-      }, "");
+  const path = points.map((point,index) => `${index===0?"M":"L"} ${point.x} ${point.y}`).join(" ");
 
   let svg = "";
 
@@ -900,7 +893,7 @@ function drawWeightChart() {
         data-index="${index}"
         cx="${point.x}"
         cy="${point.y}"
-        r="${index===points.length-1?4:2.25}"
+        r="${index===points.length-1?4.5:3.25}"
         fill="#ff8c00"
       >
         <title>
