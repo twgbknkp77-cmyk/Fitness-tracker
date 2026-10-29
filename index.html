@@ -18,7 +18,7 @@
 
   <!-- MAIN STYLESHEET -->
   <link rel="stylesheet" href="style.css?v=46">
-  <link rel="stylesheet" href="refinements.css?v=7">
+  <link rel="stylesheet" href="refinements.css?v=8">
 </head>
 
 <body>
@@ -449,6 +449,11 @@
     <!-- Exercises will appear here automatically -->
   </div>
 
+  <label class="card workout-note-field" for="workoutSessionNote">
+    <span>Workout Notes</span>
+    <textarea id="workoutSessionNote" rows="3" maxlength="1000" placeholder="Add a note about this workout"></textarea>
+  </label>
+
   <div class="session-action-bar">
     <p id="sessionProgress" hidden>0 results recorded</p>
     <button type="button" id="finishWorkout" class="primary-button">Finish Workout</button>
@@ -469,6 +474,14 @@
     </div>
   </div>
 
+</section>
+
+<section id="workoutNotes" class="page">
+  <div class="page-header history-header">
+    <button type="button" class="icon-button" id="workoutNotesBack" aria-label="Back to Profile"><svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg></button>
+    <h1>Notes</h1>
+  </div>
+  <div id="workoutNotesList"></div>
 </section>
 <!-- END WORKOUT SESSION -->
 
@@ -585,6 +598,11 @@
 
 <button type="button" id="openProfileHistory" class="card profile-link-card">
   <span><strong>Workout History</strong><small>Review your completed training sessions</small></span>
+  <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+</button>
+
+<button type="button" id="openWorkoutNotes" class="card profile-link-card">
+  <span><strong>Notes</strong><small>Review notes from completed workouts</small></span>
   <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
 </button>
 
@@ -824,6 +842,7 @@
       programmeOverview: 2.25,
       programmeEditor: 2.5,
       workoutHistory: 3.25,
+      workoutNotes: 3.25,
       profile: 3,
       statistics: 1.25,
       exerciseStatistics: 1.5,
@@ -893,6 +912,7 @@
     programmeOverview: "library",
     programmeEditor: "library",
     workoutHistory: window.workoutHistoryReturnPage || "profile",
+    workoutNotes: "profile",
     workoutSession: "workouts",
     workoutComplete: "workouts",
     statistics: "workouts",
@@ -1041,10 +1061,10 @@
   <script src="library.js?v=31"></script>
   <script src="programme-overview.js?v=3"></script>
   <script src="programme-editor.js?v=23"></script>
-  <script src="workout-session.js?v=26"></script>
-  <script src="workout-history.js?v=14"></script>
+  <script src="workout-session.js?v=27"></script>
+  <script src="workout-history.js?v=15"></script>
   <script src="profile.js?v=9"></script>
-  <script src="statistics.js?v=7"></script>
+  <script src="statistics.js?v=8"></script>
   <script src="measurements.js?v=4"></script>
   <script src="data-management.js?v=3"></script>
   <script src="onboarding.js?v=1"></script>

@@ -9,8 +9,43 @@ let restTimerRemaining = 0;
 let restTimerInterval = null;
 let restTimerPaused = false;
 const REST_TIMER_CHOICE_KEY = "spot_rest_timer_choice_v1";
+const REST_TIMER_STATE_KEY = "spot_rest_timer_state_v1";
 const SPOT_NOTIFICATIONS_KEY = "spot_notifications_enabled_v1";
 let timerAudioContext = null;
+let restTimerAlerted = false;
+
+function spotHaptic(pattern = 18) {
+  if (typeof navigator.vibrate === "function") navigator.vibrate(pattern);
+}
+
+function saveRestTimerState() {
+  if (!restTimerEndsAt && !restTimerPaused) {
+    localStorage.removeItem(REST_TIMER_STATE_KEY);
+    return;
+  }
+  localStorage.setItem(REST_TIMER_STATE_KEY, JSON.stringify({
+    endsAt: restTimerEndsAt,
+    remaining: restTimerRemaining,
+    paused: restTimerPaused,
+    alerted: restTimerAlerted
+  }));
+}
+
+function restoreRestTimerState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(REST_TIMER_STATE_KEY) || "null");
+    if (!saved) return;
+    restTimerEndsAt = Number(saved.endsAt) || 0;
+    restTimerRemaining = Number(saved.remaining) || 0;
+    restTimerPaused = Boolean(saved.paused);
+    restTimerAlerted = Boolean(saved.alerted);
+    if (restTimerPaused || restTimerEndsAt) {
+      clearInterval(restTimerInterval);
+      restTimerInterval = setInterval(updateRestTimerDisplay, 250);
+      updateRestTimerDisplay();
+    }
+  } catch { localStorage.removeItem(REST_TIMER_STATE_KEY); }
+}
 
 function primeTimerAudio() {
   try {
@@ -41,7 +76,7 @@ function showTimerFinishedAlert() {
   document.body.appendChild(toast); requestAnimationFrame(()=>toast.classList.add("show"));
   setTimeout(()=>{toast.classList.remove("show");setTimeout(()=>toast.remove(),250);},2800);
   if (document.hidden && timerNotificationEnabled() && "Notification" in window && Notification.permission === "granted") {
-    new Notification("Rest time complete", { icon:"icons/spot-icon-192.png", tag:"spot-rest-timer" });
+    try { new Notification("Rest time complete", { body:"Rest complete",icon:"icons/spot-icon-192.png",badge:"icons/spot-icon-192.png",tag:"spot-rest-timer",renotify:true }); } catch {}
   }
 }
 
@@ -104,11 +139,17 @@ function renderWorkoutCompletionSummary(session, previousSession, progression) {
     : progression?.programmeComplete ? "Programme complete." : "Your next workout is ready when you are.";
   container.innerHTML = `
     <div class="completion-hero"><span class="completion-check">✓</span><p>Workout Complete</p><h1>${session.workoutName}</h1><small>${new Date(session.finishedAt).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})}</small></div>
-    <div class="completion-metric-grid"><div><span>Duration</span><strong>${duration} min</strong></div><div><span>${cardioOnly ? "Cardio" : "Sets"}</span><strong>${cardioOnly ? `${cardioMinutes} min` : sets}</strong></div><div><span>${cardioOnly ? "Exercises" : "Volume"}</span><strong>${cardioOnly ? (session.exercises || []).length : `${volume.toLocaleString()} kg`}</strong></div><div><span>Avg effort</span><strong>${effort ? effort.toFixed(1) : "—"}</strong></div></div>
+    <div class="completion-metric-grid"><div><span>Duration</span><strong data-completion-value="${duration}" data-completion-suffix=" min">0</strong></div><div><span>${cardioOnly ? "Cardio" : "Sets"}</span><strong data-completion-value="${cardioOnly ? cardioMinutes : sets}" data-completion-suffix="${cardioOnly ? " min" : ""}">0</strong></div><div><span>${cardioOnly ? "Exercises" : "Volume"}</span><strong data-completion-value="${cardioOnly ? (session.exercises || []).length : volume}" data-completion-suffix="${cardioOnly ? "" : " kg"}">0</strong></div><div><span>Avg effort</span><strong data-completion-value="${effort || 0}" data-completion-decimals="1">${effort ? "0.0" : "—"}</strong></div></div>
     <div class="card completion-comparison"><h2>Previous Session</h2>${previousSession ? `<div><span>${cardioOnly ? "Cardio time" : "Volume"}</span><strong>${cardioOnly ? `${oldCardioMinutes} min` : `${oldVolume.toLocaleString()} kg`}</strong><em>${cardioOnly ? completionChange(cardioMinutes,oldCardioMinutes," min") : completionChange(volume,oldVolume," kg")}</em></div><div><span>Duration</span><strong>${oldDuration} min</strong><em>${completionChange(duration,oldDuration," min")}</em></div><div><span>Average effort</span><strong>${oldEffort ? oldEffort.toFixed(1) : "—"}</strong><em>${oldEffort ? completionChange(effort,oldEffort) : "—"}</em></div>` : "<p>No previous session to compare yet.</p>"}</div>
     <p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
-  document.getElementById("closeWorkoutSummary")?.addEventListener("click", () => showPage("workouts"));
+  document.getElementById("closeWorkoutSummary")?.addEventListener("click", () => { spotHaptic(18); showPage("workouts"); });
   showPage("workoutComplete");
+  spotHaptic([45,35,80]);
+  container.querySelectorAll("[data-completion-value]").forEach(element => {
+    const target=Number(element.dataset.completionValue)||0;if(!target&&element.textContent==="—")return;
+    const decimals=Number(element.dataset.completionDecimals)||0,suffix=element.dataset.completionSuffix||"",start=performance.now();
+    const draw=now=>{const progress=Math.min((now-start)/650,1),value=target*(1-Math.pow(1-progress,3));element.textContent=value.toLocaleString("en-GB",{minimumFractionDigits:decimals,maximumFractionDigits:decimals})+suffix;if(progress<1)requestAnimationFrame(draw)};requestAnimationFrame(draw);
+  });
 }
 
 function formatRestTime(seconds) {
@@ -136,21 +177,22 @@ function updateRestTimerDisplay() {
   }
   if (!running && restTimerInterval) {
     clearInterval(restTimerInterval); restTimerInterval=null;
-    if (!restTimerPaused && typeof navigator.vibrate==="function") navigator.vibrate([160,90,160]);
-    if (!restTimerPaused) { playTimerSound(); showTimerFinishedAlert(); }
+    if (!restTimerPaused && !restTimerAlerted) {
+      restTimerAlerted=true;spotHaptic([160,90,160]);playTimerSound();showTimerFinishedAlert();restTimerEndsAt=0;restTimerRemaining=0;saveRestTimerState();
+    }
     button?.classList.add("timer-finished"); setTimeout(()=>button?.classList.remove("timer-finished"),900);
   }
 }
 
 function startRestTimer(seconds) {
   primeTimerAudio();
-  restTimerRemaining=Number(seconds)||60; restTimerEndsAt=Date.now()+restTimerRemaining*1000; restTimerPaused=false;
+  restTimerRemaining=Number(seconds)||60; restTimerEndsAt=Date.now()+restTimerRemaining*1000; restTimerPaused=false;restTimerAlerted=false;
   localStorage.setItem(REST_TIMER_CHOICE_KEY,String(seconds)); clearInterval(restTimerInterval);
-  restTimerInterval=setInterval(updateRestTimerDisplay,250); updateRestTimerDisplay(); document.getElementById("restTimerDialog")?.close();
+  restTimerInterval=setInterval(updateRestTimerDisplay,250);saveRestTimerState();updateRestTimerDisplay(); document.getElementById("restTimerDialog")?.close();
 }
 
 function endRestTimer() {
-  clearInterval(restTimerInterval); restTimerInterval=null; restTimerRemaining=0; restTimerEndsAt=0; restTimerPaused=false;
+  clearInterval(restTimerInterval); restTimerInterval=null; restTimerRemaining=0; restTimerEndsAt=0; restTimerPaused=false;restTimerAlerted=false;saveRestTimerState();
   updateRestTimerDisplay(); document.getElementById("restTimerDialog")?.close();
 }
 
@@ -312,6 +354,7 @@ function startWorkout(workoutId) {
     scheduledWorkoutCount: trainingDays.length,
     workoutId: workout.id,
     workoutName: workout.name,
+    workoutNote: "",
     startedAt,
 
     exercises: (workout.exercises || []).map(exercise => ({
@@ -406,6 +449,8 @@ function renderWorkoutSessionLegacy() {
     card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
     card.classList.toggle("exercise-is-collapsed", Boolean(exercise.collapsed));
 
+    const titleRow = document.createElement("div");
+    titleRow.className = "session-exercise-title";
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
     if (exercise.starred) {
@@ -427,10 +472,12 @@ function renderWorkoutSessionLegacy() {
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
     );
     completeButton.addEventListener("click", () => {
+      card.classList.add(exercise.completed ? "exercise-opening" : "exercise-closing");
+      spotHaptic(exercise.completed ? 12 : 24);
       exercise.completed = !exercise.completed;
       exercise.collapsed = exercise.completed;
       saveActiveWorkoutSession();
-      renderWorkoutSession();
+      setTimeout(renderWorkoutSession, 170);
     });
 
     const previousHeading = document.createElement("p");
@@ -605,6 +652,7 @@ function renderWorkoutSession() {
 
     const heading = document.createElement("h2");
     heading.textContent = exercise.name;
+    titleRow.appendChild(heading);
 
     const completeButton = document.createElement("button");
     completeButton.type = "button";
@@ -615,14 +663,17 @@ function renderWorkoutSession() {
       exercise.completed ? `Reopen ${exercise.name}` : `Complete ${exercise.name}`
     );
     completeButton.addEventListener("click", () => {
+      card.classList.add(exercise.completed ? "exercise-opening" : "exercise-closing");
+      spotHaptic(exercise.completed ? 12 : 24);
       exercise.completed = !exercise.completed;
       exercise.collapsed = exercise.completed;
       saveActiveWorkoutSession();
-      renderWorkoutSession();
+      setTimeout(renderWorkoutSession, 170);
     });
 
     const menu = document.createElement("details");
     menu.className = "session-edit-menu";
+    menu.addEventListener("toggle", () => { if (menu.open) spotHaptic(10); });
 
     const summary = document.createElement("summary");
     summary.textContent = "Edit";
@@ -670,6 +721,7 @@ function renderWorkoutSession() {
       editCompleted.type = "button";
       editCompleted.textContent = "Edit";
       editCompleted.addEventListener("click", () => {
+        spotHaptic(12);
         exercise.completed = false;
         exercise.collapsed = false;
         saveActiveWorkoutSession();
@@ -847,6 +899,15 @@ function renderWorkoutSession() {
     container.appendChild(card);
   });
 
+  const workoutNoteInput = document.getElementById("workoutSessionNote");
+  if (workoutNoteInput) {
+    workoutNoteInput.value = currentSession.workoutNote || "";
+    workoutNoteInput.oninput = () => {
+      currentSession.workoutNote = workoutNoteInput.value;
+      saveActiveWorkoutSession();
+    };
+  }
+
   updateSessionProgress();
 }
 
@@ -1016,6 +1077,7 @@ document.getElementById("dockEndRestTimer")?.addEventListener("click", endRestTi
 document.getElementById("addRestTimerTime")?.addEventListener("click", () => {
   if (restTimerPaused) restTimerRemaining += 30;
   else restTimerEndsAt += 30000;
+  saveRestTimerState();
   updateRestTimerDisplay();
 });
 document.getElementById("pauseRestTimer")?.addEventListener("click", () => {
@@ -1026,6 +1088,7 @@ document.getElementById("pauseRestTimer")?.addEventListener("click", () => {
     restTimerRemaining = Math.max(0,(restTimerEndsAt-Date.now())/1000);
     restTimerPaused = true;
   }
+  saveRestTimerState();
   updateRestTimerDisplay();
 });
 document.getElementById("dockAddRestTimerTime")?.addEventListener("click", () => document.getElementById("addRestTimerTime")?.click());
@@ -1057,6 +1120,7 @@ notificationToggle?.addEventListener("change",async()=>{
 refreshNotificationSetting();
 
 document.getElementById("saveAndExitWorkout")?.addEventListener("click", () => {
+  spotHaptic(18);
   saveActiveWorkoutSession();
   endRestTimer();
   document.getElementById("discardWorkoutDialog")?.close();
@@ -1081,6 +1145,7 @@ document
 document
   .getElementById("keepWorkoutSession")
   ?.addEventListener("click", () => {
+    spotHaptic(10);
     document
       .getElementById("discardWorkoutDialog")
       ?.close();
@@ -1089,6 +1154,7 @@ document
 document
   .getElementById("confirmDiscardWorkout")
   ?.addEventListener("click", () => {
+    spotHaptic([35,25,35]);
     document
       .getElementById("discardWorkoutDialog")
       ?.close();
@@ -1113,7 +1179,13 @@ document.getElementById("discardSavedWorkout")?.addEventListener("click", () => 
   document.getElementById("resumeWorkoutDialog")?.close();
 });
 
-window.addEventListener("beforeunload", saveActiveWorkoutSession);
+window.addEventListener("beforeunload", () => { saveActiveWorkoutSession(); saveRestTimerState(); });
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) primeTimerAudio();
+  updateRestTimerDisplay();
+});
+window.addEventListener("pageshow", updateRestTimerDisplay);
+restoreRestTimerState();
 
 setTimeout(() => {
   if (getSavedWorkoutSession() && !currentSession) {

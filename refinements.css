@@ -20,7 +20,7 @@ input[readonly],textarea[readonly] { caret-color:transparent;pointer-events:none
   display:block;box-sizing:border-box;inline-size:100%;min-inline-size:0;max-inline-size:100%;width:100%;min-width:0;max-width:100%;height:52px;min-height:52px;margin:0;padding:12px 14px;
 }
 #editMeasurementModal input[type="date"] { -webkit-appearance:none;appearance:none; }
-#editMeasurementModal .modal-actions { display:flex;justify-content:flex-end;gap:10px;width:100%; }
+#editMeasurementModal .modal-actions { display:flex;justify-content:flex-end;gap:14px;width:100%;margin-top:18px; }
 #editMeasurementModal .modal-actions button { width:auto;min-width:112px;margin:0; }
 
 .overview-day-list { gap:16px; }
@@ -107,12 +107,15 @@ input[readonly],textarea[readonly] { caret-color:transparent;pointer-events:none
 .chart-grid text { fill:#999;font-size:9px; }
 .activity-bar { cursor:pointer; }
 .activity-bar rect { fill:var(--orange);opacity:.92; }
+.activity-bar rect { transform-box:fill-box;transform-origin:center bottom;animation:activity-bar-grow 520ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes activity-bar-grow { from { transform:scaleY(.04);opacity:.25; } }
 .activity-bar text { fill:#aaa;font-size:9px; }
 .chart-selection,.performance-point-detail { min-height:18px;margin:0;padding:8px 12px;color:var(--grey);text-align:center;font-size:12px; }
-.adherence-weeks { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:end;min-height:150px;padding:14px;background:#151515;border:1px solid #353535;border-radius:15px; }
+.adherence-weeks { display:grid;grid-template-columns:repeat(var(--week-count,4),minmax(48px,1fr));gap:12px;align-items:end;min-height:150px;padding:14px;overflow-x:auto;background:#151515;border:1px solid #353535;border-radius:15px;scrollbar-width:none; }
 .adherence-week { display:grid;justify-items:center;gap:4px; }
 .adherence-track { position:relative;width:26px;height:96px;overflow:hidden;background:#292929;border-radius:999px; }
-.adherence-track span { position:absolute;right:0;bottom:0;left:0;background:linear-gradient(180deg,#ffad3d,var(--orange));border-radius:inherit; }
+.adherence-track span { position:absolute;right:0;bottom:0;left:0;background:linear-gradient(180deg,#ffad3d,var(--orange));border-radius:inherit;transition:height 650ms cubic-bezier(.2,.8,.2,1); }
+.adherence-week.is-current .adherence-track { box-shadow:0 0 0 2px rgba(255,138,0,.5); }
 .adherence-week small { color:var(--grey); }
 .statistics-compact-meta { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px; }
 .statistics-compact-meta span { display:grid;gap:3px;padding:11px;text-align:center;background:#171717;border:1px solid #353535;border-radius:12px; }
@@ -151,6 +154,31 @@ input[readonly],textarea[readonly] { caret-color:transparent;pointer-events:none
 .performance-summary-row strong { font-size:13px; }
 .performance-best small { display:flex;align-items:center;justify-content:center;gap:3px; }
 .performance-best small svg { width:12px;height:12px;color:#ffd36c;fill:none;stroke:currentColor;stroke-width:2; }
+
+/* Workout names, notes and completion motion */
+.session-exercise-title { min-height:30px;margin-bottom:10px; }
+.session-exercise-title h2 { display:block !important;margin:0;color:var(--white) !important;font-size:22px !important;line-height:1.2;opacity:1 !important;visibility:visible !important; }
+.exercise-is-collapsed .session-exercise-title { margin-bottom:13px; }
+.exercise-closing { animation:exercise-close 180ms ease both; }
+.exercise-opening { animation:exercise-open 180ms ease both; }
+@keyframes exercise-close { to { opacity:.58;transform:scale(.985) translateY(-4px); } }
+@keyframes exercise-open { from { opacity:.65;transform:scale(.985); } }
+.workout-note-field { display:grid;gap:10px;margin:16px 0; }
+.workout-note-field > span { font-size:18px;font-weight:800; }
+.workout-note-field textarea,.history-workout-note-edit textarea { box-sizing:border-box;width:100%;margin:0;resize:vertical; }
+.workout-note-history-card { position:relative;display:grid;gap:10px; }
+.workout-note-history-card > div { display:grid;gap:3px;padding-right:58px; }
+.workout-note-history-card small,.workout-note-history-card > span { color:var(--grey);font-size:12px; }
+.workout-note-history-card > span { color:var(--orange);font-weight:800; }
+.workout-note-history-card p,.history-workout-note p { margin:0;white-space:pre-wrap;-webkit-user-select:text;user-select:text; }
+.note-copy-button { position:absolute;top:15px;right:15px;width:auto;min-height:36px;padding:7px 10px; }
+.history-workout-note h3 { margin-top:0; }
+.history-workout-note-edit { display:grid;gap:10px;margin-bottom:16px;font-weight:800; }
+.completion-metric-grid > div { animation:completion-card-in 380ms cubic-bezier(.2,.8,.2,1) both; }
+.completion-metric-grid > div:nth-child(2) { animation-delay:70ms; }
+.completion-metric-grid > div:nth-child(3) { animation-delay:140ms; }
+.completion-metric-grid > div:nth-child(4) { animation-delay:210ms; }
+@keyframes completion-card-in { from { opacity:0;transform:translateY(10px); } }
 
 .weekly-progress-track .progress-fill.progress-fill-animate { transition:width 700ms cubic-bezier(.2,.8,.2,1); }
 
@@ -209,5 +237,7 @@ body.session-active #workoutSession .session-action-bar .primary-button { displa
   #editMeasurementModal .modal-actions button { min-width:0; }
 }
 @media (prefers-reduced-motion:reduce) {
-  .editor-day-card,.weekly-progress-track .progress-fill.progress-fill-animate { transition:none !important; }
+  .editor-day-card,.weekly-progress-track .progress-fill.progress-fill-animate,.adherence-track span { transition:none !important; }
+  .exercise-closing,.exercise-opening,.completion-metric-grid > div { animation:none !important; }
+  .activity-bar rect { animation:none !important; }
 }

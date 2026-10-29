@@ -6,6 +6,19 @@ function historyReturnPage(){return window.workoutHistoryReturnPage||"profile"}
 function setHistoryBack(label,run){const button=document.getElementById("workoutHistoryBack");button.setAttribute("aria-label",label);button.onclick=run}
 function historyButton(text,run,className="history-view-button"){const button=document.createElement("button");button.type="button";button.className=className;button.textContent=text;button.onclick=run;return button}
 
+function renderWorkoutNotes(){
+ const container=document.getElementById("workoutNotesList");if(!container)return;container.innerHTML="";
+ const entries=[];getSavedWorkoutHistory().forEach(session=>{
+  if(String(session.workoutNote||"").trim())entries.push({session,label:"Workout",text:session.workoutNote});
+  (session.exercises||[]).forEach(exercise=>{if(String(exercise.sessionNote||"").trim())entries.push({session,label:exercise.name||"Exercise",text:exercise.sessionNote})});
+ });
+ entries.sort((a,b)=>new Date(b.session.finishedAt)-new Date(a.session.finishedAt));
+ if(!entries.length){container.innerHTML='<div class="card empty-state-card"><p>No saved notes yet.</p></div>';return}
+ entries.forEach(entry=>{const card=document.createElement("article");card.className="card workout-note-history-card";const header=document.createElement("div");header.innerHTML=`<strong>${entry.session.workoutName||"Workout"}</strong><small>${historyDate(entry.session.finishedAt)}${entry.session.weekNumber?` • Week ${entry.session.weekNumber}`:""}</small>`;const label=document.createElement("span");label.textContent=entry.label;const text=document.createElement("p");text.textContent=entry.text;const copy=historyButton("Copy",async()=>{try{await navigator.clipboard.writeText(entry.text);copy.textContent="Copied";setTimeout(()=>copy.textContent="Copy",1200)}catch{window.getSelection()?.selectAllChildren(text)}},"note-copy-button");card.append(header,label,text,copy);container.appendChild(card)})
+}
+document.getElementById("openWorkoutNotes")?.addEventListener("click",()=>{renderWorkoutNotes();showPage("workoutNotes")});
+document.getElementById("workoutNotesBack")?.addEventListener("click",()=>showPage("profile"));
+
 function renderWorkoutHistory(){
  const container=document.getElementById("workoutHistoryList");if(!container)return;const history=getSavedWorkoutHistory();
  document.getElementById("workoutHistoryIntro").hidden=history.length>0;const returnPage=historyReturnPage();setHistoryBack(returnPage==="profile"?"Back to Profile":"Back to Workouts",()=>showPage(returnPage));container.innerHTML="";
@@ -37,12 +50,14 @@ function viewWorkoutHistoryDetails(session,blockSessions=[session]){
  const container=document.getElementById("workoutHistoryList");setHistoryBack("Back to Workout Block",()=>viewWorkoutBlockHistory(blockSessions));container.innerHTML="";
  const summary=document.createElement("div");summary.className="card history-detail-summary";summary.innerHTML=`<h2>${session.workoutName}</h2><p>${historyDate(session.finishedAt)}${session.weekNumber?` • Week ${session.weekNumber}`:""}</p>`;
  summary.appendChild(historyButton("Edit",()=>editWorkoutHistorySession(session,blockSessions),"history-edit-button"));container.appendChild(summary);
+ if(session.workoutNote){const note=document.createElement("div");note.className="card history-workout-note";note.innerHTML="<h3>Workout Notes</h3>";const copy=document.createElement("p");copy.textContent=session.workoutNote;note.appendChild(copy);container.appendChild(note)}
  (session.exercises||[]).forEach(exercise=>{const card=document.createElement("div");card.className="card history-exercise-card";appendHistoryExercise(card,exercise);container.appendChild(card)})
 }
 
 function editWorkoutHistorySession(session,blockSessions){
  const container=document.getElementById("workoutHistoryList");setHistoryBack("Cancel Editing",()=>viewWorkoutHistoryDetails(session,blockSessions));container.innerHTML="";
  const draft=JSON.parse(JSON.stringify(session));const heading=document.createElement("div");heading.className="card history-detail-summary";heading.innerHTML=`<h2>Edit ${session.workoutName}</h2>`;container.appendChild(heading);
+ const workoutNoteLabel=document.createElement("label");workoutNoteLabel.className="card history-workout-note-edit";workoutNoteLabel.textContent="Workout Notes";const workoutNote=document.createElement("textarea");workoutNote.rows=3;workoutNote.value=draft.workoutNote||"";workoutNote.oninput=()=>draft.workoutNote=workoutNote.value;workoutNoteLabel.appendChild(workoutNote);container.appendChild(workoutNoteLabel);
  (draft.exercises||[]).forEach(exercise=>{const card=document.createElement("div");card.className="card history-exercise-card history-edit-card";const title=document.createElement("h3");title.textContent=exercise.name;card.appendChild(title);
   if(exercise.type==="cardio"){const label=document.createElement("label");label.textContent="Time (min)";const input=document.createElement("input");input.type="number";input.inputMode="numeric";input.value=exercise.durationMinutes??"";input.oninput=()=>exercise.durationMinutes=input.value===""?"":Number(input.value);label.appendChild(input);card.appendChild(label)}
   else (exercise.sets||[]).forEach((set,index)=>{const row=document.createElement("div");row.className="history-edit-set";const number=document.createElement("strong");number.textContent=String(index+1);const weight=document.createElement("input");weight.type="number";weight.inputMode="decimal";weight.value=set.weight??"";weight.setAttribute("aria-label",`Set ${index+1} weight`);weight.oninput=()=>set.weight=weight.value===""?"":Number(weight.value);const reps=document.createElement("input");reps.type="number";reps.inputMode="numeric";reps.value=set.reps??"";reps.setAttribute("aria-label",`Set ${index+1} reps`);reps.oninput=()=>set.reps=reps.value===""?"":Number(reps.value);row.append(number,weight,reps);card.appendChild(row)});
