@@ -1219,19 +1219,9 @@ function renderLibrary() {
 
 // COMPACT WORKOUTS PAGE
 function libraryExerciseIsStarred(programme, exercise) {
-  if (exercise?.starred) return true;
-  const wantedId = String(exercise?.id || "");
-  const wantedName = String(exercise?.name || "").trim().toLowerCase();
-  return (programme?.weeks || []).some(week =>
-    (week.trainingDays || []).some(day =>
-      (day.exercises || []).some(candidate =>
-        Boolean(candidate.starred) && (
-          (wantedId && String(candidate.id || "") === wantedId) ||
-          String(candidate.name || "").trim().toLowerCase() === wantedName
-        )
-      )
-    )
-  );
+  return typeof isExerciseStarred === "function"
+    ? isExerciseStarred(programme, exercise)
+    : Boolean(exercise?.starred);
 }
 
 function completedWeekSummary(programme, week, history) {

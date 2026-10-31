@@ -489,3 +489,26 @@ body.session-active #workoutSession .session-action-bar .primary-button { displa
 @media (max-width:430px) {
   .workouts-week-statistics { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
+
+/* Final interaction refinements. */
+.comment-week-card > header .note-copy-button {
+  width:40px !important;min-width:40px;height:40px !important;min-height:40px !important;
+  padding:0 !important;color:var(--grey) !important;background:transparent !important;border:0 !important;box-shadow:none !important;
+}
+.comment-week-card > header .note-copy-button.is-copied { color:var(--orange) !important; }
+.comment-week-card > header .note-copy-button svg { width:23px;height:23px;transition:transform 180ms ease,color 180ms ease; }
+.comment-week-card > header .note-copy-button.is-copied svg { transform:scale(1.08); }
+.comment-week-card.is-editing .comment-entry { display:block !important;grid-template-columns:minmax(0,1fr) !important;overflow:visible; }
+.comment-week-card.is-editing .comment-entry-copy { width:100%;min-width:0;overflow:visible; }
+.comment-week-card.is-editing textarea {
+  display:block;box-sizing:border-box !important;width:100% !important;max-width:100% !important;min-width:0 !important;
+  min-height:118px;margin:12px 0 0 !important;padding:14px !important;overflow:auto;
+}
+.statistics-filter-options { gap:12px !important;margin:18px 0 20px !important; }
+.statistics-filter-options button { min-height:50px !important;margin:0 !important;border-radius:13px !important; }
+
+use[href="#icon-arrow-left"],use[href="#icon-arrow-right"] { color:var(--orange);stroke:var(--orange); }
+.icon-button:has(use[href="#icon-arrow-left"]),.icon-button:has(use[href="#icon-arrow-right"]) { color:var(--orange); }
+.week-navigation button svg,.workout-card-chevron svg,.programme-card-chevron svg { color:var(--orange) !important;stroke:var(--orange) !important; }
+
+.performance-latest,.performance-graph,.performance-summary-row { will-change:transform,filter; }

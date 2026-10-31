@@ -28,6 +28,7 @@ function sessionExerciseIsStarred(exercise) {
   const wantedName=String(exercise.name||"").trim().toLowerCase();
   const programmes=getProgrammes();
   const matchingProgramme=programmes.find(programme=>programme.id===currentSession?.programmeId);
+  if(matchingProgramme&&typeof isExerciseStarred==="function")return isExerciseStarred(matchingProgramme,exercise);
   const candidates=matchingProgramme?[matchingProgramme]:programmes;
   return candidates.some(programme=>(programme.weeks||[]).some(week=>(week.trainingDays||[]).some(day=>(day.exercises||[]).some(item=>item.starred&&((wantedId&&String(item.id||"")===wantedId)||String(item.name||"").trim().toLowerCase()===wantedName)))));
 }

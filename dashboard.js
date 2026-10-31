@@ -330,6 +330,24 @@ document
   });
 
 
+function dashboardFinishedWeekFromHistory(programme) {
+  let history=[];try{history=JSON.parse(localStorage.getItem("fitness_workout_history")||"[]")}catch{}
+  const now=new Date(),monday=new Date(now);monday.setHours(0,0,0,0);monday.setDate(monday.getDate()-((monday.getDay()+6)%7));
+  const weeks=[...(programme.weeks||[])].reverse();
+  for(const week of weeks){
+    const sessions=history.filter(session=>session.programmeId===programme.id&&(session.weekId?session.weekId===week.id:Number(session.weekNumber)===Number(week.number)));
+    const completedIds=new Set(sessions.map(session=>session.workoutId));
+    const planned=(week.trainingDays||[]).map(day=>day.id);
+    if(!planned.length||!planned.every(id=>completedIds.has(id)))continue;
+    const latest=sessions.reduce((value,session)=>Math.max(value,new Date(session.finishedAt||0).getTime()||0),0);
+    if(latest<monday.getTime())continue;
+    const minutes=sessions.reduce((sum,session)=>{const start=new Date(session.startedAt).getTime(),finish=new Date(session.finishedAt).getTime();return sum+(Number.isFinite(start)&&Number.isFinite(finish)?Math.max(0,Math.round((finish-start)/60000)):0)},0);
+    const sets=sessions.reduce((sum,session)=>sum+(session.exercises||[]).reduce((total,exercise)=>total+(exercise.sets||[]).filter(set=>set.completed||(set.weight!==""&&set.reps!=="")).length,0),0);
+    return{programmeId:programme.id,weekNumber:week.number,workouts:completedIds.size,planned:planned.length,minutes,sets};
+  }
+  return null;
+}
+
 // UPDATE WORKOUT SUMMARY
 function updateWorkoutSummary() {
   const nextName =
@@ -385,6 +403,7 @@ function updateWorkoutSummary() {
   if(finishedWeek&&new Date(finishedWeek.expiresAt).getTime()<=Date.now()){
     localStorage.removeItem("spot_finished_week_state_v1");finishedWeek=null;
   }
+  if(!finishedWeek)finishedWeek=dashboardFinishedWeekFromHistory(programme);
   if(finishedWeek&&finishedWeek.programmeId===programme.id){
     statusCard?.classList.add("is-week-complete");
     if(nextLabel)nextLabel.textContent=`Week ${finishedWeek.weekNumber} Complete`;

@@ -416,11 +416,12 @@ function renderProgrammeEditor() {
       star.addEventListener("click", () => {
         const nextValue = !exercise.starred;
         const exerciseName = String(exercise.name || "").trim().toLowerCase();
-        programme.weeks.filter(item => item.number >= week.number).forEach(item => {
+        programme.weeks.forEach(item => {
           (item.trainingDays || []).forEach(day => (day.exercises || []).forEach(candidate => {
             if (String(candidate.name || "").trim().toLowerCase() === exerciseName) candidate.starred = nextValue;
           }));
         });
+        setExerciseStarred(programme.id, exercise.name, nextValue);
         saveEditedProgramme(programme);
         renderProgrammeEditor();
       });

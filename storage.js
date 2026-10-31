@@ -5,6 +5,7 @@ const LIBRARY_BACKUP_KEY = "fitness_workout_library_backup_v1";
 const ACTIVE_KEY = "fitness_active_programme";
 const PROGRAMME_SCHEMA_VERSION = 2;
 const DEFAULT_PROGRAMME_WEEKS = 8;
+const STARRED_EXERCISES_KEY = "spot_starred_exercises_v1";
 
 function createId() {
   if (globalThis.crypto?.randomUUID) {
@@ -12,6 +13,39 @@ function createId() {
   }
 
   return `fitness-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function starredExerciseKey(programmeId, exerciseName) {
+  return `${String(programmeId || "")}::${String(exerciseName || "").trim().toLowerCase()}`;
+}
+
+function getStarredExerciseKeys() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STARRED_EXERCISES_KEY) || "[]");
+    return new Set(Array.isArray(saved) ? saved : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function setExerciseStarred(programmeId, exerciseName, starred) {
+  const keys = getStarredExerciseKeys();
+  const key = starredExerciseKey(programmeId, exerciseName);
+  if (starred) keys.add(key); else keys.delete(key);
+  localStorage.setItem(STARRED_EXERCISES_KEY, JSON.stringify([...keys]));
+}
+
+function isExerciseStarred(programme, exercise) {
+  if (exercise?.starred) return true;
+  const wantedId = String(exercise?.id || "");
+  const wantedName = String(exercise?.name || "").trim().toLowerCase();
+  if (getStarredExerciseKeys().has(starredExerciseKey(programme?.id, wantedName))) return true;
+  return (programme?.weeks || []).some(week => (week.trainingDays || []).some(day =>
+    (day.exercises || []).some(candidate => Boolean(candidate.starred) && (
+      (wantedId && String(candidate.id || "") === wantedId) ||
+      String(candidate.name || "").trim().toLowerCase() === wantedName
+    ))
+  ));
 }
 
 function formatSpotTitle(value) {
