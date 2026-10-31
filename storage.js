@@ -14,6 +14,10 @@ function createId() {
   return `fitness-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function formatSpotTitle(value) {
+  return String(value || "").replace(/(^|[\s/()\-])([a-z])/g, (_, boundary, letter) => boundary + letter.toUpperCase());
+}
+
 function createProgrammeWeek(number, trainingDays = []) {
   return {
     id: createId(),

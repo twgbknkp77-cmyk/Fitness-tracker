@@ -281,6 +281,45 @@ body.session-active #workoutSession .session-action-bar .primary-button { displa
   .activity-bar rect { animation:none !important; }
 }
 
+/* Workout clarity, comments, completion and smoother selectors. */
+.session-note-field,.exercise-effort { margin-top:16px !important; }
+.session-note-field { gap:10px !important;color:var(--white) !important;font-size:16px !important;font-weight:800 !important; }
+.exercise-effort legend { margin-bottom:10px !important;color:var(--white) !important;font-size:16px !important;font-weight:800 !important; }
+.session-note-field textarea { min-height:82px !important;padding:13px 14px !important;font-size:16px !important;line-height:1.45; }
+.exercise-note,.session-exercise-note,.previous-session-note { font-size:15px !important;line-height:1.5 !important; }
+.effort-button { transition:background 150ms ease,color 150ms ease,border-color 150ms ease,transform 120ms ease !important; }
+.exercise-is-collapsed .session-exercise-actions { animation:completed-actions-in 230ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes completed-actions-in { from { opacity:0;transform:translateY(7px); } }
+.numbered-comment-list { margin:8px 0 0;padding-left:24px;color:var(--white);font-size:15px;line-height:1.55; }
+.numbered-comment-list li + li { margin-top:6px; }
+.comment-entry { position:static !important;display:grid !important;grid-template-columns:minmax(0,1fr) 42px;align-items:start;gap:12px;padding:15px 0 !important; }
+.comment-entry-copy { min-width:0; }
+.comment-entry .note-copy-button { position:static !important;align-self:start;transform:none !important;width:40px;height:40px;min-height:40px;margin:0;padding:0; }
+.comment-workout-card > header .note-copy-button { position:static !important;width:42px;height:42px;min-height:42px;margin:0;padding:0; }
+.completion-comment { border-color:rgba(255,140,0,.28) !important; }
+.completion-comment h2 { margin-bottom:10px !important;font-size:20px; }
+.week-complete-summary { display:grid;gap:16px;border-color:rgba(255,140,0,.4) !important;background:linear-gradient(145deg,rgba(255,140,0,.11),var(--card) 48%); }
+.week-complete-summary header { display:flex;align-items:center;gap:12px; }
+.week-complete-summary header h2,.week-complete-summary header small { margin:0; }
+.week-complete-summary header small { color:var(--orange);font-weight:800;text-transform:uppercase;letter-spacing:.06em; }
+.completion-check-small { display:grid;place-items:center;width:44px;height:44px;color:#111;background:var(--orange);border-radius:50%; }
+.completion-check-small svg { width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2.4; }
+.week-complete-summary > div { display:grid;grid-template-columns:repeat(4,1fr);gap:7px; }
+.week-complete-summary > div span { display:grid;gap:3px;padding:10px 5px;text-align:center;background:#171717;border:1px solid #353535;border-radius:11px; }
+.week-complete-summary > div strong { font-size:17px; }
+.week-complete-summary > div small { color:var(--grey);font-size:10px;text-transform:uppercase; }
+.dashboard-status-card:has(#dashboardNextLabel) .next-workout-copy span { transition:color 180ms ease; }
+.performance-type-switch { position:relative;overflow:hidden; }
+.performance-type-switch button,.performance-tabs button { transition:background 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease !important; }
+.performance-type-switch button.active,.performance-tabs button.active { transform:translateY(-1px); }
+
+@media (max-width:430px) {
+  .week-complete-summary > div { grid-template-columns:repeat(2,1fr); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .exercise-is-collapsed .session-exercise-actions { animation:none !important; }
+}
+
 /* Premium dashboard graphs, filters and profile grouping. */
 .bodyweight-title { display:grid;gap:2px; }
 .bodyweight-title #currentWeight { font-size:clamp(25px,6vw,34px);line-height:1.1; }

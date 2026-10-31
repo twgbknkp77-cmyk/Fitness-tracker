@@ -22,6 +22,13 @@ function updateWorkoutCommentIndicator() {
   document.getElementById("openWorkoutComment")?.classList.toggle("has-comment", Boolean(String(currentSession?.workoutNote || "").trim()));
 }
 
+function sessionExerciseIsStarred(exercise) {
+  if (exercise.starred) return true;
+  const wantedId=String(exercise.id||"");
+  const wantedName=String(exercise.name||"").trim().toLowerCase();
+  return getProgrammes().some(programme=>(programme.weeks||[]).some(week=>(week.trainingDays||[]).some(day=>(day.exercises||[]).some(item=>item.starred&&((wantedId&&String(item.id||"")===wantedId)||String(item.name||"").trim().toLowerCase()===wantedName)))));
+}
+
 function animateSessionCard(card, collapsing, done) {
   if (!card || matchMedia("(prefers-reduced-motion: reduce)").matches) { done(); return; }
   const start = card.getBoundingClientRect().height;
@@ -34,6 +41,17 @@ function animateSessionCard(card, collapsing, done) {
   card.style.overflow="hidden";
   animation.onfinish=done;
   animation.oncancel=done;
+}
+
+function renderWorkoutSessionWithLayoutMotion() {
+  const before=new Map([...document.querySelectorAll(".session-exercise-card")].map(card=>[card.dataset.exerciseKey,card.getBoundingClientRect().top]));
+  renderWorkoutSession();
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  document.querySelectorAll(".session-exercise-card").forEach(card=>{
+    const previous=before.get(card.dataset.exerciseKey);if(previous==null)return;
+    const movement=previous-card.getBoundingClientRect().top;
+    if(Math.abs(movement)>1)card.animate([{transform:`translateY(${movement}px)`},{transform:"translateY(0)"}],{duration:300,easing:"cubic-bezier(.2,.8,.2,1)"});
+  });
 }
 
 function saveRestTimerState() {
@@ -127,6 +145,30 @@ function completionChange(current, previous, suffix = "") {
   return `${difference > 0 ? "+" : ""}${Number.isInteger(difference) ? difference : difference.toFixed(1)}${suffix}`;
 }
 
+function completionCommentList(value) {
+  const items=String(value||"").split(/\n+/).map(item=>item.trim()).filter(Boolean);
+  return `<ol class="numbered-comment-list">${items.map(item=>`<li>${item.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</li>`).join("")}</ol>`;
+}
+
+function completedWeekStatistics(session) {
+  const history=getWorkoutSessionHistory().filter(item=>item.programmeId===session.programmeId&&(item.weekId&&session.weekId?item.weekId===session.weekId:Number(item.weekNumber)===Number(session.weekNumber)));
+  const workouts=new Set(history.map(item=>item.workoutId)).size;
+  const minutes=history.reduce((sum,item)=>sum+completedSessionDuration(item),0);
+  const sets=history.reduce((sum,item)=>sum+(item.exercises||[]).flatMap(exercise=>exercise.sets||[]).filter(set=>set.completed).length,0);
+  const efforts=history.flatMap(item=>(item.exercises||[]).map(exercise=>Number(exercise.effort)).filter(Boolean));
+  return {workouts,planned:Number(session.scheduledWorkoutCount)||workouts,minutes,sets,effort:efforts.length?efforts.reduce((sum,value)=>sum+value,0)/efforts.length:0};
+}
+
+function nextMondayStart(now=new Date()) {
+  const result=new Date(now);const days=(8-result.getDay())%7||7;
+  result.setDate(result.getDate()+days);result.setHours(0,0,0,0);return result;
+}
+
+function saveFinishedWeekDashboardState(session) {
+  const stats=completedWeekStatistics(session);
+  localStorage.setItem("spot_finished_week_state_v1",JSON.stringify({programmeId:session.programmeId,weekNumber:session.weekNumber,completedAt:session.finishedAt,expiresAt:nextMondayStart().toISOString(),...stats}));
+}
+
 function renderWorkoutCompletionSummary(session, previousSession, progression) {
   const container = document.getElementById("workoutCompletionSummary");
   if (!container) return;
@@ -155,11 +197,14 @@ function renderWorkoutCompletionSummary(session, previousSession, progression) {
   }
   const next = progression?.advanced ? `Week complete — Week ${progression.newWeek} is now ready.`
     : progression?.programmeComplete ? "Programme complete." : "Your next workout is ready when you are.";
+  const weekStats=(progression?.advanced||progression?.programmeComplete)?completedWeekStatistics(session):null;
   container.innerHTML = `
-    <div class="completion-hero"><span class="completion-check">✓</span><p>Workout Complete</p><h1>${session.workoutName}</h1><small>${new Date(session.finishedAt).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})}</small></div>
+    <div class="completion-hero"><span class="completion-check">✓</span><p>Workout Complete</p><h1>${formatSpotTitle(session.workoutName)}</h1><small>${new Date(session.finishedAt).toLocaleDateString("en-GB", {day:"numeric",month:"short",year:"numeric"})}</small></div>
     <div class="completion-metric-grid"><div><span>Duration</span><strong data-completion-value="${duration}" data-completion-suffix=" min">0</strong></div><div><span>${cardioOnly ? "Cardio" : "Sets"}</span><strong data-completion-value="${cardioOnly ? cardioMinutes : sets}" data-completion-suffix="${cardioOnly ? " min" : ""}">0</strong></div><div><span>${cardioOnly ? "Exercises" : "Volume"}</span><strong data-completion-value="${cardioOnly ? (session.exercises || []).length : volume}" data-completion-suffix="${cardioOnly ? "" : " kg"}">0</strong></div><div><span>Avg effort</span><strong data-completion-value="${effort || 0}" data-completion-decimals="1">${effort ? "0.0" : "—"}</strong></div></div>
     <div class="card completion-comparison"><h2>Previous Session</h2>${previousSession ? `<div><span>${cardioOnly ? "Cardio time" : "Volume"}</span><strong>${cardioOnly ? `${oldCardioMinutes} min` : `${oldVolume.toLocaleString()} kg`}</strong><em>${cardioOnly ? completionChange(cardioMinutes,oldCardioMinutes," min") : completionChange(volume,oldVolume," kg")}</em></div><div><span>Duration</span><strong>${oldDuration} min</strong><em>${completionChange(duration,oldDuration," min")}</em></div><div><span>Average effort</span><strong>${oldEffort ? oldEffort.toFixed(1) : "—"}</strong><em>${oldEffort ? completionChange(effort,oldEffort) : "—"}</em></div>` : "<p>No previous session to compare yet.</p>"}</div>
-    ${session.workoutNote ? `<div class="card completion-comment"><h2>Workout Comment</h2><p>${String(session.workoutNote).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}</p></div>` : ""}<p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
+    ${session.workoutNote ? `<div class="card completion-comment"><h2>Workout Comments</h2>${completionCommentList(session.workoutNote)}</div>` : ""}
+    ${weekStats?`<div class="card week-complete-summary"><header><span class="completion-check-small"><svg aria-hidden="true"><use href="#icon-check-smooth"></use></svg></span><div><small>Week ${session.weekNumber}</small><h2>Week Complete</h2></div></header><div><span><strong>${weekStats.workouts}/${weekStats.planned}</strong><small>Workouts</small></span><span><strong>${weekStats.minutes}</strong><small>Minutes</small></span><span><strong>${weekStats.sets}</strong><small>Sets</small></span><span><strong>${weekStats.effort?weekStats.effort.toFixed(1):"—"}</strong><small>Avg effort</small></span></div></div>`:""}
+    <p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
   document.getElementById("closeWorkoutSummary")?.addEventListener("click", () => { spotHaptic(18); showPage("workouts"); });
   showPage("workoutComplete");
   spotHaptic([45,35,80]);
@@ -442,7 +487,7 @@ function renderWorkoutSessionLegacy() {
   if (!currentSession) return;
 
   document.getElementById("sessionWorkoutName").textContent =
-    currentSession.workoutName;
+    formatSpotTitle(currentSession.workoutName);
 
   document.getElementById("sessionProgrammeName").textContent =
     `${currentSession.programmeName} • Week ${currentSession.weekNumber}`;
@@ -453,6 +498,7 @@ function renderWorkoutSessionLegacy() {
   container.innerHTML = "";
 
   currentSession.exercises.forEach(exercise => {
+    exercise.starred=sessionExerciseIsStarred(exercise);
     if (!exercise.starred) {
       const wantedName = String(exercise.name || "").trim().toLowerCase();
       exercise.starred = getProgrammes().some(programme =>
@@ -474,7 +520,7 @@ function renderWorkoutSessionLegacy() {
     const titleRow = document.createElement("div");
     titleRow.className = "session-exercise-title";
     const heading = document.createElement("h2");
-    heading.textContent = exercise.name;
+    heading.textContent = formatSpotTitle(exercise.name);
     if (exercise.starred) {
       const star = document.createElement("svg");
       star.classList.add("display-star");
@@ -495,8 +541,8 @@ function renderWorkoutSessionLegacy() {
     );
     completeButton.addEventListener("click", () => {
       const reopening=exercise.completed;spotHaptic(reopening?12:24);
-      if(!reopening){animateSessionCard(card,true,()=>{exercise.completed=true;exercise.collapsed=true;saveActiveWorkoutSession();renderWorkoutSession()});return}
-      exercise.completed=false;exercise.collapsed=false;saveActiveWorkoutSession();renderWorkoutSession();
+      if(!reopening){animateSessionCard(card,true,()=>{exercise.completed=true;exercise.collapsed=true;saveActiveWorkoutSession();renderWorkoutSessionWithLayoutMotion()});return}
+      exercise.completed=false;exercise.collapsed=false;saveActiveWorkoutSession();renderWorkoutSessionWithLayoutMotion();
       const opened=[...document.querySelectorAll(".session-exercise-card")].find(item=>item.dataset.exerciseKey===String(exercise.id||exercise.name));
       animateSessionCard(opened,false,()=>{if(opened)opened.style.overflow=""});
     });
@@ -654,7 +700,7 @@ function renderWorkoutSession() {
   if (!currentSession) return;
 
   document.getElementById("sessionWorkoutName").textContent =
-    currentSession.workoutName;
+    formatSpotTitle(currentSession.workoutName);
 
   document.getElementById("sessionProgrammeName").textContent =
     `${currentSession.programmeName} • Week ${currentSession.weekNumber}`;
@@ -663,6 +709,7 @@ function renderWorkoutSession() {
   container.innerHTML = "";
 
   currentSession.exercises.forEach(exercise => {
+    exercise.starred=sessionExerciseIsStarred(exercise);
     const card = document.createElement("div");
     card.className = "card session-exercise-card";
     card.classList.toggle("exercise-is-complete", Boolean(exercise.completed));
@@ -673,7 +720,7 @@ function renderWorkoutSession() {
     titleRow.className = "session-exercise-title";
 
     const heading = document.createElement("h2");
-    heading.textContent = exercise.name;
+    heading.textContent = formatSpotTitle(exercise.name);
     titleRow.appendChild(heading);
     if (exercise.starred) {
       const star = document.createElement("svg");
@@ -693,8 +740,8 @@ function renderWorkoutSession() {
     );
     completeButton.addEventListener("click", () => {
       const reopening=exercise.completed;spotHaptic(reopening?12:24);
-      if(!reopening){animateSessionCard(card,true,()=>{exercise.completed=true;exercise.collapsed=true;saveActiveWorkoutSession();renderWorkoutSession()});return}
-      exercise.completed=false;exercise.collapsed=false;saveActiveWorkoutSession();renderWorkoutSession();
+      if(!reopening){animateSessionCard(card,true,()=>{exercise.completed=true;exercise.collapsed=true;saveActiveWorkoutSession();renderWorkoutSessionWithLayoutMotion()});return}
+      exercise.completed=false;exercise.collapsed=false;saveActiveWorkoutSession();renderWorkoutSessionWithLayoutMotion();
       const opened=[...document.querySelectorAll(".session-exercise-card")].find(item=>item.dataset.exerciseKey===String(exercise.id||exercise.name));
       animateSessionCard(opened,false,()=>{if(opened)opened.style.overflow=""});
     });
@@ -786,6 +833,11 @@ function renderWorkoutSession() {
         (exercise.targetWeight
           ? ` • ${exercise.targetWeight} kg`
           : "");
+      card.appendChild(target);
+    } else if (Number(exercise.targetDurationMinutes) > 0) {
+      const target = document.createElement("p");
+      target.className = "session-exercise-target";
+      target.textContent = `Target: ${Number(exercise.targetDurationMinutes)} minutes`;
       card.appendChild(target);
     }
 
@@ -910,9 +962,12 @@ function renderWorkoutSession() {
       button.textContent = String(rating);
       button.setAttribute("aria-pressed", String(Number(exercise.effort) === rating));
       button.addEventListener("click", () => {
+        spotHaptic(10);
         exercise.effort = Number(exercise.effort) === rating ? null : rating;
         saveActiveWorkoutSession();
-        renderWorkoutSession();
+        effortButtons.querySelectorAll(".effort-button").forEach((item,index) => {
+          item.setAttribute("aria-pressed", String(Number(exercise.effort) === index + 1));
+        });
       });
       effortButtons.appendChild(button);
     }
@@ -1062,6 +1117,10 @@ document
             currentSession.weekId
           )
         : { advanced: false };
+
+    if (progression.advanced || progression.programmeComplete) {
+      saveFinishedWeekDashboardState(finishedSession);
+    }
 
     const completedSession = finishedSession;
     currentSession = null;

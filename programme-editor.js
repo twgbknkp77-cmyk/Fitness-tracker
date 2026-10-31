@@ -115,7 +115,7 @@ function createEditableName(value, label, onSave) {
   const wrap = document.createElement("div");
   wrap.className = "editable-name";
   const title = document.createElement("h2");
-  title.textContent = value;
+  title.textContent = formatSpotTitle(value);
   const edit = document.createElement("button");
   edit.type = "button";
   edit.className = "icon-button edit-name-button";
@@ -130,7 +130,7 @@ function createEditableName(value, label, onSave) {
     const finish = save => {
       if (finished) return;
       finished = true;
-      const nextName = input.value.trim();
+      const nextName = formatSpotTitle(input.value.trim());
       if (save && nextName) onSave(nextName);
       else renderProgrammeEditor();
     };
@@ -245,7 +245,7 @@ function renderProgrammeEditor() {
   nameInput.autocomplete = "off";
   nameInput.readOnly = !programme.isDraft && !editorIsEditing;
   nameInput.addEventListener("change", () => {
-    const nextName = nameInput.value.trim();
+    const nextName = formatSpotTitle(nameInput.value.trim());
     if (!nextName) {
       nameInput.value = programme.name;
       return;
@@ -380,7 +380,7 @@ function renderProgrammeEditor() {
       row.classList.toggle("is-editable", programme.isDraft || editorIsEditing);
       const copy = document.createElement("div");
       const exerciseName = document.createElement("strong");
-      exerciseName.textContent = exercise.name;
+      exerciseName.textContent = formatSpotTitle(exercise.name);
       const prescription = document.createElement("p");
       prescription.textContent = formatExercisePrescription(exercise);
       copy.append(exerciseName, prescription);
@@ -580,10 +580,11 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
     return;
   }
 
+  const displayName = formatSpotTitle(name);
   const values = type === "cardio"
-    ? { name, type, durationMinutes, note }
+    ? { name: displayName, type, durationMinutes, note }
     : {
-        name,
+        name: displayName,
         type,
         sets,
         reps: repsTarget.min,

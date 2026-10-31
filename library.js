@@ -218,7 +218,7 @@ function renderLibraryLegacy() {
     card.className = "card";
 
     const title = document.createElement("h3");
-    title.textContent = programme.name;
+    title.textContent = formatSpotTitle(programme.name);
 
     const status = document.createElement("p");
     status.textContent =
@@ -984,7 +984,7 @@ function renderActiveWorkoutLegacy() {
               document.createElement("strong");
 
             exerciseName.textContent =
-              exercise.name;
+              formatSpotTitle(exercise.name);
 
             const exerciseDetails =
               document.createElement("p");
@@ -1312,7 +1312,7 @@ function renderActiveWorkout() {
       const detailHeader = document.createElement("div");
       detailHeader.className = "workout-detail-header";
       const headerTitle = document.createElement("h2");
-      headerTitle.textContent = workout.name;
+      headerTitle.textContent = formatSpotTitle(workout.name);
       detailHeader.append(back, headerTitle);
       container.appendChild(detailHeader);
 
@@ -1323,7 +1323,7 @@ function renderActiveWorkout() {
         const row = document.createElement("div");
         row.className = "exercise-row";
         const exerciseName = document.createElement("strong");
-        exerciseName.textContent = exercise.name;
+        exerciseName.textContent = formatSpotTitle(exercise.name);
         if (exercise.starred) {
           const star = document.createElement("svg");
           star.classList.add("display-star");

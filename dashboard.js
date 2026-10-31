@@ -346,6 +346,7 @@ function updateWorkoutSummary() {
     document.getElementById(
       "weeklyProgressFill"
     );
+  const nextLabel=document.getElementById("dashboardNextLabel");
 
   if (
     !nextName ||
@@ -363,6 +364,7 @@ function updateWorkoutSummary() {
   );
 
   if (!programme) {
+    if(nextLabel)nextLabel.textContent="Next Up";
     nextName.textContent =
       "No workout scheduled";
 
@@ -375,6 +377,21 @@ function updateWorkoutSummary() {
 
     return;
   }
+
+  let finishedWeek=null;
+  try { finishedWeek=JSON.parse(localStorage.getItem("spot_finished_week_state_v1")||"null"); } catch {}
+  if(finishedWeek&&new Date(finishedWeek.expiresAt).getTime()<=Date.now()){
+    localStorage.removeItem("spot_finished_week_state_v1");finishedWeek=null;
+  }
+  if(finishedWeek&&finishedWeek.programmeId===programme.id){
+    if(nextLabel)nextLabel.textContent="Week Finished";
+    nextName.textContent=`Week ${finishedWeek.weekNumber} Complete · ${finishedWeek.minutes||0} min`;
+    progressCount.textContent=`${finishedWeek.workouts||finishedWeek.planned||0}/${finishedWeek.planned||finishedWeek.workouts||0}`;
+    progressFill.classList.add("progress-fill-animate");progressFill.style.width="100%";
+    dashboardNextWorkoutId=null;dashboardNextDestination="workouts";dashboardStartWorkout.hidden=true;
+    return;
+  }
+  if(nextLabel)nextLabel.textContent="Next Up";
 
   const week =
     programme.weeks?.[
@@ -575,7 +592,7 @@ function getStarredExerciseNames() {
   getProgrammes().forEach(programme => (programme.weeks || []).forEach(week =>
     (week.trainingDays || []).forEach(day => (day.exercises || []).forEach(exercise => {
       if (exercise.starred && exercise.name) {
-        const label=`${exercise.name} — ${day.name||"Workout"}`;
+        const label=`${formatSpotTitle(exercise.name)} — ${day.name||"Workout"}`;
         names.set(`${programme.id}|${normaliseProgressName(day.name)}|${normaliseProgressName(exercise.name)}`,label);
       }
     }))
