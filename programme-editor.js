@@ -421,7 +421,6 @@ function renderProgrammeEditor() {
             if (String(candidate.name || "").trim().toLowerCase() === exerciseName) candidate.starred = nextValue;
           }));
         });
-        setExerciseStarred(programme.id, exercise.name, nextValue);
         saveEditedProgramme(programme);
         renderProgrammeEditor();
       });

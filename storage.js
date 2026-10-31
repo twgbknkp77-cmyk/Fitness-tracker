@@ -5,7 +5,6 @@ const LIBRARY_BACKUP_KEY = "fitness_workout_library_backup_v1";
 const ACTIVE_KEY = "fitness_active_programme";
 const PROGRAMME_SCHEMA_VERSION = 2;
 const DEFAULT_PROGRAMME_WEEKS = 8;
-const STARRED_EXERCISES_KEY = "spot_starred_exercises_v1";
 
 function createId() {
   if (globalThis.crypto?.randomUUID) {
@@ -15,31 +14,10 @@ function createId() {
   return `fitness-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function starredExerciseKey(programmeId, exerciseName) {
-  return `${String(programmeId || "")}::${String(exerciseName || "").trim().toLowerCase()}`;
-}
-
-function getStarredExerciseKeys() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STARRED_EXERCISES_KEY) || "[]");
-    return new Set(Array.isArray(saved) ? saved : []);
-  } catch {
-    return new Set();
-  }
-}
-
-function setExerciseStarred(programmeId, exerciseName, starred) {
-  const keys = getStarredExerciseKeys();
-  const key = starredExerciseKey(programmeId, exerciseName);
-  if (starred) keys.add(key); else keys.delete(key);
-  localStorage.setItem(STARRED_EXERCISES_KEY, JSON.stringify([...keys]));
-}
-
 function isExerciseStarred(programme, exercise) {
   if (exercise?.starred) return true;
   const wantedId = String(exercise?.id || "");
   const wantedName = String(exercise?.name || "").trim().toLowerCase();
-  if (getStarredExerciseKeys().has(starredExerciseKey(programme?.id, wantedName))) return true;
   return (programme?.weeks || []).some(week => (week.trainingDays || []).some(day =>
     (day.exercises || []).some(candidate => Boolean(candidate.starred) && (
       (wantedId && String(candidate.id || "") === wantedId) ||
@@ -211,6 +189,28 @@ function migrateProgramme(programme) {
     changed = true;
   }
 
+  // Starred exercises are programme-wide. If an older programme only stored
+  // the star on one week, carry it to matching exercises in every week.
+  const starredNames = new Set();
+  weeks.forEach(week => (week.trainingDays || []).forEach(day =>
+    (day.exercises || []).forEach(exercise => {
+      if (exercise.starred) starredNames.add(String(exercise.name || "").trim().toLowerCase());
+    })
+  ));
+  if (starredNames.size) {
+    weeks = weeks.map(week => ({
+      ...week,
+      trainingDays: (week.trainingDays || []).map(day => ({
+        ...day,
+        exercises: (day.exercises || []).map(exercise => {
+          const shouldBeStarred = starredNames.has(String(exercise.name || "").trim().toLowerCase());
+          if (shouldBeStarred && !exercise.starred) changed = true;
+          return shouldBeStarred ? { ...exercise, starred: true } : exercise;
+        })
+      }))
+    }));
+  }
+
   const requestedCurrentWeek = Number(programme.currentWeek);
   const currentWeek = Number.isInteger(requestedCurrentWeek)
     ? Math.min(Math.max(requestedCurrentWeek, 1), durationWeeks)
@@ -270,13 +270,6 @@ function saveProgrammes(programmes) {
   const normalised = programmes.flatMap(programme => {
     const result = migrateProgramme(programme);
     if (!result) return [];
-
-    const currentIndex = result.programme.currentWeek - 1;
-    if (Array.isArray(programme.days)) {
-      result.programme.weeks[currentIndex].trainingDays = programme.days;
-      result.programme.days = programme.days;
-    }
-
     return [result.programme];
   });
 
