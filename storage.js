@@ -16,10 +16,12 @@ function createId() {
 
 function isExerciseStarred(programme, exercise) {
   if (exercise?.starred) return true;
+  const wantedTrackingId = String(exercise?.trackingId || "");
   const wantedId = String(exercise?.id || "");
   const wantedName = String(exercise?.name || "").trim().toLowerCase();
   return (programme?.weeks || []).some(week => (week.trainingDays || []).some(day =>
     (day.exercises || []).some(candidate => Boolean(candidate.starred) && (
+      (wantedTrackingId && String(candidate.trackingId || "") === wantedTrackingId) ||
       (wantedId && String(candidate.id || "") === wantedId) ||
       String(candidate.name || "").trim().toLowerCase() === wantedName
     ))
@@ -189,21 +191,46 @@ function migrateProgramme(programme) {
     changed = true;
   }
 
-  // Starred exercises are programme-wide. If an older programme only stored
-  // the star on one week, carry it to matching exercises in every week.
-  const starredNames = new Set();
+  // Give equivalent exercises in each programme week one permanent identity.
+  // This survives the week-copy process even though each weekly exercise has
+  // its own editable record and ordinary id.
+  const trackingBySlot = new Map();
+  weeks = weeks.map(week => ({
+    ...week,
+    trainingDays: (week.trainingDays || []).map((day, dayIndex) => {
+      const occurrences = new Map();
+      const dayKey = String(day.name || `day-${dayIndex + 1}`).trim().toLowerCase();
+      return {
+        ...day,
+        exercises: (day.exercises || []).map(exercise => {
+          const nameKey = String(exercise.name || "exercise").trim().toLowerCase();
+          const occurrence = (occurrences.get(nameKey) || 0) + 1;
+          occurrences.set(nameKey, occurrence);
+          const slotKey = `${dayKey}::${nameKey}::${occurrence}`;
+          const trackingId = exercise.trackingId || trackingBySlot.get(slotKey) || createId();
+          if (!trackingBySlot.has(slotKey)) trackingBySlot.set(slotKey, trackingId);
+          if (!exercise.trackingId) changed = true;
+          return exercise.trackingId === trackingId ? exercise : { ...exercise, trackingId };
+        })
+      };
+    })
+  }));
+
+  // A star belongs to the permanent tracking identity, so it automatically
+  // appears in workout previews, active sessions and progress history.
+  const starredTrackingIds = new Set();
   weeks.forEach(week => (week.trainingDays || []).forEach(day =>
     (day.exercises || []).forEach(exercise => {
-      if (exercise.starred) starredNames.add(String(exercise.name || "").trim().toLowerCase());
+      if (exercise.starred && exercise.trackingId) starredTrackingIds.add(exercise.trackingId);
     })
   ));
-  if (starredNames.size) {
+  if (starredTrackingIds.size) {
     weeks = weeks.map(week => ({
       ...week,
       trainingDays: (week.trainingDays || []).map(day => ({
         ...day,
         exercises: (day.exercises || []).map(exercise => {
-          const shouldBeStarred = starredNames.has(String(exercise.name || "").trim().toLowerCase());
+          const shouldBeStarred = starredTrackingIds.has(exercise.trackingId);
           if (shouldBeStarred && !exercise.starred) changed = true;
           return shouldBeStarred ? { ...exercise, starred: true } : exercise;
         })

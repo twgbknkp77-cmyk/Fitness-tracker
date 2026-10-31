@@ -418,7 +418,10 @@ function renderProgrammeEditor() {
         const exerciseName = String(exercise.name || "").trim().toLowerCase();
         programme.weeks.forEach(item => {
           (item.trainingDays || []).forEach(day => (day.exercises || []).forEach(candidate => {
-            if (String(candidate.name || "").trim().toLowerCase() === exerciseName) candidate.starred = nextValue;
+            if (
+              (exercise.trackingId && candidate.trackingId === exercise.trackingId) ||
+              (!exercise.trackingId && String(candidate.name || "").trim().toLowerCase() === exerciseName)
+            ) candidate.starred = nextValue;
           }));
         });
         saveEditedProgramme(programme);
@@ -595,7 +598,7 @@ document.getElementById("exerciseForm")?.addEventListener("submit", async event 
   if (exerciseDialogContext.exercise) {
     Object.assign(exerciseDialogContext.exercise, values);
   } else {
-    exerciseDialogContext.workout.exercises.push({ id: createId(), ...values });
+    exerciseDialogContext.workout.exercises.push({ id: createId(), trackingId: createId(), ...values });
   }
 
   const { programme, week } = exerciseDialogContext;

@@ -158,9 +158,10 @@ function completedWeekStatistics(session) {
   const history=getWorkoutSessionHistory().filter(item=>item.programmeId===session.programmeId&&(item.weekId&&session.weekId?item.weekId===session.weekId:Number(item.weekNumber)===Number(session.weekNumber)));
   const workouts=new Set(history.map(item=>item.workoutId)).size;
   const minutes=history.reduce((sum,item)=>sum+completedSessionDuration(item),0);
+  const volume=Math.round(history.reduce((sum,item)=>sum+completedSessionVolume(item),0));
   const sets=history.reduce((sum,item)=>sum+(item.exercises||[]).flatMap(exercise=>exercise.sets||[]).filter(set=>set.completed).length,0);
   const efforts=history.flatMap(item=>(item.exercises||[]).map(exercise=>Number(exercise.effort)).filter(Boolean));
-  return {workouts,planned:Number(session.scheduledWorkoutCount)||workouts,minutes,sets,effort:efforts.length?efforts.reduce((sum,value)=>sum+value,0)/efforts.length:0};
+  return {workouts,planned:Number(session.scheduledWorkoutCount)||workouts,minutes,volume,sets,effort:efforts.length?efforts.reduce((sum,value)=>sum+value,0)/efforts.length:0};
 }
 
 function nextMondayStart(now=new Date()) {
@@ -207,7 +208,7 @@ function renderWorkoutCompletionSummary(session, previousSession, progression) {
     <div class="completion-metric-grid"><div><span>Duration</span><strong data-completion-value="${duration}" data-completion-suffix=" min">0</strong></div><div><span>${cardioOnly ? "Cardio" : "Sets"}</span><strong data-completion-value="${cardioOnly ? cardioMinutes : sets}" data-completion-suffix="${cardioOnly ? " min" : ""}">0</strong></div><div><span>${cardioOnly ? "Exercises" : "Volume"}</span><strong data-completion-value="${cardioOnly ? (session.exercises || []).length : volume}" data-completion-suffix="${cardioOnly ? "" : " kg"}">0</strong></div><div><span>Avg effort</span><strong data-completion-value="${effort || 0}" data-completion-decimals="1">${effort ? "0.0" : "—"}</strong></div></div>
     <div class="card completion-comparison"><h2>Previous Session</h2>${previousSession ? `<div><span>${cardioOnly ? "Cardio time" : "Volume"}</span><strong>${cardioOnly ? `${oldCardioMinutes} min` : `${oldVolume.toLocaleString()} kg`}</strong><em>${cardioOnly ? completionChange(cardioMinutes,oldCardioMinutes," min") : completionChange(volume,oldVolume," kg")}</em></div><div><span>Duration</span><strong>${oldDuration} min</strong><em>${completionChange(duration,oldDuration," min")}</em></div><div><span>Average effort</span><strong>${oldEffort ? oldEffort.toFixed(1) : "—"}</strong><em>${oldEffort ? completionChange(effort,oldEffort) : "—"}</em></div>` : "<p>No previous session to compare yet.</p>"}</div>
     ${session.workoutNote ? `<div class="card completion-comment"><h2>Workout Comments</h2>${completionCommentList(session.workoutNote)}</div>` : ""}
-    ${weekStats?`<div class="card week-complete-summary"><header><span class="completion-check-small"><svg aria-hidden="true"><use href="#icon-check-smooth"></use></svg></span><div><small>Week ${session.weekNumber}</small><h2>Week Complete</h2></div></header><div><span><strong>${weekStats.workouts}/${weekStats.planned}</strong><small>Workouts</small></span><span><strong>${weekStats.minutes}</strong><small>Minutes</small></span><span><strong>${weekStats.sets}</strong><small>Sets</small></span><span><strong>${weekStats.effort?weekStats.effort.toFixed(1):"—"}</strong><small>Avg effort</small></span></div></div>`:""}
+    ${weekStats?`<div class="card week-complete-summary"><header><span class="completion-check-small"><svg aria-hidden="true"><use href="#icon-check-smooth"></use></svg></span><div><small>Week ${session.weekNumber}</small><h2>Week Complete</h2></div></header><div><span><strong>${weekStats.workouts}/${weekStats.planned}</strong><small>Workouts</small></span><span><strong>${weekStats.minutes}</strong><small>Minutes</small></span><span><strong>${weekStats.volume.toLocaleString()}</strong><small>Volume kg</small></span><span><strong>${weekStats.sets}</strong><small>Sets</small></span><span><strong>${weekStats.effort?weekStats.effort.toFixed(1):"—"}</strong><small>Avg effort</small></span></div></div>`:""}
     <p class="completion-insight">${insight}</p><p class="completion-next">${next}</p><button type="button" id="closeWorkoutSummary" class="primary-button">Done</button>`;
   document.getElementById("closeWorkoutSummary")?.addEventListener("click", () => { spotHaptic(18); showPage("workouts"); });
   showPage("workoutComplete");
@@ -429,6 +430,7 @@ function startWorkout(workoutId) {
 
     exercises: (workout.exercises || []).map(exercise => ({
       id: exercise.id,
+      trackingId: exercise.trackingId,
       name: exercise.name,
       starred: Boolean(exercise.starred),
       type: exercise.type || "strength",

@@ -343,7 +343,8 @@ function dashboardFinishedWeekFromHistory(programme) {
     if(latest<monday.getTime())continue;
     const minutes=sessions.reduce((sum,session)=>{const start=new Date(session.startedAt).getTime(),finish=new Date(session.finishedAt).getTime();return sum+(Number.isFinite(start)&&Number.isFinite(finish)?Math.max(0,Math.round((finish-start)/60000)):0)},0);
     const sets=sessions.reduce((sum,session)=>sum+(session.exercises||[]).reduce((total,exercise)=>total+(exercise.sets||[]).filter(set=>set.completed||(set.weight!==""&&set.reps!=="")).length,0),0);
-    return{programmeId:programme.id,weekNumber:week.number,workouts:completedIds.size,planned:planned.length,minutes,sets};
+    const volume=Math.round(sessions.reduce((sum,session)=>sum+(session.exercises||[]).reduce((exerciseTotal,exercise)=>exerciseTotal+(exercise.sets||[]).reduce((setTotal,set)=>setTotal+((Number(set.weight)||0)*(Number(set.reps)||0)),0),0),0));
+    return{programmeId:programme.id,weekNumber:week.number,workouts:completedIds.size,planned:planned.length,minutes,sets,volume};
   }
   return null;
 }
@@ -403,11 +404,13 @@ function updateWorkoutSummary() {
   if(finishedWeek&&new Date(finishedWeek.expiresAt).getTime()<=Date.now()){
     localStorage.removeItem("spot_finished_week_state_v1");finishedWeek=null;
   }
-  if(!finishedWeek)finishedWeek=dashboardFinishedWeekFromHistory(programme);
+  const derivedFinishedWeek=dashboardFinishedWeekFromHistory(programme);
+  if(!finishedWeek)finishedWeek=derivedFinishedWeek;
+  else if(derivedFinishedWeek&&Number(derivedFinishedWeek.weekNumber)===Number(finishedWeek.weekNumber))finishedWeek={...derivedFinishedWeek,...finishedWeek,volume:finishedWeek.volume??derivedFinishedWeek.volume};
   if(finishedWeek&&finishedWeek.programmeId===programme.id){
     statusCard?.classList.add("is-week-complete");
     if(nextLabel)nextLabel.textContent=`Week ${finishedWeek.weekNumber} Complete`;
-    nextName.textContent=`Excellent work — every workout is complete. ${finishedWeek.minutes||0} min · ${finishedWeek.sets||0} sets`;
+    nextName.textContent=`Excellent work — every workout is complete. ${finishedWeek.minutes||0} min · ${(finishedWeek.volume||0).toLocaleString()} kg volume`;
     progressCount.textContent=`${finishedWeek.workouts||finishedWeek.planned||0}/${finishedWeek.planned||finishedWeek.workouts||0}`;
     progressFill.classList.add("progress-fill-animate");progressFill.style.width="100%";
     dashboardNextWorkoutId=null;dashboardNextDestination="workouts";dashboardStartWorkout.hidden=true;
@@ -610,17 +613,18 @@ function saveProgressGraphFilters() {
   }));
 }
 
-function getStarredExerciseNames() {
-  const names = new Map();
+function getStarredExerciseDefinitions() {
+  const definitions = new Map();
   getProgrammes().forEach(programme => (programme.weeks || []).forEach(week =>
     (week.trainingDays || []).forEach(day => (day.exercises || []).forEach(exercise => {
-      if (exercise.starred && exercise.name) {
+      if (isExerciseStarred(programme, exercise) && exercise.name) {
         const label=`${formatSpotTitle(exercise.name)} — ${day.name||"Workout"}`;
-        names.set(`${programme.id}|${normaliseProgressName(day.name)}|${normaliseProgressName(exercise.name)}`,label);
+        const key=exercise.trackingId||`${programme.id}|${normaliseProgressName(day.name)}|${normaliseProgressName(exercise.name)}`;
+        definitions.set(key,{key,label,trackingId:exercise.trackingId||"",programmeId:programme.id,workoutName:day.name||"Workout",exerciseName:exercise.name});
       }
     }))
   ));
-  return [...names.values()].sort((a, b) => a.localeCompare(b));
+  return [...definitions.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function progressValue(exercise, metric) {
@@ -657,7 +661,8 @@ function drawExerciseProgressChart() {
   const display = metric === "effort" ? "actual" : requestedDisplay;
   const scope = document.getElementById("progressScopeFilter")?.value || "current";
   if (!container || !legend) return;
-  const names = getStarredExerciseNames();
+  const definitions = getStarredExerciseDefinitions();
+  const names = definitions.map(item=>item.label);
   refreshProgressExerciseChoices(names);
   const visibleNames = names.filter(name => !progressHiddenExercises.has(normaliseProgressName(name)));
   const title = document.getElementById("exerciseProgressTitle");
@@ -673,16 +678,21 @@ function drawExerciseProgressChart() {
     .filter(session => scope === "all" || !activeId || session.programmeId === activeId)
     .filter(session => session.finishedAt)
     .sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
-  const series = visibleNames.map((name, colourIndex) => ({
+  const series = visibleNames.map((name, colourIndex) => {
+    const definition=definitions.find(item=>item.label===name);
+    return ({
     name, colour: progressLineColours[names.indexOf(name) % progressLineColours.length],
     points: sessions.flatMap(session => {
-      const divider=name.lastIndexOf(" — "),exerciseName=divider>=0?name.slice(0,divider):name,workoutName=divider>=0?name.slice(divider+3):"";
-      if(workoutName&&normaliseProgressName(session.workoutName)!==normaliseProgressName(workoutName))return[];
-      const exercise = (session.exercises || []).find(item => normaliseProgressName(item.name) === normaliseProgressName(exerciseName));
+      if(definition?.programmeId&&session.programmeId!==definition.programmeId)return[];
+      if(definition?.workoutName&&normaliseProgressName(session.workoutName)!==normaliseProgressName(definition.workoutName))return[];
+      const exercise = (session.exercises || []).find(item =>
+        (definition?.trackingId&&item.trackingId===definition.trackingId) ||
+        (!item.trackingId&&normaliseProgressName(item.name)===normaliseProgressName(definition?.exerciseName))
+      );
       const value = exercise ? progressValue(exercise, metric) : 0;
       return value > 0 ? [{ value, date: session.finishedAt }] : [];
     })
-  }));
+  })});
   if (display === "growth") {
     series.forEach(item => {
       const baseline=item.points.find(point=>point.value>0)?.value;

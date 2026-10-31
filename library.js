@@ -1237,16 +1237,27 @@ function completedWeekSummary(programme, week, history) {
   }, 0);
   const sets = sessions.reduce((sum, session) => sum + (session.exercises || []).reduce((exerciseTotal, exercise) =>
     exerciseTotal + (exercise.sets || []).filter(set => set.completed || (set.weight !== "" && set.reps !== "")).length, 0), 0);
+  const volume = Math.round(sessions.reduce((sum, session) => sum + (session.exercises || []).reduce((exerciseTotal, exercise) =>
+    exerciseTotal + (exercise.sets || []).reduce((setTotal, set) => setTotal + ((Number(set.weight) || 0) * (Number(set.reps) || 0)), 0), 0), 0));
   const efforts = sessions.flatMap(session => session.exercises || []).map(exercise => Number(exercise.effort)).filter(Boolean);
   const effort = efforts.length ? efforts.reduce((sum, value) => sum + value, 0) / efforts.length : 0;
-  return { workouts, planned: (week.trainingDays || []).length, minutes, sets, effort };
+  return { workouts, planned: (week.trainingDays || []).length, minutes, volume, sets, effort };
 }
 
 function createCompletedWeekCard(programme, week, history) {
   const stats = completedWeekSummary(programme, week, history);
+  const previousWeek = programme.weeks?.[Number(week.number) - 2];
+  const previous = previousWeek ? completedWeekSummary(programme, previousWeek, history) : null;
+  let insight = "Your first completed week is now recorded.";
+  if (previous?.volume > 0) {
+    const change = Math.round(((stats.volume - previous.volume) / previous.volume) * 100);
+    insight = change > 0 ? `Training volume increased by ${change}% from Week ${previousWeek.number}.`
+      : change < 0 ? `Training volume was ${Math.abs(change)}% lower than Week ${previousWeek.number}.`
+      : `Training volume matched Week ${previousWeek.number}.`;
+  }
   const card = document.createElement("section");
   card.className = "card workouts-week-complete";
-  card.innerHTML = `<header><span class="completion-check-small"><svg aria-hidden="true"><use href="#icon-check-smooth"></use></svg></span><div><small>Week ${week.number}</small><h2>Week Complete</h2><p>Excellent work — every workout is complete.</p></div></header><div class="workouts-week-statistics"><span><strong>${stats.workouts}/${stats.planned}</strong><small>Workouts</small></span><span><strong>${stats.minutes}</strong><small>Minutes</small></span><span><strong>${stats.sets}</strong><small>Sets</small></span><span><strong>${stats.effort ? stats.effort.toFixed(1) : "—"}</strong><small>Avg effort</small></span></div>`;
+  card.innerHTML = `<header><span class="completion-check-small"><svg aria-hidden="true"><use href="#icon-check-smooth"></use></svg></span><div><small>Week ${week.number}</small><h2>Week Complete</h2><p>Excellent work — every workout is complete.</p></div></header><div class="workouts-week-statistics"><span><strong>${stats.workouts}/${stats.planned}</strong><small>Workouts</small></span><span><strong>${stats.minutes}</strong><small>Minutes</small></span><span><strong>${stats.volume.toLocaleString()}</strong><small>Volume kg</small></span><span><strong>${stats.sets}</strong><small>Sets</small></span><span><strong>${stats.effort ? stats.effort.toFixed(1) : "—"}</strong><small>Avg effort</small></span></div><p class="week-complete-insight">${insight}</p>`;
   return card;
 }
 
