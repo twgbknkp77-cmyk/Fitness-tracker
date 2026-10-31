@@ -26,7 +26,10 @@ function sessionExerciseIsStarred(exercise) {
   if (exercise.starred) return true;
   const wantedId=String(exercise.id||"");
   const wantedName=String(exercise.name||"").trim().toLowerCase();
-  return getProgrammes().some(programme=>(programme.weeks||[]).some(week=>(week.trainingDays||[]).some(day=>(day.exercises||[]).some(item=>item.starred&&((wantedId&&String(item.id||"")===wantedId)||String(item.name||"").trim().toLowerCase()===wantedName)))));
+  const programmes=getProgrammes();
+  const matchingProgramme=programmes.find(programme=>programme.id===currentSession?.programmeId);
+  const candidates=matchingProgramme?[matchingProgramme]:programmes;
+  return candidates.some(programme=>(programme.weeks||[]).some(week=>(week.trainingDays||[]).some(day=>(day.exercises||[]).some(item=>item.starred&&((wantedId&&String(item.id||"")===wantedId)||String(item.name||"").trim().toLowerCase()===wantedName)))));
 }
 
 function animateSessionCard(card, collapsing, done) {

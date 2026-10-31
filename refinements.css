@@ -420,3 +420,72 @@ body.session-active #workoutSession .session-action-bar .primary-button { displa
   .performance-dashboard-card { animation:none !important; }
   .performance-graph svg,.performance-summary-row,.performance-latest,.performance-point { transition:none !important; }
 }
+
+/* Cohesive action icons, weekly results and comment management. */
+.profile-goal-hero,.profile-group-panel {
+  border-color:rgba(255,140,0,.36) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+.outlined-icon-button,
+#toggleWeightFilters,#openWeightModal,#openProgressFilters,#statisticsFilterButton,
+.session-comment-button {
+  color:var(--orange) !important;
+  background:rgba(255,140,0,.08) !important;
+  border-color:rgba(255,140,0,.38) !important;
+}
+.outlined-icon-button svg,
+#toggleWeightFilters svg,#openWeightModal svg,#openProgressFilters svg,#statisticsFilterButton svg,
+.session-comment-button svg {
+  color:var(--orange) !important;
+  fill:none;stroke:currentColor;stroke-width:1.8;
+}
+.profile-row-icon,.profile-goal-icon,.workout-comment-icon {
+  border:1px solid rgba(255,140,0,.22);
+}
+
+.display-star {
+  display:block !important;
+  flex:0 0 24px;
+  width:24px !important;height:24px !important;
+  color:var(--orange);fill:var(--orange) !important;stroke:var(--orange) !important;
+  filter:drop-shadow(0 2px 5px rgba(255,140,0,.2));
+}
+.session-exercise-title { min-height:30px;align-items:center; }
+.session-exercise-title .display-star { right:1px !important;z-index:2; }
+.exercise-row > .display-star { top:17px !important;right:2px !important;transform:none !important; }
+
+.dashboard-status-card.is-week-complete {
+  border-color:rgba(255,140,0,.58) !important;
+  background:linear-gradient(145deg,rgba(255,140,0,.12),var(--card) 58%);
+}
+.dashboard-status-card.is-week-complete .dashboard-next-row { grid-template-columns:1fr; }
+.dashboard-status-card.is-week-complete .next-workout-copy { cursor:pointer; }
+.dashboard-status-card.is-week-complete #dashboardNextLabel { color:var(--orange);font-weight:900; }
+.dashboard-status-card.is-week-complete #nextWorkoutName { max-width:34ch;line-height:1.35; }
+
+.workouts-week-complete { border-color:rgba(255,140,0,.42) !important;background:linear-gradient(145deg,rgba(255,140,0,.09),var(--card) 55%); }
+.workouts-week-complete header { display:flex;align-items:center;gap:13px;margin-bottom:18px; }
+.workouts-week-complete header h2,.workouts-week-complete header p { margin:0; }
+.workouts-week-complete header small { color:var(--orange);font-weight:850;text-transform:uppercase;letter-spacing:.05em; }
+.workouts-week-complete header p { margin-top:4px;color:var(--grey);font-size:14px; }
+.workouts-week-statistics { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px; }
+.workouts-week-statistics span { display:grid;gap:3px;padding:11px 5px;text-align:center;background:#171717;border:1px solid #353535;border-radius:11px; }
+.workouts-week-statistics strong { font-size:17px; }
+.workouts-week-statistics small { color:var(--grey);font-size:10px;text-transform:uppercase; }
+
+.comments-block-toolbar { display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 16px;padding:0 3px; }
+.comments-block-toolbar h2,.comments-block-toolbar small { margin:0; }
+.comments-block-toolbar small { color:var(--grey); }
+.comment-week-card { margin-bottom:16px; }
+.comment-week-card > header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px; }
+.comment-week-card > header h2,.comment-week-card > header small { margin:0; }
+.comment-week-card > header small { color:var(--orange);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.05em; }
+.comment-entry-copy h3 { margin:0 0 2px;-webkit-user-select:none;user-select:none; }
+.comment-entry-copy > small { color:var(--grey); }
+.comment-entry-copy textarea { box-sizing:border-box;width:100%;min-height:92px;margin-top:10px;color:var(--white);background:#171717;border:1px solid #414141;border-radius:13px;font:inherit;font-size:16px;line-height:1.45;resize:vertical; }
+.comments-edit-cancel { display:block;width:100%;min-height:48px;margin-top:4px; }
+.performance-dashboard-card { animation:none !important; }
+
+@media (max-width:430px) {
+  .workouts-week-statistics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}

@@ -1218,6 +1218,48 @@ function renderLibrary() {
 
 
 // COMPACT WORKOUTS PAGE
+function libraryExerciseIsStarred(programme, exercise) {
+  if (exercise?.starred) return true;
+  const wantedId = String(exercise?.id || "");
+  const wantedName = String(exercise?.name || "").trim().toLowerCase();
+  return (programme?.weeks || []).some(week =>
+    (week.trainingDays || []).some(day =>
+      (day.exercises || []).some(candidate =>
+        Boolean(candidate.starred) && (
+          (wantedId && String(candidate.id || "") === wantedId) ||
+          String(candidate.name || "").trim().toLowerCase() === wantedName
+        )
+      )
+    )
+  );
+}
+
+function completedWeekSummary(programme, week, history) {
+  const sessions = history.filter(session =>
+    session.programmeId === programme.id &&
+    (session.weekId ? session.weekId === week.id : Number(session.weekNumber) === Number(week.number))
+  );
+  const workouts = new Set(sessions.map(session => session.workoutId || `${session.workoutName}-${session.finishedAt}`)).size;
+  const minutes = sessions.reduce((sum, session) => {
+    const start = new Date(session.startedAt).getTime();
+    const finish = new Date(session.finishedAt).getTime();
+    return sum + (Number.isFinite(start) && Number.isFinite(finish) ? Math.max(0, Math.round((finish - start) / 60000)) : 0);
+  }, 0);
+  const sets = sessions.reduce((sum, session) => sum + (session.exercises || []).reduce((exerciseTotal, exercise) =>
+    exerciseTotal + (exercise.sets || []).filter(set => set.completed || (set.weight !== "" && set.reps !== "")).length, 0), 0);
+  const efforts = sessions.flatMap(session => session.exercises || []).map(exercise => Number(exercise.effort)).filter(Boolean);
+  const effort = efforts.length ? efforts.reduce((sum, value) => sum + value, 0) / efforts.length : 0;
+  return { workouts, planned: (week.trainingDays || []).length, minutes, sets, effort };
+}
+
+function createCompletedWeekCard(programme, week, history) {
+  const stats = completedWeekSummary(programme, week, history);
+  const card = document.createElement("section");
+  card.className = "card workouts-week-complete";
+  card.innerHTML = `<header><span class="completion-check-small"><svg aria-hidden="true"><use href="#icon-check-smooth"></use></svg></span><div><small>Week ${week.number}</small><h2>Week Complete</h2><p>Excellent work — every workout is complete.</p></div></header><div class="workouts-week-statistics"><span><strong>${stats.workouts}/${stats.planned}</strong><small>Workouts</small></span><span><strong>${stats.minutes}</strong><small>Minutes</small></span><span><strong>${stats.sets}</strong><small>Sets</small></span><span><strong>${stats.effort ? stats.effort.toFixed(1) : "—"}</strong><small>Avg effort</small></span></div>`;
+  return card;
+}
+
 function renderActiveWorkout() {
   const container = document.getElementById("activeWorkout");
   if (!container) return;
@@ -1324,7 +1366,7 @@ function renderActiveWorkout() {
         row.className = "exercise-row";
         const exerciseName = document.createElement("strong");
         exerciseName.textContent = formatSpotTitle(exercise.name);
-        if (exercise.starred) {
+        if (libraryExerciseIsStarred(programme, exercise)) {
           const star = document.createElement("svg");
           star.classList.add("display-star");
           star.setAttribute("aria-label", "Starred exercise");
@@ -1369,10 +1411,7 @@ function renderActiveWorkout() {
   }
 
   if (remaining.length === 0) {
-    const complete = document.createElement("div");
-    complete.className = "card empty-state-card";
-    complete.innerHTML = "<p>All workouts in this week are complete.</p>";
-    container.appendChild(complete);
+    container.appendChild(createCompletedWeekCard(programme, week, history));
     return;
   }
 

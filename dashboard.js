@@ -347,6 +347,7 @@ function updateWorkoutSummary() {
       "weeklyProgressFill"
     );
   const nextLabel=document.getElementById("dashboardNextLabel");
+  const statusCard=nextName?.closest(".dashboard-status-card");
 
   if (
     !nextName ||
@@ -364,6 +365,7 @@ function updateWorkoutSummary() {
   );
 
   if (!programme) {
+    statusCard?.classList.remove("is-week-complete");
     if(nextLabel)nextLabel.textContent="Next Up";
     nextName.textContent =
       "No workout scheduled";
@@ -384,13 +386,15 @@ function updateWorkoutSummary() {
     localStorage.removeItem("spot_finished_week_state_v1");finishedWeek=null;
   }
   if(finishedWeek&&finishedWeek.programmeId===programme.id){
-    if(nextLabel)nextLabel.textContent="Week Finished";
-    nextName.textContent=`Week ${finishedWeek.weekNumber} Complete · ${finishedWeek.minutes||0} min`;
+    statusCard?.classList.add("is-week-complete");
+    if(nextLabel)nextLabel.textContent=`Week ${finishedWeek.weekNumber} Complete`;
+    nextName.textContent=`Excellent work — every workout is complete. ${finishedWeek.minutes||0} min · ${finishedWeek.sets||0} sets`;
     progressCount.textContent=`${finishedWeek.workouts||finishedWeek.planned||0}/${finishedWeek.planned||finishedWeek.workouts||0}`;
     progressFill.classList.add("progress-fill-animate");progressFill.style.width="100%";
     dashboardNextWorkoutId=null;dashboardNextDestination="workouts";dashboardStartWorkout.hidden=true;
     return;
   }
+  statusCard?.classList.remove("is-week-complete");
   if(nextLabel)nextLabel.textContent="Next Up";
 
   const week =
